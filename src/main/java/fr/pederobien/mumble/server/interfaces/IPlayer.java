@@ -1,0 +1,36 @@
+package fr.pederobien.mumble.server.interfaces;
+
+import java.net.InetAddress;
+import java.util.UUID;
+
+import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
+
+public interface IPlayer extends IUnmodifiableNominable {
+
+	/**
+	 * @return The address used by the player to play to the game.
+	 */
+	InetAddress getIp();
+
+	/**
+	 * @return The position in game of this player.
+	 */
+	IPosition getPosition();
+
+	/**
+	 * @return True if this player is an admin for this server.
+	 */
+	boolean isAdmin();
+
+	/**
+	 * Set if the player is admin or not.
+	 * 
+	 * @param isAdmin True if the player is admin, false otherwise.
+	 */
+	void setAdmin(boolean isAdmin);
+
+	/**
+	 * @return The unique identifier associated to this player.
+	 */
+	UUID getUUID();
+}

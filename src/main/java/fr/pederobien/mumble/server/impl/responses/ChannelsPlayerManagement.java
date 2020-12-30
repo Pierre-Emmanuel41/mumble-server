@@ -1,0 +1,68 @@
+package fr.pederobien.mumble.server.impl.responses;
+
+import java.util.Optional;
+
+import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.Header;
+import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IPlayer;
+
+public class ChannelsPlayerManagement extends AbstractManagement {
+
+	public ChannelsPlayerManagement(InternalServer internalServer) {
+		super(internalServer);
+	}
+
+	@Override
+	public IMessage<Header> apply(RequestEvent event) {
+		String channelName, playerName;
+		IChannel channel;
+
+		switch (event.getRequest().getHeader().getOid()) {
+		case ADD:
+			// Getting channel associated to the its name.
+			channelName = (String) event.getRequest().getPayload()[0];
+			channel = getInternalServer().getChannels().get(channelName);
+			if (channel == null)
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+
+			// Getting player associated to its name.
+			playerName = (String) event.getRequest().getPayload()[1];
+			final Optional<IPlayer> optPlayerAdd = getInternalServer().getPlayers().stream().filter(player -> player.getName().equals(playerName)).findFirst();
+			if (!optPlayerAdd.isPresent())
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+			// A player cannot be registered in two channel at the same time.
+			for (IChannel c : getInternalServer().getChannels().values())
+				for (IPlayer p : c.getPlayers())
+					if (p.equals(optPlayerAdd.get()))
+						return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
+
+			// Scheduling the action corresponding to add the player into the channel.
+			getInternalServer().ScheduleAction(() -> channel.addPlayer(optPlayerAdd.get()));
+			return event.getRequest().answer(channelName, playerName);
+		case REMOVE:
+			// Getting channel associated to the its name.
+			channelName = (String) event.getRequest().getPayload()[0];
+			channel = getInternalServer().getChannels().get(channelName);
+			if (channel == null)
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+
+			// Getting player associated to its name.
+			playerName = (String) event.getRequest().getPayload()[1];
+			final Optional<IPlayer> optPlayerRemove = getInternalServer().getPlayers().stream().filter(player -> player.getName().equals(playerName)).findFirst();
+			if (!optPlayerRemove.isPresent())
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+			// Scheduling the action corresponding to remove the player from the channel.
+			getInternalServer().ScheduleAction(() -> channel.removePlayer(optPlayerRemove.get()));
+			return event.getRequest().answer(channelName, playerName);
+		default:
+			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
+		}
+	}
+}
