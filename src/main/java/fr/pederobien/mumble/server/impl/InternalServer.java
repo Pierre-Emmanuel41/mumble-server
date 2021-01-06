@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -33,7 +30,6 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 	private Map<String, IChannel> channels;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
-	private ScheduledExecutorService executorService;
 	private BlockingQueueTask<Runnable> actions;
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
@@ -43,13 +39,7 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
 
-		executorService = Executors.newScheduledThreadPool(1, runnable -> {
-			Thread thread = new Thread(runnable);
-			thread.setDaemon(true);
-			return thread;
-		});
-
-		actions = new BlockingQueueTask<>(executorService, runnable -> runLater(runnable));
+		actions = new BlockingQueueTask<>("ScheduledActions", runnable -> runLater(runnable));
 	}
 
 	@Override
@@ -85,15 +75,10 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 	}
 
 	public void close() {
-		try {
-			notifyObservers(obs -> obs.onServerClosing());
-			tcpThread.interrupt();
-			actions.dispose();
-			isOpened = false;
-			executorService.awaitTermination(2000, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		notifyObservers(obs -> obs.onServerClosing());
+		tcpThread.interrupt();
+		actions.dispose();
+		isOpened = false;
 	}
 
 	public boolean isOpened() {
