@@ -29,6 +29,7 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 	private Player player;
 	private UUID uuid;
 	private InetAddress address;
+	private Channel channel;
 
 	protected Client(InternalServer internalServer, Map<UUID, Client> clients) {
 		this.internalServer = internalServer;
@@ -82,7 +83,10 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 
 	@Override
 	public void onConnectionLost() {
+		System.out.println("Connection lost with the client");
 		serverConnection.removeObserver(this);
+		if (channel != null)
+			channel.removePlayer(getPlayer());
 	}
 
 	@Override
@@ -149,6 +153,14 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 
 	public void sendAdminChanged(boolean isAdmin) {
 		send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, isAdmin));
+	}
+
+	public Channel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(Channel channel) {
+		this.channel = channel;
 	}
 
 	private void sendPlayerStatusChanged(boolean isConnected) {

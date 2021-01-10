@@ -7,6 +7,7 @@ import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.impl.Channel;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -20,13 +21,13 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
 		String channelName, playerName;
-		IChannel channel;
+		Channel channel;
 
 		switch (event.getRequest().getHeader().getOid()) {
 		case ADD:
 			// Getting channel associated to the its name.
 			channelName = (String) event.getRequest().getPayload()[0];
-			channel = getInternalServer().getChannels().get(channelName);
+			channel = (Channel) getInternalServer().getChannels().get(channelName);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
@@ -43,12 +44,15 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 						return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
 
 			// Scheduling the action corresponding to add the player into the channel.
-			getInternalServer().ScheduleAction(() -> channel.addPlayer(optPlayerAdd.get()));
+			getInternalServer().ScheduleAction(() -> {
+				channel.addPlayer(optPlayerAdd.get());
+				event.getClient().setChannel(channel);
+			});
 			return event.getRequest().answer(channelName, playerName);
 		case REMOVE:
 			// Getting channel associated to the its name.
 			channelName = (String) event.getRequest().getPayload()[0];
-			channel = getInternalServer().getChannels().get(channelName);
+			channel = (Channel) getInternalServer().getChannels().get(channelName);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
@@ -59,7 +63,10 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
 			// Scheduling the action corresponding to remove the player from the channel.
-			getInternalServer().ScheduleAction(() -> channel.removePlayer(optPlayerRemove.get()));
+			getInternalServer().ScheduleAction(() -> {
+				channel.removePlayer(optPlayerRemove.get());
+				event.getClient().setChannel(null);
+			});
 			return event.getRequest().answer(channelName, playerName);
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

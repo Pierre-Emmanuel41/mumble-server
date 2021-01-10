@@ -40,6 +40,8 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 		requestManagement = new RequestManagement(this);
 
 		actions = new BlockingQueueTask<>("ScheduledActions", runnable -> runLater(runnable));
+
+		addChannel("General");
 	}
 
 	@Override
