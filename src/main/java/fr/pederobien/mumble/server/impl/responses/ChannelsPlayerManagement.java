@@ -37,7 +37,7 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 			if (!optPlayerAdd.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
-			// A player cannot be registered in two channel at the same time.
+			// A player cannot be registered in two channels at the same time.
 			for (IChannel c : getInternalServer().getChannels().values())
 				for (IPlayer p : c.getPlayers())
 					if (p.equals(optPlayerAdd.get()))

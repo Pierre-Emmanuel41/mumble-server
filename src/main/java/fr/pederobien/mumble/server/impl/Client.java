@@ -35,6 +35,7 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		this.internalServer = internalServer;
 		this.clients = clients;
 		internalServer.addObserver(this);
+		internalServer.getChannels().values().forEach(channel -> channel.addObserver(this));
 	}
 
 	@Override
@@ -83,7 +84,6 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 
 	@Override
 	public void onConnectionLost() {
-		System.out.println("Connection lost with the client");
 		serverConnection.removeObserver(this);
 		if (channel != null)
 			channel.removePlayer(getPlayer());
