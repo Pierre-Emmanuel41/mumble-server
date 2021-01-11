@@ -87,8 +87,8 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 		return isOpened;
 	}
 
-	public Client getOrCreateClient(InetAddress address) {
-		Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().equals(address)).findFirst();
+	public Client getOrCreateClient(InetSocketAddress address) {
+		Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
 		if (optClient.isPresent())
 			return optClient.get();
 		else

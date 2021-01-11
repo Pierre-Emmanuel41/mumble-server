@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
@@ -10,7 +10,7 @@ public interface IPlayer extends IUnmodifiableNominable {
 	/**
 	 * @return The address used by the player to play to the game.
 	 */
-	InetAddress getIp();
+	InetSocketAddress getIp();
 
 	/**
 	 * @return The position in game of this player.

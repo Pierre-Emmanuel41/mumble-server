@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -36,7 +37,7 @@ public class TCPServerThread extends Thread {
 		while (!server.isClosed()) {
 			try {
 				Socket socket = server.accept();
-				internalServer.getOrCreateClient(socket.getInetAddress()).setConnection(new ServerConnection(socket, new MessageExtractor()));
+				internalServer.getOrCreateClient((InetSocketAddress) socket.getRemoteSocketAddress()).setConnection(new ServerConnection(socket, new MessageExtractor()));
 			} catch (IOException e) {
 				// When server is closing
 			}

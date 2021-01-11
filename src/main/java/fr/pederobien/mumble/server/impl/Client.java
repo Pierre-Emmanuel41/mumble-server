@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 	private IConnection serverConnection;
 	private Player player;
 	private UUID uuid;
-	private InetAddress address;
+	private InetSocketAddress address;
 	private Channel channel;
 
 	protected Client(InternalServer internalServer, Map<UUID, Client> clients) {
@@ -143,11 +143,11 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		clients.put(uuid, this);
 	}
 
-	public InetAddress getAddress() {
+	public InetSocketAddress getAddress() {
 		return serverConnection == null ? address : serverConnection.getAddress();
 	}
 
-	public void setAddress(InetAddress address) {
+	public void setAddress(InetSocketAddress address) {
 		this.address = address;
 	}
 

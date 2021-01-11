@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
@@ -8,14 +7,14 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 
 public class Player implements IPlayer {
-	private InetAddress address;
+	private InetSocketAddress address;
 	private String name;
 	private IPosition position;
 	private Client client;
 	private boolean isAdmin;
 
 	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
-		this.address = address.getAddress();
+		this.address = address;
 		this.name = name;
 		this.isAdmin = isAdmin;
 		position = new Position();
@@ -27,7 +26,7 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public InetAddress getIp() {
+	public InetSocketAddress getIp() {
 		return address;
 	}
 
