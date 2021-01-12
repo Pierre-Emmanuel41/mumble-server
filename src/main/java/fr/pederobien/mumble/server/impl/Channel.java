@@ -70,6 +70,11 @@ public class Channel implements IChannel {
 			removePlayer(players.get(0));
 	}
 
+	@Override
+	public String toString() {
+		return "Channel={" + name + "}";
+	}
+
 	private void notifyObservers(Consumer<IObsChannel> consumer) {
 		observers.notifyObservers(consumer);
 	}

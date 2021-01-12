@@ -35,7 +35,7 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		this.internalServer = internalServer;
 		this.clients = clients;
 		internalServer.addObserver(this);
-		internalServer.getChannels().values().forEach(channel -> channel.addObserver(this));
+		internalServer.getChannels().forEach(channel -> channel.addObserver(this));
 	}
 
 	@Override

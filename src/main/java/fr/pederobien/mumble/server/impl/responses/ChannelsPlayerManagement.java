@@ -27,7 +27,7 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 		case ADD:
 			// Getting channel associated to the its name.
 			channelName = (String) event.getRequest().getPayload()[0];
-			channel = (Channel) getInternalServer().getChannels().get(channelName);
+			channel = (Channel) getInternalServer().getChannel(channelName);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
@@ -38,7 +38,7 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
 			// A player cannot be registered in two channels at the same time.
-			for (IChannel c : getInternalServer().getChannels().values())
+			for (IChannel c : getInternalServer().getChannels())
 				for (IPlayer p : c.getPlayers())
 					if (p.equals(optPlayerAdd.get()))
 						return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
@@ -52,7 +52,7 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 		case REMOVE:
 			// Getting channel associated to the its name.
 			channelName = (String) event.getRequest().getPayload()[0];
-			channel = (Channel) getInternalServer().getChannels().get(channelName);
+			channel = (Channel) getInternalServer().getChannel(channelName);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 

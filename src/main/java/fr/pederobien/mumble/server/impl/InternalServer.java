@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -18,16 +19,15 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
-public class InternalServer implements IObservable<IObsServer>, IObsChannel {
+public class InternalServer implements IObservable<IObsServer> {
 	private TCPServerThread tcpThread;
 	private boolean isOpened;
 	private Map<UUID, Client> clients;
-	private Map<String, IChannel> channels;
+	private List<IChannel> channels;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
 	private BlockingQueueTask<Runnable> actions;
@@ -35,7 +35,7 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
 		tcpThread = new TCPServerThread(this, address, tcpPort);
 		clients = new HashMap<UUID, Client>();
-		channels = new HashMap<String, IChannel>();
+		channels = new ArrayList<IChannel>();
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
 
@@ -52,22 +52,6 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 	@Override
 	public void removeObserver(IObsServer obs) {
 		observers.removeObserver(obs);
-	}
-
-	@Override
-	public void onChannelRenamed(IChannel channel, String oldName, String newName) {
-		channels.remove(oldName);
-		channels.put(newName, channel);
-	}
-
-	@Override
-	public void onPlayerAdded(IChannel channel, IPlayer player) {
-
-	}
-
-	@Override
-	public void onPlayerRemoved(IChannel channel, IPlayer player) {
-
 	}
 
 	public void open() {
@@ -112,32 +96,32 @@ public class InternalServer implements IObservable<IObsServer>, IObsChannel {
 	}
 
 	public IChannel addChannel(String name) {
-		IChannel existingChannel = channels.get(name);
+		IChannel existingChannel = getChannel(name);
 		if (existingChannel != null)
 			throw new ChannelAlreadyExistException(name);
 
 		IChannel channel = new Channel(name);
-		channels.put(name, channel);
-		channel.addObserver(this);
+		channels.add(channel);
 		notifyObservers(obs -> obs.onChannelAdded(channel));
 		return channel;
 	}
 
 	public IChannel removeChannel(String name) {
-		IChannel channel = channels.remove(name);
+		IChannel channel = getChannel(name);
 		if (channel != null) {
-			channel.removeObserver(this);
+			channels.remove(channel);
 			notifyObservers(obs -> obs.onChannelRemoved(channel));
 		}
 		return channel;
 	}
 
-	public Map<String, IChannel> getChannels() {
-		return Collections.unmodifiableMap(channels);
+	public List<IChannel> getChannels() {
+		return Collections.unmodifiableList(channels);
 	}
 
 	public IChannel getChannel(String channelName) {
-		return channels.get(channelName);
+		Optional<IChannel> optChannel = channels.stream().filter(c -> c.getName().equals(channelName)).findFirst();
+		return optChannel.isPresent() ? optChannel.get() : null;
 	}
 
 	public void clearChannels() {

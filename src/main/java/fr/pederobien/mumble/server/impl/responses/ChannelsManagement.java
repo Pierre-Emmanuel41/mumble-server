@@ -25,7 +25,8 @@ public class ChannelsManagement extends AbstractManagement {
 			List<Object> informations = new ArrayList<Object>();
 			informations.add(getInternalServer().getChannels().size());
 
-			for (IChannel channel : getInternalServer().getChannels().values()) {
+			for (IChannel channel : getInternalServer().getChannels()) {
+				System.out.println(channel);
 				informations.add(channel.getName());
 				informations.add(channel.getPlayers().size());
 
@@ -35,7 +36,7 @@ public class ChannelsManagement extends AbstractManagement {
 			return event.getRequest().answer(informations.toArray());
 		case ADD:
 			String addChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canAddChannel = !getInternalServer().getChannels().containsKey(addChannelName);
+			boolean canAddChannel = getInternalServer().getChannel(addChannelName) == null;
 			if (canAddChannel) {
 				getInternalServer().ScheduleAction(() -> getInternalServer().addChannel(addChannelName));
 				return event.getRequest().answer(addChannelName);
@@ -43,7 +44,7 @@ public class ChannelsManagement extends AbstractManagement {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
 		case REMOVE:
 			String removeChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canRemoveChannel = getInternalServer().getChannels().containsKey(removeChannelName);
+			boolean canRemoveChannel = getInternalServer().getChannel(removeChannelName) != null;
 			if (canRemoveChannel) {
 				getInternalServer().ScheduleAction(() -> getInternalServer().removeChannel(removeChannelName));
 				return event.getRequest().answer(removeChannelName);
@@ -52,7 +53,7 @@ public class ChannelsManagement extends AbstractManagement {
 		case SET:
 			String oldName = (String) event.getRequest().getPayload()[0];
 			String newName = (String) event.getRequest().getPayload()[1];
-			boolean canRenameChannel = getInternalServer().getChannels().containsKey(oldName) && !getInternalServer().getChannels().containsKey(newName);
+			boolean canRenameChannel = (getInternalServer().getChannel(oldName) != null) && (getInternalServer().getChannel(newName) == null);
 			if (canRenameChannel) {
 				getInternalServer().ScheduleAction(() -> getInternalServer().getChannel(oldName).setName(newName));
 				return event.getRequest().answer(oldName, newName);
