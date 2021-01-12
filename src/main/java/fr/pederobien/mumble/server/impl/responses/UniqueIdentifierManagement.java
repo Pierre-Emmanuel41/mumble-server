@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.server.impl.responses;
 
-import java.util.UUID;
-
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
@@ -19,13 +17,6 @@ public class UniqueIdentifierManagement extends AbstractManagement {
 	public IMessage<Header> apply(RequestEvent event) {
 		switch (event.getRequest().getHeader().getOid()) {
 		case GET:
-			return event.getRequest().answer(event.getClient().getUUID().toString());
-		case SET:
-			try {
-				event.getClient().setUUID(UUID.fromString((String) event.getRequest().getPayload()[0]));
-			} catch (ClassCastException | IndexOutOfBoundsException e) {
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
-			}
 			return event.getRequest().answer(event.getClient().getUUID().toString());
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

@@ -30,6 +30,11 @@ public interface IPlayer extends IUnmodifiableNominable {
 	void setAdmin(boolean isAdmin);
 
 	/**
+	 * @return True if the player is connected in game, false otherwise;
+	 */
+	boolean isOnline();
+
+	/**
 	 * @return The unique identifier associated to this player.
 	 */
 	UUID getUUID();

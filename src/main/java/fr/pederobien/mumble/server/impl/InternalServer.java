@@ -75,13 +75,13 @@ public class InternalServer implements IObservable<IObsServer> {
 		if (optClient.isPresent())
 			return optClient.get();
 		else
-			return createClient();
+			return createClient(address);
 	}
 
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		synchronized (lockPlayers) {
-			Player player = new Player(address, playerName, isAdmin);
-			player.setClient(getOrCreateClient(player.getIp()));
+			Player player = getOrCreatePlayer(address, playerName, isAdmin);
+			player.setIsOnline(true);
 			return player;
 		}
 	}
@@ -90,7 +90,7 @@ public class InternalServer implements IObservable<IObsServer> {
 		synchronized (lockPlayers) {
 			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
 			if (optClient.isPresent())
-				optClient.get().setPlayer(null);
+				optClient.get().getPlayer().setIsOnline(false);
 		}
 	}
 
@@ -149,10 +149,9 @@ public class InternalServer implements IObservable<IObsServer> {
 		observers.notifyObservers(consumer);
 	}
 
-	private Client createClient() {
+	private Client createClient(InetSocketAddress address) {
 		UUID uuid = createUUID();
-		Client client = new Client(this, clients);
-		client.setUUID(uuid);
+		Client client = new Client(this, uuid, address);
 		clients.put(uuid, client);
 		return client;
 	}
@@ -169,5 +168,12 @@ public class InternalServer implements IObservable<IObsServer> {
 			} while (uuidAlreadyExists);
 		}
 		return uuid;
+	}
+
+	private Player getOrCreatePlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
+		Client client = getOrCreateClient(address);
+		if (client.getPlayer() == null)
+			client.setPlayer(new Player(address, playerName, isAdmin));
+		return client.getPlayer();
 	}
 }

@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.UUID;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
@@ -23,7 +22,6 @@ import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
 public class Client implements IObsServer, IObsChannel, IObsConnection {
-	private Map<UUID, Client> clients;
 	private InternalServer internalServer;
 	private IConnection serverConnection;
 	private Player player;
@@ -31,9 +29,10 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 	private InetSocketAddress address;
 	private Channel channel;
 
-	protected Client(InternalServer internalServer, Map<UUID, Client> clients) {
+	protected Client(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
 		this.internalServer = internalServer;
-		this.clients = clients;
+		this.uuid = uuid;
+		this.address = address;
 		internalServer.addObserver(this);
 		internalServer.getChannels().forEach(channel -> channel.addObserver(this));
 	}
@@ -130,25 +129,15 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 
 	public void setPlayer(Player player) {
 		this.player = player;
-		sendPlayerStatusChanged(player != null);
+		player.setClient(this);
 	}
 
 	public UUID getUUID() {
 		return uuid;
 	}
 
-	public void setUUID(UUID uuid) {
-		clients.remove(this.uuid);
-		this.uuid = uuid;
-		clients.put(uuid, this);
-	}
-
 	public InetSocketAddress getAddress() {
 		return serverConnection == null ? address : serverConnection.getAddress();
-	}
-
-	public void setAddress(InetSocketAddress address) {
-		this.address = address;
 	}
 
 	public void sendAdminChanged(boolean isAdmin) {
@@ -163,11 +152,14 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		this.channel = channel;
 	}
 
-	private void sendPlayerStatusChanged(boolean isConnected) {
+	public void sendPlayerStatusChanged(boolean isConnected) {
 		if (isConnected)
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, true, getPlayer().getName(), getPlayer().isAdmin()));
-		else
+		else {
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, false));
+			if (channel != null)
+				channel.removePlayer(player);
+		}
 	}
 
 	private void send(IMessage<Header> message) {
@@ -200,6 +192,14 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 				return player != null && player.isAdmin();
 			default:
 				return true;
+			}
+		case CHANNELS_PLAYER:
+			switch (request.getHeader().getOid()) {
+			case ADD:
+			case REMOVE:
+				return player != null && player.isOnline();
+			default:
+				return false;
 			}
 		default:
 			return player != null && player.isAdmin();

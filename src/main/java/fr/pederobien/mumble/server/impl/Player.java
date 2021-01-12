@@ -11,13 +11,15 @@ public class Player implements IPlayer {
 	private String name;
 	private IPosition position;
 	private Client client;
-	private boolean isAdmin;
+	private boolean isAdmin, isOnline;
 
 	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
 		this.address = address;
 		this.name = name;
 		this.isAdmin = isAdmin;
+
 		position = new Position();
+		isOnline = false;
 	}
 
 	@Override
@@ -50,6 +52,11 @@ public class Player implements IPlayer {
 	}
 
 	@Override
+	public boolean isOnline() {
+		return isOnline;
+	}
+
+	@Override
 	public String toString() {
 		return "Player={" + address + "," + name + "}";
 	}
@@ -73,7 +80,12 @@ public class Player implements IPlayer {
 
 	public void setClient(Client client) {
 		this.client = client;
-		client.setPlayer(this);
-		client.setAddress(address);
+	}
+
+	public void setIsOnline(boolean isOnline) {
+		if (this.isOnline == isOnline)
+			return;
+		this.isOnline = isOnline;
+		client.sendPlayerStatusChanged(isOnline);
 	}
 }
