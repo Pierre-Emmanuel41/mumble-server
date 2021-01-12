@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import fr.pederobien.communication.impl.BlockingQueueTask;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.server.event.RequestEvent;
@@ -30,7 +29,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	private List<IChannel> channels;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
-	private BlockingQueueTask<Runnable> actions;
+	private Object lockChannels, lockPlayers;
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
 		tcpThread = new TCPServerThread(this, address, tcpPort);
@@ -39,9 +38,11 @@ public class InternalServer implements IObservable<IObsServer> {
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
 
-		actions = new BlockingQueueTask<>("ScheduledActions", runnable -> runLater(runnable));
+		lockChannels = new Object();
+		lockPlayers = new Object();
 
 		addChannel("General");
+		addChannel("Channel 0");
 	}
 
 	@Override
@@ -55,7 +56,6 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	public void open() {
-		actions.start();
 		tcpThread.start();
 		isOpened = true;
 	}
@@ -63,7 +63,6 @@ public class InternalServer implements IObservable<IObsServer> {
 	public void close() {
 		notifyObservers(obs -> obs.onServerClosing());
 		tcpThread.interrupt();
-		actions.dispose();
 		isOpened = false;
 	}
 
@@ -80,15 +79,19 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		Player player = new Player(address, playerName, isAdmin);
-		player.setClient(getOrCreateClient(player.getIp()));
-		return player;
+		synchronized (lockPlayers) {
+			Player player = new Player(address, playerName, isAdmin);
+			player.setClient(getOrCreateClient(player.getIp()));
+			return player;
+		}
 	}
 
 	public void removePlayer(String playerName) {
-		Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
-		if (optClient.isPresent())
-			optClient.get().setPlayer(null);
+		synchronized (lockPlayers) {
+			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
+			if (optClient.isPresent())
+				optClient.get().setPlayer(null);
+		}
 	}
 
 	public List<IPlayer> getPlayers() {
@@ -96,27 +99,33 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	public IChannel addChannel(String name) {
-		IChannel existingChannel = getChannel(name);
-		if (existingChannel != null)
-			throw new ChannelAlreadyExistException(name);
+		synchronized (lockChannels) {
+			IChannel existingChannel = getChannel(name);
+			if (existingChannel != null)
+				throw new ChannelAlreadyExistException(name);
 
-		IChannel channel = new Channel(name);
-		channels.add(channel);
-		notifyObservers(obs -> obs.onChannelAdded(channel));
-		return channel;
+			IChannel channel = new Channel(name);
+			channels.add(channel);
+			notifyObservers(obs -> obs.onChannelAdded(channel));
+			return channel;
+		}
 	}
 
 	public IChannel removeChannel(String name) {
-		IChannel channel = getChannel(name);
-		if (channel != null) {
-			channels.remove(channel);
-			notifyObservers(obs -> obs.onChannelRemoved(channel));
+		synchronized (lockChannels) {
+			IChannel channel = getChannel(name);
+			if (channel != null) {
+				channels.remove(channel);
+				notifyObservers(obs -> obs.onChannelRemoved(channel));
+			}
+			return channel;
 		}
-		return channel;
 	}
 
 	public List<IChannel> getChannels() {
-		return Collections.unmodifiableList(channels);
+		synchronized (lockChannels) {
+			return Collections.unmodifiableList(channels);
+		}
 	}
 
 	public IChannel getChannel(String channelName) {
@@ -134,10 +143,6 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public IMessage<Header> answer(RequestEvent event) {
 		return requestManagement.answer(event);
-	}
-
-	public void ScheduleAction(Runnable runnable) {
-		actions.add(runnable);
 	}
 
 	private void notifyObservers(Consumer<IObsServer> consumer) {
@@ -164,14 +169,5 @@ public class InternalServer implements IObservable<IObsServer> {
 			} while (uuidAlreadyExists);
 		}
 		return uuid;
-	}
-
-	private void runLater(Runnable runnable) {
-		try {
-			Thread.sleep(10);
-			runnable.run();
-		} catch (InterruptedException e) {
-
-		}
 	}
 }

@@ -26,7 +26,6 @@ public class ChannelsManagement extends AbstractManagement {
 			informations.add(getInternalServer().getChannels().size());
 
 			for (IChannel channel : getInternalServer().getChannels()) {
-				System.out.println(channel);
 				informations.add(channel.getName());
 				informations.add(channel.getPlayers().size());
 
@@ -38,7 +37,7 @@ public class ChannelsManagement extends AbstractManagement {
 			String addChannelName = (String) event.getRequest().getPayload()[0];
 			boolean canAddChannel = getInternalServer().getChannel(addChannelName) == null;
 			if (canAddChannel) {
-				getInternalServer().ScheduleAction(() -> getInternalServer().addChannel(addChannelName));
+				getInternalServer().addChannel(addChannelName);
 				return event.getRequest().answer(addChannelName);
 			} else
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
@@ -46,7 +45,7 @@ public class ChannelsManagement extends AbstractManagement {
 			String removeChannelName = (String) event.getRequest().getPayload()[0];
 			boolean canRemoveChannel = getInternalServer().getChannel(removeChannelName) != null;
 			if (canRemoveChannel) {
-				getInternalServer().ScheduleAction(() -> getInternalServer().removeChannel(removeChannelName));
+				getInternalServer().removeChannel(removeChannelName);
 				return event.getRequest().answer(removeChannelName);
 			} else
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
@@ -55,7 +54,7 @@ public class ChannelsManagement extends AbstractManagement {
 			String newName = (String) event.getRequest().getPayload()[1];
 			boolean canRenameChannel = (getInternalServer().getChannel(oldName) != null) && (getInternalServer().getChannel(newName) == null);
 			if (canRenameChannel) {
-				getInternalServer().ScheduleAction(() -> getInternalServer().getChannel(oldName).setName(newName));
+				getInternalServer().getChannel(oldName).setName(newName);
 				return event.getRequest().answer(oldName, newName);
 			} else
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);

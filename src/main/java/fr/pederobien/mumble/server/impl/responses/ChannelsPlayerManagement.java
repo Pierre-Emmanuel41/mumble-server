@@ -43,11 +43,9 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 					if (p.equals(optPlayerAdd.get()))
 						return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
 
-			// Scheduling the action corresponding to add the player into the channel.
-			getInternalServer().ScheduleAction(() -> {
-				channel.addPlayer(optPlayerAdd.get());
-				event.getClient().setChannel(channel);
-			});
+			// Doing modification on the server.
+			channel.addPlayer(optPlayerAdd.get());
+			event.getClient().setChannel(channel);
 			return event.getRequest().answer(channelName, playerName);
 		case REMOVE:
 			// Getting channel associated to the its name.
@@ -62,11 +60,9 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 			if (!optPlayerRemove.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
-			// Scheduling the action corresponding to remove the player from the channel.
-			getInternalServer().ScheduleAction(() -> {
-				channel.removePlayer(optPlayerRemove.get());
-				event.getClient().setChannel(null);
-			});
+			// doing modification on the server.
+			channel.removePlayer(optPlayerRemove.get());
+			event.getClient().setChannel(null);
 			return event.getRequest().answer(channelName, playerName);
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
