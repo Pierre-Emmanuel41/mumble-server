@@ -104,19 +104,21 @@ public class InternalServer implements IObservable<IObsServer> {
 			if (existingChannel != null)
 				throw new ChannelAlreadyExistException(name);
 
-			IChannel channel = new Channel(name);
+			Channel channel = new Channel(name);
 			channels.add(channel);
 			notifyObservers(obs -> obs.onChannelAdded(channel));
+			addObserver(channel);
 			return channel;
 		}
 	}
 
 	public IChannel removeChannel(String name) {
 		synchronized (lockChannels) {
-			IChannel channel = getChannel(name);
+			Channel channel = (Channel) getChannel(name);
 			if (channel != null) {
 				channels.remove(channel);
 				notifyObservers(obs -> obs.onChannelRemoved(channel));
+				removeObserver(channel);
 			}
 			return channel;
 		}

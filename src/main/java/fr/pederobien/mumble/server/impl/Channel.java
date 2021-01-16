@@ -8,9 +8,10 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
+import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.Observable;
 
-public class Channel implements IChannel {
+public class Channel implements IChannel, IObsServer {
 	private String name;
 	private List<IPlayer> players;
 	private Observable<IObsChannel> observers;
@@ -68,6 +69,21 @@ public class Channel implements IChannel {
 		int size = players.size();
 		for (int i = 0; i < size; i++)
 			removePlayer(players.get(0));
+	}
+
+	@Override
+	public void onChannelAdded(IChannel channel) {
+
+	}
+
+	@Override
+	public void onChannelRemoved(IChannel channel) {
+
+	}
+
+	@Override
+	public void onServerClosing() {
+		clear();
 	}
 
 	@Override
