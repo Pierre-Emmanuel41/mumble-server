@@ -1,17 +1,20 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.UUID;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
+import fr.pederobien.communication.impl.ServerConnection;
 import fr.pederobien.communication.interfaces.IConnection;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
@@ -118,8 +121,8 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		return uuid.equals(other.getUUID()) || getAddress().equals(other.getAddress());
 	}
 
-	public void setConnection(IConnection serverConnection) {
-		this.serverConnection = serverConnection;
+	public void createTcpConnection(Socket socket) {
+		this.serverConnection = new ServerConnection(socket, new MessageExtractor());
 		serverConnection.addObserver(this);
 	}
 
