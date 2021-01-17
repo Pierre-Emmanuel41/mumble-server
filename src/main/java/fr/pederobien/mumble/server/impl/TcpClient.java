@@ -24,7 +24,7 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
-public class Client implements IObsServer, IObsChannel, IObsConnection {
+public class TcpClient implements IObsServer, IObsChannel, IObsConnection {
 	private InternalServer internalServer;
 	private IConnection serverConnection;
 	private Player player;
@@ -32,7 +32,7 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 	private InetSocketAddress address;
 	private Channel channel;
 
-	protected Client(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
+	protected TcpClient(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
 		this.internalServer = internalServer;
 		this.uuid = uuid;
 		this.address = address;
@@ -114,10 +114,10 @@ public class Client implements IObsServer, IObsChannel, IObsConnection {
 		if (this == obj)
 			return true;
 
-		if (!(obj instanceof Client))
+		if (!(obj instanceof TcpClient))
 			return false;
 
-		Client other = (Client) obj;
+		TcpClient other = (TcpClient) obj;
 		return uuid.equals(other.getUUID()) || getAddress().equals(other.getAddress());
 	}
 
