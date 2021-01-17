@@ -6,13 +6,13 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TCPServerThread extends Thread {
+public class TcpServerThread extends Thread {
 	private InternalServer internalServer;
 	private ServerSocket server;
 	private InetAddress address;
 	private int port;
 
-	protected TCPServerThread(InternalServer internalServer, InetAddress address, int port) {
+	protected TcpServerThread(InternalServer internalServer, InetAddress address, int port) {
 		this.internalServer = internalServer;
 		this.address = address;
 		this.port = port;

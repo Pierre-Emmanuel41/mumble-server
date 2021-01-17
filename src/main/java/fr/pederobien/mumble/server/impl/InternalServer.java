@@ -23,7 +23,7 @@ import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
 public class InternalServer implements IObservable<IObsServer> {
-	private TCPServerThread tcpThread;
+	private TcpServerThread tcpThread;
 	private boolean isOpened;
 	private Map<UUID, TcpClient> clients;
 	private List<IChannel> channels;
@@ -32,7 +32,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	private Object lockChannels, lockPlayers;
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
-		tcpThread = new TCPServerThread(this, address, tcpPort);
+		tcpThread = new TcpServerThread(this, address, tcpPort);
 		clients = new HashMap<UUID, TcpClient>();
 		channels = new ArrayList<IChannel>();
 		observers = new Observable<IObsServer>();
