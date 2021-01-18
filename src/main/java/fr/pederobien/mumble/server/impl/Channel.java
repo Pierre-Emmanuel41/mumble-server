@@ -13,12 +13,12 @@ import fr.pederobien.utils.Observable;
 
 public class Channel implements IChannel, IObsServer {
 	private String name;
-	private List<IPlayer> players;
+	private List<Player> players;
 	private Observable<IObsChannel> observers;
 
 	public Channel(String name) {
 		this.name = name;
-		players = new ArrayList<IPlayer>();
+		players = new ArrayList<Player>();
 		observers = new Observable<IObsChannel>();
 	}
 
@@ -49,7 +49,7 @@ public class Channel implements IChannel, IObsServer {
 
 	@Override
 	public void addPlayer(IPlayer player) {
-		players.add(player);
+		players.add((Player) player);
 		notifyObservers(obs -> obs.onPlayerAdded(this, player));
 	}
 
