@@ -7,8 +7,8 @@ import java.util.UUID;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
-import fr.pederobien.communication.impl.ServerConnection;
-import fr.pederobien.communication.interfaces.IConnection;
+import fr.pederobien.communication.impl.TcpServerConnection;
+import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -26,7 +26,7 @@ import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
 public class TcpClient implements IObsServer, IObsChannel, IObsConnection {
 	private InternalServer internalServer;
-	private IConnection serverConnection;
+	private ITcpConnection serverConnection;
 	private Player player;
 	private UUID uuid;
 	private InetSocketAddress address;
@@ -122,7 +122,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsConnection {
 	}
 
 	public void createTcpConnection(Socket socket) {
-		this.serverConnection = new ServerConnection(socket, new MessageExtractor());
+		this.serverConnection = new TcpServerConnection(socket, new MessageExtractor());
 		serverConnection.addObserver(this);
 	}
 
