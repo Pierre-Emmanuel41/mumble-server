@@ -9,7 +9,7 @@ import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpServerConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.communication.interfaces.IObsConnection;
+import fr.pederobien.communication.interfaces.IObsTcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
@@ -24,7 +24,7 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
-public class TcpClient implements IObsServer, IObsChannel, IObsConnection {
+public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	private InternalServer internalServer;
 	private ITcpConnection serverConnection;
 	private Player player;
