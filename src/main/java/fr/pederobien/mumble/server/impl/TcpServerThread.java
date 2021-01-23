@@ -34,7 +34,7 @@ public class TcpServerThread extends Thread {
 		while (!server.isClosed()) {
 			try {
 				Socket socket = server.accept();
-				internalServer.getOrCreateClient((InetSocketAddress) socket.getRemoteSocketAddress()).createTcpConnection(socket);
+				internalServer.getOrCreateClient((InetSocketAddress) socket.getRemoteSocketAddress()).createTcpClient(socket);
 			} catch (IOException e) {
 				// When server is closing
 			}

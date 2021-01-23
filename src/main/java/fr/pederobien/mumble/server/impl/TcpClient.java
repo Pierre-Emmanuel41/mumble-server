@@ -1,20 +1,16 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.UUID;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
-import fr.pederobien.communication.impl.TcpServerConnection;
-import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IObsTcpConnection;
+import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
@@ -26,16 +22,15 @@ import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
 public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	private InternalServer internalServer;
-	private ITcpConnection serverConnection;
-	private Player player;
-	private UUID uuid;
-	private InetSocketAddress address;
-	private Channel channel;
+	private Client client;
+	private ITcpConnection connection;
 
-	protected TcpClient(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
+	public TcpClient(InternalServer internalServer, Client client, ITcpConnection connection) {
 		this.internalServer = internalServer;
-		this.uuid = uuid;
-		this.address = address;
+		this.client = client;
+		this.connection = connection;
+
+		connection.addObserver(this);
 		internalServer.addObserver(this);
 		internalServer.getChannels().forEach(channel -> channel.addObserver(this));
 	}
@@ -69,8 +64,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 
 	@Override
 	public void onServerClosing() {
-		if (serverConnection != null)
-			serverConnection.dispose();
+		connection.dispose();
 		internalServer.removeObserver(this);
 	}
 
@@ -86,9 +80,9 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 
 	@Override
 	public void onConnectionLost() {
-		serverConnection.removeObserver(this);
-		if (channel != null)
-			channel.removePlayer(getPlayer());
+		connection.removeObserver(this);
+		if (client.getChannel() != null)
+			client.getChannel().removePlayer(client.getPlayer());
 	}
 
 	@Override
@@ -104,71 +98,33 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		IMessage<Header> request = MumbleMessageFactory.parse(event.getAnswer());
 		if (checkPermission(request))
-			send(internalServer.answer(new RequestEvent(this, request)));
+			send(internalServer.answer(new RequestEvent(client, request)));
 		else
 			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (!(obj instanceof TcpClient))
-			return false;
-
-		TcpClient other = (TcpClient) obj;
-		return uuid.equals(other.getUUID()) || getAddress().equals(other.getAddress());
-	}
-
-	public void createTcpConnection(Socket socket) {
-		this.serverConnection = new TcpServerConnection(socket, new MessageExtractor());
-		serverConnection.addObserver(this);
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
-	public void setPlayer(Player player) {
-		this.player = player;
-		player.setClient(this);
-	}
-
-	public UUID getUUID() {
-		return uuid;
-	}
-
 	public InetSocketAddress getAddress() {
-		return serverConnection == null ? address : serverConnection.getAddress();
+		return connection.getAddress();
 	}
 
 	public void sendAdminChanged(boolean isAdmin) {
 		send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, isAdmin));
 	}
 
-	public Channel getChannel() {
-		return channel;
-	}
-
-	public void setChannel(Channel channel) {
-		this.channel = channel;
-	}
-
 	public void sendPlayerStatusChanged(boolean isConnected) {
 		if (isConnected)
-			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, true, getPlayer().getName(), getPlayer().isAdmin()));
+			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, true, client.getPlayer().getName(), client.getPlayer().isAdmin()));
 		else {
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, false));
-			if (channel != null)
-				channel.removePlayer(player);
+			if (client.getChannel() != null)
+				client.getChannel().removePlayer(client.getPlayer());
 		}
 	}
 
 	private void send(IMessage<Header> message) {
-		if (serverConnection == null || serverConnection.isDisposed())
+		if (connection == null || connection.isDisposed())
 			return;
-		serverConnection.send(new MumbleRequestMessage(message, null));
+		connection.send(new MumbleRequestMessage(message, null));
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
@@ -183,7 +139,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 				return true;
 			case ADD:
 			case REMOVE:
-				return player != null && player.isAdmin();
+				return client.getPlayer() != null && client.getPlayer().isAdmin();
 			default:
 				return true;
 			}
@@ -192,7 +148,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 			case GET:
 				return true;
 			case SET:
-				return player != null && player.isAdmin();
+				return client.getPlayer() != null && client.getPlayer().isAdmin();
 			default:
 				return true;
 			}
@@ -200,12 +156,12 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 			switch (request.getHeader().getOid()) {
 			case ADD:
 			case REMOVE:
-				return player != null && player.isOnline();
+				return client.getPlayer() != null && client.getPlayer().isOnline();
 			default:
 				return false;
 			}
 		default:
-			return player != null && player.isAdmin();
+			return client.getPlayer() != null && client.getPlayer().isAdmin();
 		}
 	}
 }

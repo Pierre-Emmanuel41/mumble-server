@@ -25,7 +25,7 @@ import fr.pederobien.utils.Observable;
 public class InternalServer implements IObservable<IObsServer> {
 	private TcpServerThread tcpThread;
 	private boolean isOpened;
-	private Map<UUID, TcpClient> clients;
+	private Map<UUID, Client> clients;
 	private List<IChannel> channels;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
@@ -33,7 +33,7 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
 		tcpThread = new TcpServerThread(this, address, tcpPort);
-		clients = new HashMap<UUID, TcpClient>();
+		clients = new HashMap<UUID, Client>();
 		channels = new ArrayList<IChannel>();
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
@@ -70,8 +70,8 @@ public class InternalServer implements IObservable<IObsServer> {
 		return isOpened;
 	}
 
-	public TcpClient getOrCreateClient(InetSocketAddress address) {
-		Optional<TcpClient> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
+	public Client getOrCreateClient(InetSocketAddress address) {
+		Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
 		if (optClient.isPresent())
 			return optClient.get();
 		else
@@ -88,7 +88,7 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public void removePlayer(String playerName) {
 		synchronized (lockPlayers) {
-			Optional<TcpClient> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
+			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
 			if (optClient.isPresent())
 				optClient.get().getPlayer().setIsOnline(false);
 		}
@@ -139,7 +139,7 @@ public class InternalServer implements IObservable<IObsServer> {
 		channels.clear();
 	}
 
-	public Map<UUID, TcpClient> getClients() {
+	public Map<UUID, Client> getClients() {
 		return clients;
 	}
 
@@ -151,9 +151,9 @@ public class InternalServer implements IObservable<IObsServer> {
 		observers.notifyObservers(consumer);
 	}
 
-	private TcpClient createClient(InetSocketAddress address) {
+	private Client createClient(InetSocketAddress address) {
 		UUID uuid = createUUID();
-		TcpClient client = new TcpClient(this, uuid, address);
+		Client client = new Client(this, uuid, address);
 		clients.put(uuid, client);
 		return client;
 	}
@@ -173,7 +173,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	private Player getOrCreatePlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		TcpClient client = getOrCreateClient(address);
+		Client client = getOrCreateClient(address);
 		if (client.getPlayer() == null)
 			client.setPlayer(new Player(address, playerName, isAdmin));
 		return client.getPlayer();

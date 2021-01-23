@@ -10,7 +10,7 @@ public class Player implements IPlayer {
 	private InetSocketAddress address;
 	private String name;
 	private IPosition position;
-	private TcpClient client;
+	private Client client;
 	private boolean isAdmin, isOnline;
 
 	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
@@ -78,7 +78,7 @@ public class Player implements IPlayer {
 		return client.getUUID();
 	}
 
-	public void setClient(TcpClient client) {
+	public void setClient(Client client) {
 		this.client = client;
 	}
 

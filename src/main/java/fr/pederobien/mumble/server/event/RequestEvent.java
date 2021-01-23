@@ -2,13 +2,13 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
-import fr.pederobien.mumble.server.impl.TcpClient;
+import fr.pederobien.mumble.server.impl.Client;
 
 public class RequestEvent {
-	private TcpClient client;
+	private Client client;
 	private IMessage<Header> request;
 
-	public RequestEvent(TcpClient client, IMessage<Header> request) {
+	public RequestEvent(Client client, IMessage<Header> request) {
 		this.client = client;
 		this.request = request;
 	}
@@ -16,7 +16,7 @@ public class RequestEvent {
 	/**
 	 * @return The client who received a request.
 	 */
-	public TcpClient getClient() {
+	public Client getClient() {
 		return client;
 	}
 
