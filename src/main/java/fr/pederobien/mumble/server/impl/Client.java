@@ -50,7 +50,8 @@ public class Client {
 	}
 
 	public void createUdpClient(IUdpServerConnection udpServerConnection) {
-		udpClient = new UdpClient(internalServer, this, udpServerConnection);
+		if (udpClient == null)
+			udpClient = new UdpClient(internalServer, this, udpServerConnection);
 	}
 
 	public void onOtherPlayerSpeak() {

@@ -1,9 +1,17 @@
 package fr.pederobien.mumble.server.impl;
 
+import java.net.InetSocketAddress;
+
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
+import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.common.impl.Header;
+import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
+import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
@@ -49,8 +57,7 @@ public class UdpClient implements IObsServer, IObsConnection {
 
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
-		if (!event.getAddress().getAddress().equals(client.getAddress().getAddress()))
-			return;
+		send(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, MumbleMessageFactory.parse(event.getBuffer()).getPayload()[0]), event.getAddress());
 	}
 
 	@Override
@@ -60,5 +67,11 @@ public class UdpClient implements IObsServer, IObsConnection {
 
 	public void onOtherPlayersSpeak() {
 
+	}
+
+	private void send(IMessage<Header> message, InetSocketAddress address) {
+		if (connection == null || connection.isDisposed())
+			return;
+		connection.send(new MumbleAddressMessage(message, address));
 	}
 }

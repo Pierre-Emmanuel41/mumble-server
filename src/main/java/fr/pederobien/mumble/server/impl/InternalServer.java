@@ -24,6 +24,7 @@ import fr.pederobien.utils.Observable;
 
 public class InternalServer implements IObservable<IObsServer> {
 	private TcpServerThread tcpThread;
+	private UdpServerThread udpThread;
 	private boolean isOpened;
 	private Map<UUID, Client> clients;
 	private List<IChannel> channels;
@@ -33,6 +34,8 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
 		tcpThread = new TcpServerThread(this, address, tcpPort);
+		udpThread = new UdpServerThread(this, address, udpPort);
+
 		clients = new HashMap<UUID, Client>();
 		channels = new ArrayList<IChannel>();
 		observers = new Observable<IObsServer>();
@@ -57,12 +60,14 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public void open() {
 		tcpThread.start();
+		udpThread.start();
 		isOpened = true;
 	}
 
 	public void close() {
 		notifyObservers(obs -> obs.onServerClosing());
 		tcpThread.interrupt();
+		udpThread.interrupt();
 		isOpened = false;
 	}
 

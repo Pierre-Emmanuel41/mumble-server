@@ -19,7 +19,7 @@ public class UdpServerThread extends Thread implements IObsConnection {
 	private InetAddress address;
 	private int port;
 
-	protected UdpServerThread(InternalServer internalServer, InetAddress address, int port) {
+	public UdpServerThread(InternalServer internalServer, InetAddress address, int port) {
 		this.internalServer = internalServer;
 		this.address = address;
 		this.port = port;
@@ -42,7 +42,7 @@ public class UdpServerThread extends Thread implements IObsConnection {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			// When server is closing
 		}
 	}
 

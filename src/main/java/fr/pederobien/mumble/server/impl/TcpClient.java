@@ -12,7 +12,7 @@ import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
+import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -124,7 +124,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	private void send(IMessage<Header> message) {
 		if (connection == null || connection.isDisposed())
 			return;
-		connection.send(new MumbleRequestMessage(message, null));
+		connection.send(new MumbleCallbackMessage(message, null));
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
