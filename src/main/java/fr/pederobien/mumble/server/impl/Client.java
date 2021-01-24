@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.UUID;
 
+import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.impl.TcpServerConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
@@ -49,14 +50,14 @@ public class Client {
 		tcpClient = new TcpClient(internalServer, this, new TcpServerConnection(socket, new MessageExtractor()));
 	}
 
-	public void createUdpClient(IUdpServerConnection udpServerConnection) {
+	public void createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
 		if (udpClient == null)
-			udpClient = new UdpClient(internalServer, this, udpServerConnection);
+			udpClient = new UdpClient(internalServer, this, udpServerConnection, address);
 	}
 
-	public void onOtherPlayerSpeak() {
+	public void onOtherPlayerSpeak(DataReceivedEvent event) {
 		if (udpClient != null)
-			udpClient.onOtherPlayersSpeak();
+			udpClient.send(event);
 	}
 
 	public Player getPlayer() {

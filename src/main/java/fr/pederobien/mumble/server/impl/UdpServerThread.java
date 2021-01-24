@@ -65,7 +65,7 @@ public class UdpServerThread extends Thread implements IObsConnection {
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
 		Client client = internalServer.getOrCreateClient(event.getAddress());
-		client.createUdpClient(server);
+		client.createUdpClient(server, event.getAddress());
 	}
 
 	@Override
