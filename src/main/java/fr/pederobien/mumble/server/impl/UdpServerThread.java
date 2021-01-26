@@ -36,7 +36,7 @@ public class UdpServerThread extends Thread implements IObsConnection {
 	@Override
 	public void run() {
 		try {
-			server = new UdpServerConnection(new InetSocketAddress(address, port), () -> new MessageExtractor());
+			server = new UdpServerConnection(new InetSocketAddress(address, port), 20000, () -> new MessageExtractor());
 			server.addObserver(this);
 			semaphore.acquire();
 		} catch (SocketException e) {
