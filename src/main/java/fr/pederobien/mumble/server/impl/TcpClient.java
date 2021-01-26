@@ -11,8 +11,8 @@ import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
+import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -81,8 +81,10 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	@Override
 	public void onConnectionLost() {
 		connection.removeObserver(this);
-		if (client.getChannel() != null)
+		if (client.getChannel() != null) {
 			client.getChannel().removePlayer(client.getPlayer());
+			client.resetUdpClient();
+		}
 	}
 
 	@Override

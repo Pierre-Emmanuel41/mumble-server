@@ -3,7 +3,6 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 
@@ -79,8 +78,8 @@ public class Player implements IPlayer {
 		return client.getUUID();
 	}
 
-	public void onOtherPlayerSpeaker(DataReceivedEvent event) {
-		client.onOtherPlayerSpeak(event);
+	public void onOtherPlayerSpeaker(byte[] data) {
+		client.onOtherPlayerSpeak(data);
 	}
 
 	public void setClient(Client client) {

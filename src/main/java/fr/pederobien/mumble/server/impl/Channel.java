@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
@@ -92,8 +91,8 @@ public class Channel implements IChannel, IObsServer {
 		return "Channel={" + name + "}";
 	}
 
-	public void onPlayerSpeak(IPlayer player, DataReceivedEvent event) {
-		players.stream().filter(p -> !p.equals(player)).forEach(p -> p.onOtherPlayerSpeaker(event));
+	public void onPlayerSpeak(IPlayer player, byte[] data) {
+		players.stream().filter(p -> !p.equals(player)).forEach(p -> p.onOtherPlayerSpeaker(data));
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {

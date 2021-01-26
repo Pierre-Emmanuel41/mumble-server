@@ -41,7 +41,6 @@ public class UdpClient implements IObsServer, IObsConnection {
 
 	@Override
 	public void onServerClosing() {
-		connection.dispose();
 		internalServer.removeObserver(this);
 	}
 
@@ -57,10 +56,10 @@ public class UdpClient implements IObsServer, IObsConnection {
 
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
-		if (client.getChannel() == null)
+		if ((client.getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress())))
 			return;
 
-		client.getChannel().onPlayerSpeak(client.getPlayer(), event);
+		client.getChannel().onPlayerSpeak(client.getPlayer(), (byte[]) MumbleMessageFactory.parse(event.getBuffer()).getPayload()[0]);
 	}
 
 	@Override
@@ -73,10 +72,10 @@ public class UdpClient implements IObsServer, IObsConnection {
 	 * 
 	 * @param event The event that contains data to send.
 	 */
-	public void send(DataReceivedEvent event) {
+	public void send(byte[] data) {
 		if (connection == null || connection.isDisposed())
 			return;
 
-		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, event.getBuffer()), address));
+		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, data), address));
 	}
 }
