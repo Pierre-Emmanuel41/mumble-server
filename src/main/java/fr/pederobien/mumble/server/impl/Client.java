@@ -85,6 +85,9 @@ public class Client {
 	}
 
 	public void resetUdpClient() {
+		if (udpClient == null)
+			return;
+
 		udpClient.onServerClosing();
 		udpClient = null;
 	}
