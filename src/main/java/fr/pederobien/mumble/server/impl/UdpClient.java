@@ -70,6 +70,18 @@ public class UdpClient implements IObsServer, IObsConnection {
 	}
 
 	/**
+	 * Set the address for this udp client. It is highly probable that the address of the remote changes (when user disconnect/connect
+	 * to a channel) This method allow to update the client udp address.
+	 * 
+	 * @param address The new client address.
+	 */
+	public void setAddress(InetSocketAddress address) {
+		if (this.address == address)
+			return;
+		this.address = address;
+	}
+
+	/**
 	 * Send the data associated to the given event to the player.
 	 * 
 	 * @param event The event that contains data to send.

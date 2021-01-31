@@ -52,6 +52,7 @@ public class Client {
 	public void createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
 		if (udpClient == null)
 			udpClient = new UdpClient(internalServer, this, udpServerConnection, address);
+		udpClient.setAddress(address);
 	}
 
 	public void onOtherPlayerSpeak(byte[] data) {
@@ -82,13 +83,5 @@ public class Client {
 
 	public void setChannel(Channel channel) {
 		this.channel = channel;
-	}
-
-	public void resetUdpClient() {
-		if (udpClient == null)
-			return;
-
-		udpClient.onServerClosing();
-		udpClient = null;
 	}
 }
