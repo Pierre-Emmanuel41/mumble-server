@@ -132,6 +132,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		switch (idc) {
 		case UNIQUE_IDENTIFIER:
 		case PLAYER_STATUS:
+		case UDP_PORT:
 			return true;
 		case CHANNELS:
 			switch (request.getHeader().getOid()) {

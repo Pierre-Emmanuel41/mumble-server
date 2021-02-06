@@ -14,6 +14,7 @@ import fr.pederobien.mumble.server.impl.responses.ChannelsManagement;
 import fr.pederobien.mumble.server.impl.responses.ChannelsPlayerManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerStatusManagement;
 import fr.pederobien.mumble.server.impl.responses.ServerManagement;
+import fr.pederobien.mumble.server.impl.responses.UdpPortManagement;
 import fr.pederobien.mumble.server.impl.responses.UniqueIdentifierManagement;
 
 public class RequestManagement {
@@ -27,6 +28,7 @@ public class RequestManagement {
 		answers.put(Idc.CHANNELS, new ChannelsManagement(internalServer));
 		answers.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerManagement(internalServer));
 		answers.put(Idc.SERVER_CONFIGURATION, new ServerManagement(internalServer));
+		answers.put(Idc.UDP_PORT, new UdpPortManagement(internalServer));
 	}
 
 	public IMessage<Header> answer(RequestEvent event) {

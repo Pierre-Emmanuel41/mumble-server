@@ -31,8 +31,10 @@ public class InternalServer implements IObservable<IObsServer> {
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
 	private Object lockChannels, lockPlayers;
+	private int udpPort;
 
 	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
+		this.udpPort = udpPort;
 		tcpThread = new TcpServerThread(this, address, tcpPort);
 		udpThread = new UdpServerThread(this, address, udpPort);
 
@@ -150,6 +152,10 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public IMessage<Header> answer(RequestEvent event) {
 		return requestManagement.answer(event);
+	}
+
+	public int getUdpPort() {
+		return udpPort;
 	}
 
 	private void notifyObservers(Consumer<IObsServer> consumer) {
