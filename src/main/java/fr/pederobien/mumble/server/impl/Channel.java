@@ -92,7 +92,7 @@ public class Channel implements IChannel, IObsServer {
 	}
 
 	public void onPlayerSpeak(IPlayer player, byte[] data) {
-		players.stream().filter(p -> !p.equals(player)).forEach(p -> p.onOtherPlayerSpeaker(data));
+		players.stream().filter(p -> !p.equals(player)).forEach(p -> p.onOtherPlayerSpeaker(player.getName(), data));
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {

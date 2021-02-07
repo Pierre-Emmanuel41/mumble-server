@@ -78,8 +78,8 @@ public class Player implements IPlayer {
 		return client.getUUID();
 	}
 
-	public void onOtherPlayerSpeaker(byte[] data) {
-		client.onOtherPlayerSpeak(data);
+	public void onOtherPlayerSpeaker(String playerName, byte[] data) {
+		client.onOtherPlayerSpeak(playerName, data);
 	}
 
 	public void setClient(Client client) {

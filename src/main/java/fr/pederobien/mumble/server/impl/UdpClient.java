@@ -84,12 +84,13 @@ public class UdpClient implements IObsServer, IObsConnection {
 	/**
 	 * Send the data associated to the given event to the player.
 	 * 
-	 * @param event The event that contains data to send.
+	 * @param playerName The player name whose data should be sent.
+	 * @param data       the byte array containing what the player said.
 	 */
-	public void send(byte[] data) {
+	public void send(String playerName, byte[] data) {
 		if (connection == null || connection.isDisposed())
 			return;
 
-		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, data), address));
+		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, playerName, data), address));
 	}
 }
