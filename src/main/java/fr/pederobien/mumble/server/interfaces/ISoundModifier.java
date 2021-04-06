@@ -21,9 +21,9 @@ public interface ISoundModifier {
 		private double left, right, global;
 
 		public VolumeResult(double left, double right, double global) {
-			this.left = left;
-			this.right = right;
-			this.global = global;
+			this.left = left < 0 ? 0 : left > 1 ? 1 : left;
+			this.right = right < 0 ? 0 : right > 1 ? 1 : right;
+			this.global = global < 0 ? 0 : global > 1 ? 1 : global;
 		}
 
 		/**
