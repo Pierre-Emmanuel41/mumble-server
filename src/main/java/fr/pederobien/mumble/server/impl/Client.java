@@ -55,9 +55,9 @@ public class Client {
 		udpClient.setAddress(address);
 	}
 
-	public void onOtherPlayerSpeak(String playerName, byte[] data) {
+	public void onOtherPlayerSpeak(String playerName, byte[] data, double global, double left, double right) {
 		if (udpClient != null)
-			udpClient.send(playerName, data);
+			udpClient.send(playerName, data, global, left, right);
 	}
 
 	public Player getPlayer() {

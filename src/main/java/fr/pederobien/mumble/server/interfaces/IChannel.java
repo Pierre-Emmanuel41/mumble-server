@@ -40,4 +40,16 @@ public interface IChannel extends IUnmodifiableNominable, IObservable<IObsChanne
 	 * Removes all registered player from this channel.
 	 */
 	void clear();
+
+	/**
+	 * @return The sound modifier associated to this channel.
+	 */
+	ISoundModifier getSoundModifier();
+
+	/**
+	 * Set the sound modifier of this channel.
+	 * 
+	 * @param soundModifier The new volume modifier associated to this channel.
+	 */
+	void setSoundModifier(ISoundModifier soundModifier);
 }

@@ -5,8 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import fr.pederobien.communication.impl.BlockingQueueTask;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.ISoundModifier;
+import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.Observable;
@@ -15,11 +18,16 @@ public class Channel implements IChannel, IObsServer {
 	private String name;
 	private List<Player> players;
 	private Observable<IObsChannel> observers;
+	private ISoundModifier soundModifier;
+	private BlockingQueueTask<Dispatch> dispatcher;
 
 	public Channel(String name) {
 		this.name = name;
 		players = new ArrayList<Player>();
 		observers = new Observable<IObsChannel>();
+		soundModifier = AbstractSoundModifier.DEFAULT;
+		dispatcher = new BlockingQueueTask<>(String.format("%s-dispatcher", getName()), dispatch -> dispatch(dispatch));
+		dispatcher.start();
 	}
 
 	@Override
@@ -72,6 +80,16 @@ public class Channel implements IChannel, IObsServer {
 	}
 
 	@Override
+	public ISoundModifier getSoundModifier() {
+		return soundModifier;
+	}
+
+	@Override
+	public void setSoundModifier(ISoundModifier soundModifier) {
+		this.soundModifier = soundModifier;
+	}
+
+	@Override
 	public void onChannelAdded(IChannel channel) {
 
 	}
@@ -91,11 +109,39 @@ public class Channel implements IChannel, IObsServer {
 		return "Channel={" + name + "}";
 	}
 
-	public void onPlayerSpeak(IPlayer player, byte[] data) {
-		players.stream().filter(p -> !p.equals(player)).forEach(p -> p.onOtherPlayerSpeaker(player.getName(), data));
+	public void onPlayerSpeak(Player player, byte[] data) {
+		players.stream().filter(p -> p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
+	}
+
+	public void dispatch(Dispatch dispatch) {
+		VolumeResult result = soundModifier.calculate(dispatch.getTransmitter(), dispatch.getReceiver());
+		dispatch.getReceiver().onOtherPlayerSpeaker(dispatch.getTransmitter().getName(), dispatch.getData(), result.getGlobal(), result.getLeft(), result.getRight());
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {
 		observers.notifyObservers(consumer);
+	}
+
+	private class Dispatch {
+		private Player transmitter, receiver;
+		private byte[] data;
+
+		public Dispatch(Player transmitter, Player receiver, byte[] data) {
+			this.transmitter = transmitter;
+			this.receiver = receiver;
+			this.data = data;
+		}
+
+		public Player getTransmitter() {
+			return transmitter;
+		}
+
+		public Player getReceiver() {
+			return receiver;
+		}
+
+		public byte[] getData() {
+			return data;
+		}
 	}
 }

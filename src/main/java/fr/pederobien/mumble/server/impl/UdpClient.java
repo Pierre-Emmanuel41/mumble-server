@@ -87,10 +87,10 @@ public class UdpClient implements IObsServer, IObsConnection {
 	 * @param playerName The player name whose data should be sent.
 	 * @param data       the byte array containing what the player said.
 	 */
-	public void send(String playerName, byte[] data) {
+	public void send(String playerName, byte[] data, double global, double left, double right) {
 		if (connection == null || connection.isDisposed())
 			return;
 
-		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, playerName, data), address));
+		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, playerName, data, global, left, right), address));
 	}
 }
