@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.interfaces;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 
@@ -64,4 +65,9 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	 * @return The removed channel.
 	 */
 	IChannel removeChannel(String name);
+
+	/**
+	 * @return An unmodifiable map that contains all registered channels for this mumble server.
+	 */
+	Map<String, IChannel> getChannels();
 }

@@ -2,7 +2,10 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -66,6 +69,15 @@ public class MumbleServer implements IMumbleServer {
 	public IChannel removeChannel(String name) {
 		checkIsOpened();
 		return server.removeChannel(name);
+	}
+
+	@Override
+	public Map<String, IChannel> getChannels() {
+		Map<String, IChannel> channels = new HashMap<String, IChannel>();
+		List<IChannel> channelsList = server.getChannels();
+		for (IChannel channel : channelsList)
+			channels.put(channel.getName(), channel);
+		return Collections.unmodifiableMap(channels);
 	}
 
 	private void checkIsOpened() {
