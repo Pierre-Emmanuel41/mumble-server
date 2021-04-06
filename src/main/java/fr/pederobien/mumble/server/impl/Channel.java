@@ -15,6 +15,7 @@ import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.Observable;
 
 public class Channel implements IChannel, IObsServer {
+	private static final double EPSILON = 1E-5;
 	private String name;
 	private List<Player> players;
 	private Observable<IObsChannel> observers;
@@ -115,6 +116,8 @@ public class Channel implements IChannel, IObsServer {
 
 	public void dispatch(Dispatch dispatch) {
 		VolumeResult result = soundModifier.calculate(dispatch.getTransmitter(), dispatch.getReceiver());
+		if (Math.abs(result.getGlobal()) < EPSILON)
+			return;
 		dispatch.getReceiver().onOtherPlayerSpeaker(dispatch.getTransmitter().getName(), dispatch.getData(), result.getGlobal(), result.getLeft(), result.getRight());
 	}
 
