@@ -47,9 +47,6 @@ public class InternalServer implements IObservable<IObsServer> {
 
 		lockChannels = new Object();
 		lockPlayers = new Object();
-
-		addChannel("General");
-		addChannel("Channel 0");
 	}
 
 	@Override
