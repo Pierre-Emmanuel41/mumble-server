@@ -9,13 +9,6 @@ import fr.pederobien.utils.IObservable;
 public interface IChannel extends IUnmodifiableNominable, IObservable<IObsChannel> {
 
 	/**
-	 * Set the chanel's name.
-	 * 
-	 * @param name The channel's name.
-	 */
-	void setName(String name);
-
-	/**
 	 * Appends the given player to this channel. Once registered, the player can speak to players currently registered to this
 	 * channel.
 	 * 

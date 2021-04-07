@@ -95,8 +95,19 @@ public class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
+	public void renameChannel(String oldName, String newName) {
+		checkIsOpened();
+		server.renameChannel(oldName, newName);
+	}
+
+	@Override
 	public Map<String, IChannel> getChannels() {
 		return Collections.unmodifiableMap(server.getChannels());
+	}
+
+	@Override
+	public List<IChannel> clearChannels() {
+		return server.clearChannels();
 	}
 
 	@Override

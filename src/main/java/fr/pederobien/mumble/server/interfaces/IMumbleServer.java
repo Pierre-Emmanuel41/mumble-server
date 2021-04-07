@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
+import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
+import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 
 public interface IMumbleServer extends IUnmodifiableNominable {
@@ -54,6 +56,8 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	 * @param name The channel's name.
 	 * 
 	 * @return The created channel.
+	 * 
+	 * @throws ChannelAlreadyExistException If there is already a channel registered for the given name.
 	 */
 	IChannel addChannel(String name);
 
@@ -67,9 +71,25 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	IChannel removeChannel(String name);
 
 	/**
+	 * Rename the channel associated to the oldName.
+	 * 
+	 * @param oldName The old channel name.
+	 * @param newName The new channel name.
+	 * 
+	 * @throws ChannelAlreadyExistException  If the channel associated to the new name already exists.
+	 * @throws ChannelNotRegisteredException If the channel associated to the old name does not exists.
+	 */
+	void renameChannel(String oldName, String newName);
+
+	/**
 	 * @return An unmodifiable map that contains all registered channels for this mumble server.
 	 */
 	Map<String, IChannel> getChannels();
+
+	/**
+	 * Remove all registered channels from this server.
+	 */
+	List<IChannel> clearChannels();
 
 	/**
 	 * @return The manager that is responsible for sound modifier storage.

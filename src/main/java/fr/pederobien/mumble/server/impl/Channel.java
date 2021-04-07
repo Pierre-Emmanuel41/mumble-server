@@ -47,16 +47,6 @@ public class Channel implements IChannel, IObsServer {
 	}
 
 	@Override
-	public void setName(String name) {
-		if (this.name == name)
-			return;
-
-		String oldName = new String(this.name);
-		this.name = name;
-		notifyObservers(obs -> obs.onChannelRenamed(this, oldName, this.name));
-	}
-
-	@Override
 	public void addPlayer(IPlayer player) {
 		players.add((Player) player);
 		notifyObservers(obs -> obs.onPlayerAdded(this, player));
@@ -108,6 +98,15 @@ public class Channel implements IChannel, IObsServer {
 	@Override
 	public String toString() {
 		return "Channel={" + name + "}";
+	}
+
+	public void setName(String name) {
+		if (this.name == name)
+			return;
+
+		String oldName = new String(this.name);
+		this.name = name;
+		notifyObservers(obs -> obs.onChannelRenamed(this, oldName, this.name));
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {

@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
+import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundManager;
@@ -120,12 +122,22 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public IChannel removeChannel(String name) {
 		synchronized (lockChannels) {
-			Channel channel = (Channel) getChannels().remove(name);
-			if (channel != null) {
-				notifyObservers(obs -> obs.onChannelRemoved(channel));
-				removeObserver(channel);
-			}
-			return channel;
+			return unsynchronizedRemove(name);
+		}
+	}
+
+	public void renameChannel(String oldName, String newName) {
+		Channel channel = (Channel) getChannels().get(oldName);
+		if (channel == null)
+			throw new ChannelNotRegisteredException(oldName);
+
+		if (getChannels().get(newName) != null)
+			throw new ChannelAlreadyExistException(newName);
+
+		channel.setName(newName);
+		synchronized (lockChannels) {
+			channels.remove(oldName);
+			channels.put(newName, channel);
 		}
 	}
 
@@ -135,8 +147,15 @@ public class InternalServer implements IObservable<IObsServer> {
 		}
 	}
 
-	public void clearChannels() {
-		channels.clear();
+	public List<IChannel> clearChannels() {
+		List<IChannel> channelsList = new ArrayList<IChannel>();
+		synchronized (lockChannels) {
+			List<String> names = new ArrayList<>(channels.keySet());
+			int size = channels.size();
+			for (int i = 0; i < size; i++)
+				channelsList.add(unsynchronizedRemove(names.get(i)));
+		}
+		return channelsList;
 	}
 
 	public Map<UUID, Client> getClients() {
@@ -185,5 +204,15 @@ public class InternalServer implements IObservable<IObsServer> {
 		if (client.getPlayer() == null)
 			client.setPlayer(new Player(address, playerName, isAdmin));
 		return client.getPlayer();
+	}
+
+	private IChannel unsynchronizedRemove(String name) {
+		Channel channel = (Channel) channels.remove(name);
+		if (channel != null) {
+			channel.clear();
+			notifyObservers(obs -> obs.onChannelRemoved(channel));
+			removeObserver(channel);
+		}
+		return channel;
 	}
 }

@@ -8,6 +8,8 @@ import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
+import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -52,13 +54,12 @@ public class ChannelsManagement extends AbstractManagement {
 		case SET:
 			String oldName = (String) event.getRequest().getPayload()[0];
 			String newName = (String) event.getRequest().getPayload()[1];
-			IChannel oldChannel = getInternalServer().getChannels().get(oldName);
-			boolean canRenameChannel = (oldChannel != null) && (getInternalServer().getChannels().get(newName) == null);
-			if (canRenameChannel) {
-				oldChannel.setName(newName);
+			try {
+				getInternalServer().renameChannel(oldName, newName);
 				return event.getRequest().answer(oldName, newName);
-			} else
+			} catch (ChannelAlreadyExistException | ChannelNotRegisteredException e) {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
+			}
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
 		}

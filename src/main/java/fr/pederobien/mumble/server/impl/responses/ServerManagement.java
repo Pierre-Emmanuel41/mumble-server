@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl.responses;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -32,9 +33,10 @@ public class ServerManagement extends AbstractManagement {
 
 	private IMessage<Header> getServerConfiguration(IMessage<Header> request) {
 		List<Object> informations = new ArrayList<Object>();
-		informations.add(getInternalServer().getChannels().size());
+		Map<String, IChannel> channels = getInternalServer().getChannels();
+		informations.add(channels.size());
 
-		for (IChannel channel : getInternalServer().getChannels().values()) {
+		for (IChannel channel : channels.values()) {
 			informations.add(channel.getName());
 			informations.add(channel.getPlayers().size());
 
