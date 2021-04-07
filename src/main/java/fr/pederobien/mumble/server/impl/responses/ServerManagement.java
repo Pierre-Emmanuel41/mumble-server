@@ -34,7 +34,7 @@ public class ServerManagement extends AbstractManagement {
 		List<Object> informations = new ArrayList<Object>();
 		informations.add(getInternalServer().getChannels().size());
 
-		for (IChannel channel : getInternalServer().getChannels()) {
+		for (IChannel channel : getInternalServer().getChannels().values()) {
 			informations.add(channel.getName());
 			informations.add(channel.getPlayers().size());
 
@@ -51,7 +51,7 @@ public class ServerManagement extends AbstractManagement {
 			for (int i = 0; i < numberOfChannel; i++)
 				channelNames.add((String) request.getPayload()[2 * i + 1]);
 
-			getInternalServer().getChannels().forEach(channel -> channel.clear());
+			getInternalServer().getChannels().values().forEach(channel -> channel.clear());
 			getInternalServer().clearChannels();
 
 			for (String name : channelNames)

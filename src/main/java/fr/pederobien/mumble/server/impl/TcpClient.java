@@ -32,7 +32,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 
 		connection.addObserver(this);
 		internalServer.addObserver(this);
-		internalServer.getChannels().forEach(channel -> channel.addObserver(this));
+		internalServer.getChannels().values().forEach(channel -> channel.addObserver(this));
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +26,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	private UdpServerThread udpThread;
 	private boolean isOpened;
 	private Map<UUID, Client> clients;
-	private List<IChannel> channels;
+	private Map<String, IChannel> channels;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
 	private Object lockChannels, lockPlayers;
@@ -39,7 +38,7 @@ public class InternalServer implements IObservable<IObsServer> {
 		udpThread = new UdpServerThread(this, address, udpPort);
 
 		clients = new HashMap<UUID, Client>();
-		channels = new ArrayList<IChannel>();
+		channels = new HashMap<String, IChannel>();
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
 
@@ -107,12 +106,12 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public IChannel addChannel(String name) {
 		synchronized (lockChannels) {
-			IChannel existingChannel = getChannel(name);
+			IChannel existingChannel = getChannels().get(name);
 			if (existingChannel != null)
 				throw new ChannelAlreadyExistException(name);
 
 			Channel channel = new Channel(name);
-			channels.add(channel);
+			channels.put(channel.getName(), channel);
 			notifyObservers(obs -> obs.onChannelAdded(channel));
 			addObserver(channel);
 			return channel;
@@ -121,9 +120,8 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public IChannel removeChannel(String name) {
 		synchronized (lockChannels) {
-			Channel channel = (Channel) getChannel(name);
+			Channel channel = (Channel) getChannels().remove(name);
 			if (channel != null) {
-				channels.remove(channel);
 				notifyObservers(obs -> obs.onChannelRemoved(channel));
 				removeObserver(channel);
 			}
@@ -131,15 +129,10 @@ public class InternalServer implements IObservable<IObsServer> {
 		}
 	}
 
-	public List<IChannel> getChannels() {
+	public Map<String, IChannel> getChannels() {
 		synchronized (lockChannels) {
-			return Collections.unmodifiableList(channels);
+			return new HashMap<>(channels);
 		}
-	}
-
-	public IChannel getChannel(String channelName) {
-		Optional<IChannel> optChannel = channels.stream().filter(c -> c.getName().equals(channelName)).findFirst();
-		return optChannel.isPresent() ? optChannel.get() : null;
 	}
 
 	public void clearChannels() {

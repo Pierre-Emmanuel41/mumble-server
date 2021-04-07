@@ -25,7 +25,7 @@ public class ChannelsManagement extends AbstractManagement {
 			List<Object> informations = new ArrayList<Object>();
 			informations.add(getInternalServer().getChannels().size());
 
-			for (IChannel channel : getInternalServer().getChannels()) {
+			for (IChannel channel : getInternalServer().getChannels().values()) {
 				informations.add(channel.getName());
 				informations.add(channel.getPlayers().size());
 
@@ -35,7 +35,7 @@ public class ChannelsManagement extends AbstractManagement {
 			return event.getRequest().answer(informations.toArray());
 		case ADD:
 			String addChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canAddChannel = getInternalServer().getChannel(addChannelName) == null;
+			boolean canAddChannel = getInternalServer().getChannels().get(addChannelName) == null;
 			if (canAddChannel) {
 				getInternalServer().addChannel(addChannelName);
 				return event.getRequest().answer(addChannelName);
@@ -43,7 +43,7 @@ public class ChannelsManagement extends AbstractManagement {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
 		case REMOVE:
 			String removeChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canRemoveChannel = getInternalServer().getChannel(removeChannelName) != null;
+			boolean canRemoveChannel = getInternalServer().getChannels().get(removeChannelName) != null;
 			if (canRemoveChannel) {
 				getInternalServer().removeChannel(removeChannelName);
 				return event.getRequest().answer(removeChannelName);
@@ -52,9 +52,10 @@ public class ChannelsManagement extends AbstractManagement {
 		case SET:
 			String oldName = (String) event.getRequest().getPayload()[0];
 			String newName = (String) event.getRequest().getPayload()[1];
-			boolean canRenameChannel = (getInternalServer().getChannel(oldName) != null) && (getInternalServer().getChannel(newName) == null);
+			IChannel oldChannel = getInternalServer().getChannels().get(oldName);
+			boolean canRenameChannel = (oldChannel != null) && (getInternalServer().getChannels().get(newName) == null);
 			if (canRenameChannel) {
-				getInternalServer().getChannel(oldName).setName(newName);
+				oldChannel.setName(newName);
 				return event.getRequest().answer(oldName, newName);
 			} else
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
