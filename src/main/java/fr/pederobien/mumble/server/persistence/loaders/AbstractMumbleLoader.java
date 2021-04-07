@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import fr.pederobien.mumble.server.impl.Channel;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
@@ -34,10 +33,10 @@ public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<
 		NodeList channels = getElementsByTagName(root, EMumbleXmlTag.CHANNEL);
 		for (int i = 0; i < channels.getLength(); i++) {
 			Element channel = (Element) channels.item(i);
-			IChannel c = new Channel(getStringAttribute(channel, EMumbleXmlTag.CHANNEL_NAME));
+			IChannel ch = get().addChannel(getStringAttribute(channel, EMumbleXmlTag.CHANNEL_NAME));
 			Optional<ISoundModifier> soundModifier = get().getSoundManager().getByName(getStringAttribute(channel, EMumbleXmlTag.SOUND_MODIFIER_NAME));
 			if (soundModifier.isPresent())
-				c.setSoundModifier(soundModifier.get());
+				ch.setSoundModifier(soundModifier.get());
 		}
 	}
 }
