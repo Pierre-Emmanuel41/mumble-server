@@ -13,6 +13,7 @@ public class SoundManager implements ISoundManager {
 
 	public SoundManager() {
 		sounds = new HashMap<String, ISoundModifier>();
+		sounds.put(AbstractSoundModifier.DEFAULT.getName(), AbstractSoundModifier.DEFAULT);
 	}
 
 	@Override
