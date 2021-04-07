@@ -10,6 +10,7 @@ import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.ISoundManager;
 
 public class MumbleServer implements IMumbleServer {
 	private InternalServer server;
@@ -73,6 +74,11 @@ public class MumbleServer implements IMumbleServer {
 	@Override
 	public Map<String, IChannel> getChannels() {
 		return Collections.unmodifiableMap(server.getChannels());
+	}
+
+	@Override
+	public ISoundManager getSoundManager() {
+		return server.getSoundManager();
 	}
 
 	private void checkIsOpened() {

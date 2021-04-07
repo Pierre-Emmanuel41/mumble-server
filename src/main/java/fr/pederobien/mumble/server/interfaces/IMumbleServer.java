@@ -70,4 +70,9 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	 * @return An unmodifiable map that contains all registered channels for this mumble server.
 	 */
 	Map<String, IChannel> getChannels();
+
+	/**
+	 * @return The manager that is responsible for sound modifier storage.
+	 */
+	ISoundManager getSoundManager();
 }

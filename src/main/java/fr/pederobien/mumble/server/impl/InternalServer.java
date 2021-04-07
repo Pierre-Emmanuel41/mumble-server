@@ -17,6 +17,7 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.ISoundManager;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
@@ -27,6 +28,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	private boolean isOpened;
 	private Map<UUID, Client> clients;
 	private Map<String, IChannel> channels;
+	private ISoundManager soundManager;
 	private Observable<IObsServer> observers;
 	private RequestManagement requestManagement;
 	private Object lockChannels, lockPlayers;
@@ -39,6 +41,7 @@ public class InternalServer implements IObservable<IObsServer> {
 
 		clients = new HashMap<UUID, Client>();
 		channels = new HashMap<String, IChannel>();
+		soundManager = new SoundManager();
 		observers = new Observable<IObsServer>();
 		requestManagement = new RequestManagement(this);
 
@@ -149,6 +152,10 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public int getUdpPort() {
 		return udpPort;
+	}
+
+	public ISoundManager getSoundManager() {
+		return soundManager;
 	}
 
 	private void notifyObservers(Consumer<IObsServer> consumer) {
