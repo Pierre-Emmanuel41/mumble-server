@@ -90,9 +90,4 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	 * Remove all registered channels from this server.
 	 */
 	List<IChannel> clearChannels();
-
-	/**
-	 * @return The manager that is responsible for sound modifier storage.
-	 */
-	ISoundManager getSoundManager();
 }

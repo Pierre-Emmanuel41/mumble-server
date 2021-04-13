@@ -12,7 +12,6 @@ import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.mumble.server.interfaces.ISoundManager;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.persistence.interfaces.IPersistence;
 
@@ -108,11 +107,6 @@ public class MumbleServer implements IMumbleServer {
 	@Override
 	public List<IChannel> clearChannels() {
 		return server.clearChannels();
-	}
-
-	@Override
-	public ISoundManager getSoundManager() {
-		return server.getSoundManager();
 	}
 
 	private void checkIsOpened() {

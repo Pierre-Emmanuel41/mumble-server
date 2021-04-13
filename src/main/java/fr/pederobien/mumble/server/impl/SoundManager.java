@@ -5,34 +5,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import fr.pederobien.mumble.server.interfaces.ISoundManager;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
-public class SoundManager implements ISoundManager {
-	private Map<String, ISoundModifier> sounds;
+public class SoundManager {
+	private static Map<String, ISoundModifier> sounds;
 
-	public SoundManager() {
+	static {
 		sounds = new HashMap<String, ISoundModifier>();
 		sounds.put(AbstractSoundModifier.DEFAULT.getName(), AbstractSoundModifier.DEFAULT);
 	}
 
-	@Override
-	public void add(ISoundModifier soundModifier) {
+	private SoundManager() {
+	}
+
+	public static void add(ISoundModifier soundModifier) {
 		sounds.put(soundModifier.getName(), soundModifier);
 	}
 
-	@Override
-	public boolean remove(ISoundModifier soundModifier) {
+	public static boolean remove(ISoundModifier soundModifier) {
 		return sounds.remove(soundModifier.getName()) != null;
 	}
 
-	@Override
-	public Optional<ISoundModifier> getByName(String name) {
+	public static Optional<ISoundModifier> getByName(String name) {
 		return Optional.ofNullable(sounds.get(name));
 	}
 
-	@Override
-	public Map<String, ISoundModifier> getSoundModifiers() {
+	public static Map<String, ISoundModifier> getSoundModifiers() {
 		return Collections.unmodifiableMap(sounds);
 	}
 }
