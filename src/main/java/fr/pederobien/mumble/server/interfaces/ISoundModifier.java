@@ -18,12 +18,24 @@ public interface ISoundModifier {
 	VolumeResult calculate(IPlayer transmitter, IPlayer receiver);
 
 	public class VolumeResult {
-		private double left, right, global;
+		public static final VolumeResult DEFAULT = new VolumeResult(1.0, 1.0, 1.0);
+		private double global, left, right;
 
-		public VolumeResult(double left, double right, double global) {
+		public VolumeResult(double global, double left, double right) {
+			this.global = global < 0 ? 0 : global > 1 ? 1 : global;
 			this.left = left < 0 ? 0 : left > 1 ? 1 : left;
 			this.right = right < 0 ? 0 : right > 1 ? 1 : right;
-			this.global = global < 0 ? 0 : global > 1 ? 1 : global;
+		}
+
+		public VolumeResult(double global) {
+			this(global, 1.0, 1.0);
+		}
+
+		/**
+		 * @return The global volume for the left and right channel.
+		 */
+		public double getGlobal() {
+			return global;
 		}
 
 		/**
@@ -38,13 +50,6 @@ public interface ISoundModifier {
 		 */
 		public double getRight() {
 			return right;
-		}
-
-		/**
-		 * @return The global volume for the left and right channel.
-		 */
-		public double getGlobal() {
-			return global;
 		}
 	}
 }

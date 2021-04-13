@@ -24,7 +24,7 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 
 		@Override
 		public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-			return new VolumeResult(1.0, 1.0, 1.0);
+			return VolumeResult.DEFAULT;
 		}
 	}
 }
