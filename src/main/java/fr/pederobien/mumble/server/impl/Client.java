@@ -60,6 +60,10 @@ public class Client {
 			udpClient.send(playerName, data, global, left, right);
 	}
 
+	public void onPlayerMuteStatusChanged(String playerName, boolean isMute) {
+		tcpClient.sendPlayerMuteChanged(playerName, isMute);
+	}
+
 	public Player getPlayer() {
 		return player;
 	}

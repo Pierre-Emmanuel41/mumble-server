@@ -12,6 +12,8 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.responses.ChannelsManagement;
 import fr.pederobien.mumble.server.impl.responses.ChannelsPlayerManagement;
+import fr.pederobien.mumble.server.impl.responses.PlayerDeafenManagement;
+import fr.pederobien.mumble.server.impl.responses.PlayerMuteManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerStatusManagement;
 import fr.pederobien.mumble.server.impl.responses.ServerManagement;
 import fr.pederobien.mumble.server.impl.responses.UdpPortManagement;
@@ -29,6 +31,8 @@ public class RequestManagement {
 		answers.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerManagement(internalServer));
 		answers.put(Idc.SERVER_CONFIGURATION, new ServerManagement(internalServer));
 		answers.put(Idc.UDP_PORT, new UdpPortManagement(internalServer));
+		answers.put(Idc.PLAYER_MUTE, new PlayerMuteManagement(internalServer));
+		answers.put(Idc.PLAYER_DEAFEN, new PlayerDeafenManagement(internalServer));
 	}
 
 	public IMessage<Header> answer(RequestEvent event) {

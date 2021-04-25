@@ -121,6 +121,10 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		}
 	}
 
+	public void sendPlayerMuteChanged(String playerName, boolean isMute) {
+		send(MumbleMessageFactory.create(Idc.PLAYER_MUTE, Oid.SET, playerName, isMute));
+	}
+
 	private void send(IMessage<Header> message) {
 		if (connection == null || connection.isDisposed())
 			return;
@@ -133,6 +137,8 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		case UNIQUE_IDENTIFIER:
 		case PLAYER_STATUS:
 		case UDP_PORT:
+		case PLAYER_MUTE:
+		case PLAYER_DEAFEN:
 			return true;
 		case CHANNELS:
 			switch (request.getHeader().getOid()) {
