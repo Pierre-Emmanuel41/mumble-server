@@ -38,4 +38,28 @@ public interface IPlayer extends IUnmodifiableNominable {
 	 * @return The unique identifier associated to this player.
 	 */
 	UUID getUUID();
+
+	/**
+	 * @return True if this player is mute, false otherwise.
+	 */
+	boolean isMute();
+
+	/**
+	 * Set the new mute status of the player.
+	 * 
+	 * @param isMute True if the player is mute, false otherwise.
+	 */
+	void setMute(boolean isMute);
+
+	/**
+	 * @return True if this player is deafen, false otherwise.
+	 */
+	boolean isDeafen();
+
+	/**
+	 * Set the new deafen status of the player.
+	 * 
+	 * @param isDeafen True if the player is deafen, false otherwise.
+	 */
+	void setDeafen(boolean isDeafen);
 }

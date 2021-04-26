@@ -110,10 +110,14 @@ public class Channel implements IChannel, IObsServer {
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
-		players.stream().filter(p -> p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
+		players.stream().filter(p -> !p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
 	}
 
 	public void dispatch(Dispatch dispatch) {
+		// No need to send data to the player if he is deafen.
+		if (dispatch.getReceiver().isDeafen())
+			return;
+
 		VolumeResult result = soundModifier.calculate(dispatch.getTransmitter(), dispatch.getReceiver());
 		if (Math.abs(result.getGlobal()) < EPSILON)
 			return;

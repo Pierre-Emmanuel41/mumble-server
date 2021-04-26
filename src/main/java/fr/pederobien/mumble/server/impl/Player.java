@@ -11,7 +11,7 @@ public class Player implements IPlayer {
 	private String name;
 	private IPosition position;
 	private Client client;
-	private boolean isAdmin, isOnline;
+	private boolean isAdmin, isOnline, isMute, isDeafen;
 
 	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
 		this.address = address;
@@ -76,6 +76,26 @@ public class Player implements IPlayer {
 	@Override
 	public UUID getUUID() {
 		return client.getUUID();
+	}
+
+	@Override
+	public boolean isMute() {
+		return isMute;
+	}
+
+	@Override
+	public void setMute(boolean isMute) {
+		this.isMute = isMute;
+	}
+
+	@Override
+	public boolean isDeafen() {
+		return isDeafen;
+	}
+
+	@Override
+	public void setDeafen(boolean isDeafen) {
+		this.isDeafen = isDeafen;
 	}
 
 	public void onOtherPlayerSpeaker(String playerName, byte[] data, double global, double left, double right) {

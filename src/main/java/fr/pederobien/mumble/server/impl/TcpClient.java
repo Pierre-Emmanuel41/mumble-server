@@ -125,6 +125,10 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		send(MumbleMessageFactory.create(Idc.PLAYER_MUTE, Oid.SET, playerName, isMute));
 	}
 
+	public void sendPlayerDeafenChanged(String playerName, boolean isDeafen) {
+		send(MumbleMessageFactory.create(Idc.PLAYER_DEAFEN, Oid.SET, playerName, isDeafen));
+	}
+
 	private void send(IMessage<Header> message) {
 		if (connection == null || connection.isDisposed())
 			return;

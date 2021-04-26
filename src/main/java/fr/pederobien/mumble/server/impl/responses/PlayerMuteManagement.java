@@ -15,7 +15,8 @@ public class PlayerMuteManagement extends AbstractManagement {
 	public IMessage<Header> apply(RequestEvent event) {
 		String playerName = event.getClient().getPlayer().getName();
 		boolean isMute = (boolean) event.getRequest().getPayload()[0];
-		getInternalServer().getClients().values().forEach(client -> client.onPlayerMuteStatusChanged(playerName, isMute));
+		event.getClient().getPlayer().setMute(isMute);
+		getInternalServer().getClients().values().forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
 		return event.getRequest().answer(event.getRequest().getPayload());
 	}
 }
