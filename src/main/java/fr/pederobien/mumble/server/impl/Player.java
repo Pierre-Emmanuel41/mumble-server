@@ -7,13 +7,15 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 
 public class Player implements IPlayer {
+	private InternalServer internalServer;
 	private InetSocketAddress address;
 	private String name;
 	private IPosition position;
 	private Client client;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 
-	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
+	protected Player(InternalServer internalServer, InetSocketAddress address, String name, boolean isAdmin) {
+		this.internalServer = internalServer;
 		this.address = address;
 		this.name = name;
 		this.isAdmin = isAdmin;
@@ -86,6 +88,7 @@ public class Player implements IPlayer {
 	@Override
 	public void setMute(boolean isMute) {
 		this.isMute = isMute;
+		internalServer.onPlayerMuteChanged(getName(), isMute);
 	}
 
 	@Override
@@ -96,6 +99,7 @@ public class Player implements IPlayer {
 	@Override
 	public void setDeafen(boolean isDeafen) {
 		this.isDeafen = isDeafen;
+		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
 	}
 
 	public void onOtherPlayerSpeaker(String playerName, byte[] data, double global, double left, double right) {

@@ -167,6 +167,14 @@ public class InternalServer implements IObservable<IObsServer> {
 		return udpPort;
 	}
 
+	public void onPlayerMuteChanged(String playerName, boolean isMute) {
+		clients.values().stream().forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
+	}
+
+	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
+		clients.values().forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
+	}
+
 	private void notifyObservers(Consumer<IObsServer> consumer) {
 		observers.notifyObservers(consumer);
 	}
@@ -195,7 +203,7 @@ public class InternalServer implements IObservable<IObsServer> {
 	private Player getOrCreatePlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		Client client = getOrCreateClient(address);
 		if (client.getPlayer() == null)
-			client.setPlayer(new Player(address, playerName, isAdmin));
+			client.setPlayer(new Player(this, address, playerName, isAdmin));
 		return client.getPlayer();
 	}
 

@@ -13,10 +13,8 @@ public class PlayerDeafenManagement extends AbstractManagement {
 
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
-		String playerName = event.getClient().getPlayer().getName();
 		boolean isDeafen = (boolean) event.getRequest().getPayload()[0];
 		event.getClient().getPlayer().setDeafen(isDeafen);
-		getInternalServer().getClients().values().forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
 		return event.getRequest().answer(event.getRequest().getPayload());
 	}
 }
