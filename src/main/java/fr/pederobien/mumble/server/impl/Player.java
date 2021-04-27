@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
+import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 
@@ -11,6 +12,7 @@ public class Player implements IPlayer {
 	private InetSocketAddress address;
 	private String name;
 	private IPosition position;
+	private IChannel channel;
 	private Client client;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 
@@ -59,25 +61,17 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public String toString() {
-		return "Player={" + address + "," + name + "}";
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (!(obj instanceof IPlayer))
-			return false;
-
-		IPlayer other = (IPlayer) obj;
-		return getUUID().equals(other.getUUID());
-	}
-
-	@Override
 	public UUID getUUID() {
 		return client.getUUID();
+	}
+
+	@Override
+	public IChannel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(IChannel channel) {
+		this.channel = channel;
 	}
 
 	@Override
@@ -100,6 +94,23 @@ public class Player implements IPlayer {
 	public void setDeafen(boolean isDeafen) {
 		this.isDeafen = isDeafen;
 		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
+	}
+
+	@Override
+	public String toString() {
+		return "Player={" + address + "," + name + "}";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IPlayer))
+			return false;
+
+		IPlayer other = (IPlayer) obj;
+		return getUUID().equals(other.getUUID());
 	}
 
 	public void onOtherPlayerSpeaker(String playerName, byte[] data, double global, double left, double right) {

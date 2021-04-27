@@ -40,6 +40,11 @@ public interface IPlayer extends IUnmodifiableNominable {
 	UUID getUUID();
 
 	/**
+	 * @return The channel in which this player is registered or null if it is not registered in any channels.
+	 */
+	IChannel getChannel();
+
+	/**
 	 * @return True if this player is mute, false otherwise.
 	 */
 	boolean isMute();

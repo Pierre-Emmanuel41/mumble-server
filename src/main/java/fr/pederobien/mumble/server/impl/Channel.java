@@ -48,13 +48,17 @@ public class Channel implements IChannel, IObsServer {
 
 	@Override
 	public void addPlayer(IPlayer player) {
-		players.add((Player) player);
-		notifyObservers(obs -> obs.onPlayerAdded(this, player));
+		Player playerImpl = (Player) player;
+		players.add(playerImpl);
+		playerImpl.setChannel(this);
+		notifyObservers(obs -> obs.onPlayerAdded(this, playerImpl));
 	}
 
 	@Override
 	public void removePlayer(IPlayer player) {
-		if (players.remove(player))
+		Player playerImpl = (Player) player;
+		playerImpl.setChannel(null);
+		if (players.remove(playerImpl))
 			notifyObservers(obs -> obs.onPlayerRemoved(this, player));
 	}
 
