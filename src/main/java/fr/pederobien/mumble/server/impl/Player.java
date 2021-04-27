@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
+import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
@@ -82,6 +83,7 @@ public class Player implements IPlayer {
 	@Override
 	public void setMute(boolean isMute) {
 		this.isMute = isMute;
+		checkChannel();
 		internalServer.onPlayerMuteChanged(getName(), isMute);
 	}
 
@@ -93,6 +95,7 @@ public class Player implements IPlayer {
 	@Override
 	public void setDeafen(boolean isDeafen) {
 		this.isDeafen = isDeafen;
+		checkChannel();
 		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
 	}
 
@@ -126,5 +129,10 @@ public class Player implements IPlayer {
 			return;
 		this.isOnline = isOnline;
 		client.sendPlayerStatusChanged(isOnline);
+	}
+
+	private void checkChannel() {
+		if (channel == null)
+			throw new PlayerNotRegisteredInChannelException(this);
 	}
 }

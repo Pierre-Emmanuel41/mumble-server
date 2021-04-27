@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.interfaces;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
+import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 
 public interface IPlayer extends IUnmodifiableNominable {
@@ -53,6 +54,8 @@ public interface IPlayer extends IUnmodifiableNominable {
 	 * Set the new mute status of the player.
 	 * 
 	 * @param isMute True if the player is mute, false otherwise.
+	 * 
+	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void setMute(boolean isMute);
 
@@ -65,6 +68,8 @@ public interface IPlayer extends IUnmodifiableNominable {
 	 * Set the new deafen status of the player.
 	 * 
 	 * @param isDeafen True if the player is deafen, false otherwise.
+	 * 
+	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void setDeafen(boolean isDeafen);
 }
