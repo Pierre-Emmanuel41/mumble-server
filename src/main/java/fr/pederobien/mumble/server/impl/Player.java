@@ -82,8 +82,8 @@ public class Player implements IPlayer {
 
 	@Override
 	public void setMute(boolean isMute) {
-		this.isMute = isMute;
 		checkChannel();
+		this.isMute = isMute;
 		internalServer.onPlayerMuteChanged(getName(), isMute);
 	}
 
@@ -94,8 +94,8 @@ public class Player implements IPlayer {
 
 	@Override
 	public void setDeafen(boolean isDeafen) {
-		this.isDeafen = isDeafen;
 		checkChannel();
+		this.isDeafen = isDeafen;
 		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
 	}
 
