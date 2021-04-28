@@ -15,7 +15,6 @@ public class Client {
 	private Player player;
 	private UUID uuid;
 	private InetSocketAddress address;
-	private Channel channel;
 
 	protected Client(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
 		this.internalServer = internalServer;
@@ -83,13 +82,5 @@ public class Client {
 
 	public InetSocketAddress getAddress() {
 		return tcpClient == null ? address : tcpClient.getAddress();
-	}
-
-	public Channel getChannel() {
-		return channel;
-	}
-
-	public void setChannel(Channel channel) {
-		this.channel = channel;
 	}
 }

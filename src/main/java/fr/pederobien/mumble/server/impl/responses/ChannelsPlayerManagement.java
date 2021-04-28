@@ -45,7 +45,6 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 
 			// Doing modification on the server.
 			channel.addPlayer(optPlayerAdd.get());
-			event.getClient().setChannel(channel);
 			return event.getRequest().answer(channelName, playerName);
 		case REMOVE:
 			// Getting channel associated to the its name.
@@ -62,7 +61,6 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 
 			// doing modification on the server.
 			channel.removePlayer(optPlayerRemove.get());
-			event.getClient().setChannel(null);
 			return event.getRequest().answer(channelName, playerName);
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

@@ -81,8 +81,8 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	@Override
 	public void onConnectionLost() {
 		connection.removeObserver(this);
-		if (client.getChannel() != null)
-			client.getChannel().removePlayer(client.getPlayer());
+		if (client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
 	}
 
 	@Override
@@ -116,8 +116,8 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, true, client.getPlayer().getName(), client.getPlayer().isAdmin()));
 		else {
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, false));
-			if (client.getChannel() != null)
-				client.getChannel().removePlayer(client.getPlayer());
+			if (client.getPlayer().getChannel() != null)
+				client.getPlayer().getChannel().removePlayer(client.getPlayer());
 		}
 	}
 
