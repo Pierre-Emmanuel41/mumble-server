@@ -119,7 +119,8 @@ public class Channel implements IChannel, IObsServer {
 
 	public void dispatch(Dispatch dispatch) {
 		// No need to send data to the player if he is deafen.
-		if (dispatch.getReceiver().isDeafen())
+		// No need to send data to the player if the player is muted by the receiver
+		if (dispatch.getReceiver().isDeafen() || dispatch.getTransmitter().isMuteBy(dispatch.getReceiver()))
 			return;
 
 		VolumeResult result = soundModifier.calculate(dispatch.getTransmitter(), dispatch.getReceiver());

@@ -9,6 +9,7 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.Channel;
 import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.impl.Player;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
@@ -33,7 +34,7 @@ public class ChannelsPlayerManagement extends AbstractManagement {
 
 			// Getting player associated to its name.
 			playerName = (String) event.getRequest().getPayload()[1];
-			final Optional<IPlayer> optPlayerAdd = getInternalServer().getPlayers().stream().filter(player -> player.getName().equals(playerName)).findFirst();
+			final Optional<Player> optPlayerAdd = getInternalServer().getPlayer(playerName);
 			if (!optPlayerAdd.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 

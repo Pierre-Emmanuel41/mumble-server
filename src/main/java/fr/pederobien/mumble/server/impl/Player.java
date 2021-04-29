@@ -1,6 +1,8 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
@@ -16,6 +18,8 @@ public class Player implements IPlayer {
 	private IChannel channel;
 	private Client client;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
+	private Map<IPlayer, Boolean> muteBy;
+	private Object lockMuteBy;
 
 	protected Player(InternalServer internalServer, InetSocketAddress address, String name, boolean isAdmin) {
 		this.internalServer = internalServer;
@@ -25,6 +29,8 @@ public class Player implements IPlayer {
 
 		position = new Position();
 		isOnline = false;
+		muteBy = new HashMap<IPlayer, Boolean>();
+		lockMuteBy = new Object();
 	}
 
 	@Override
@@ -116,19 +122,62 @@ public class Player implements IPlayer {
 		return getUUID().equals(other.getUUID());
 	}
 
+	/**
+	 * Send the data to the client in order to play it on the client side.
+	 * 
+	 * @param playerName The speaking player.
+	 * @param data       The byte array that correspond to what the player is saying.
+	 * @param global     The global volume of the signal.
+	 * @param left       The left channel volume of the signal.
+	 * @param right      The right channel volume of the signal.
+	 */
 	public void onOtherPlayerSpeaker(String playerName, byte[] data, double global, double left, double right) {
 		client.onOtherPlayerSpeak(playerName, data, global, left, right);
 	}
 
+	/**
+	 * Set the client of this player. The client represent the client side associated to this player.
+	 * 
+	 * @param client The client of the player.
+	 */
 	public void setClient(Client client) {
 		this.client = client;
 	}
 
+	/**
+	 * Set if this player is online are not. If the status changed then data is sent through the client in order to update the client
+	 * graphical user interface.
+	 * 
+	 * @param isOnline True if the player is online, false otherwise.
+	 */
 	public void setIsOnline(boolean isOnline) {
 		if (this.isOnline == isOnline)
 			return;
 		this.isOnline = isOnline;
 		client.sendPlayerStatusChanged(isOnline);
+	}
+
+	/**
+	 * Set if this player is muted by another player. True in order to mute it, false in order to unmute it.
+	 * 
+	 * @param player The player that mute this player.
+	 * @param isMute True if the player is mute, false if the player is unmute.
+	 */
+	public void setIsMuteBy(IPlayer player, boolean isMute) {
+		synchronized (lockMuteBy) {
+			muteBy.put(player, isMute);
+		}
+	}
+
+	/**
+	 * Get if this player is mute by the given player.
+	 * 
+	 * @param player The player for which this player is mute or unmute.
+	 * @return True if this player is mute for the given player, false if this player is unmute for the given player.
+	 */
+	public boolean isMuteBy(IPlayer player) {
+		Boolean isMute = muteBy.get(player);
+		return isMute == null ? false : isMute;
 	}
 
 	private void checkChannel() {

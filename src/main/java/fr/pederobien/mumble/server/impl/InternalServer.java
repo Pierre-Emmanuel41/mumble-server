@@ -76,11 +76,13 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	public Client getOrCreateClient(InetSocketAddress address) {
-		Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
-		if (optClient.isPresent())
-			return optClient.get();
-		else
-			return createClient(address);
+		synchronized (lockPlayers) {
+			Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
+			if (optClient.isPresent())
+				return optClient.get();
+			else
+				return createClient(address);
+		}
 	}
 
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
@@ -101,6 +103,12 @@ public class InternalServer implements IObservable<IObsServer> {
 
 	public List<IPlayer> getPlayers() {
 		return Collections.unmodifiableList(clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null).collect(Collectors.toList()));
+	}
+
+	public Optional<Player> getPlayer(String playerName) {
+		synchronized (lockPlayers) {
+			return clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null && player.getName().equals(playerName)).findFirst();
+		}
 	}
 
 	public IChannel addChannel(String name) {
