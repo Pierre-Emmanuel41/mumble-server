@@ -154,15 +154,6 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 			default:
 				return true;
 			}
-		case SERVER_CONFIGURATION:
-			switch (request.getHeader().getOid()) {
-			case GET:
-				return true;
-			case SET:
-				return client.getPlayer() != null && client.getPlayer().isAdmin();
-			default:
-				return true;
-			}
 		case CHANNELS_PLAYER:
 			switch (request.getHeader().getOid()) {
 			case ADD:
