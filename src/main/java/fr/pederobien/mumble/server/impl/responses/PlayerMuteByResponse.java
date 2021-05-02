@@ -10,9 +10,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.Player;
 
-public class PlayerMuteByManagement extends AbstractManagement {
+public class PlayerMuteByResponse extends AbstractResponse {
 
-	public PlayerMuteByManagement(InternalServer internalServer) {
+	public PlayerMuteByResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

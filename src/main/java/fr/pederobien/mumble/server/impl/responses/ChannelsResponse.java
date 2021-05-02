@@ -14,9 +14,9 @@ import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class ChannelsManagement extends AbstractManagement {
+public class ChannelsResponse extends AbstractResponse {
 
-	public ChannelsManagement(InternalServer internalServer) {
+	public ChannelsResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

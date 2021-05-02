@@ -8,9 +8,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 
-public class PlayerMuteManagement extends AbstractManagement {
+public class PlayerMuteResponse extends AbstractResponse {
 
-	public PlayerMuteManagement(InternalServer internalServer) {
+	public PlayerMuteResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

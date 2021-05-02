@@ -7,10 +7,10 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 
-public abstract class AbstractManagement implements Function<RequestEvent, IMessage<Header>> {
+public abstract class AbstractResponse implements Function<RequestEvent, IMessage<Header>> {
 	private InternalServer internalServer;
 
-	public AbstractManagement(InternalServer internalServer) {
+	public AbstractResponse(InternalServer internalServer) {
 		this.internalServer = internalServer;
 	}
 

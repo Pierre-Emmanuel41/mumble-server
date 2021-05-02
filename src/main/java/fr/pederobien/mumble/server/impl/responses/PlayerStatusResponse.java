@@ -8,9 +8,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.Player;
 
-public class PlayerStatusManagement extends AbstractManagement {
+public class PlayerStatusResponse extends AbstractResponse {
 
-	public PlayerStatusManagement(InternalServer internalServer) {
+	public PlayerStatusResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

@@ -7,9 +7,9 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 
-public class UdpPortManagement extends AbstractManagement {
+public class UdpPortResponse extends AbstractResponse {
 
-	public UdpPortManagement(InternalServer internalServer) {
+	public UdpPortResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

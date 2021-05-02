@@ -12,9 +12,9 @@ import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class ServerManagement extends AbstractManagement {
+public class ServerResponse extends AbstractResponse {
 
-	public ServerManagement(InternalServer internalServer) {
+	public ServerResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

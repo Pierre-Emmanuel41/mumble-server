@@ -8,9 +8,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 
-public class PlayerDeafenManagement extends AbstractManagement {
+public class PlayerDeafenResponse extends AbstractResponse {
 
-	public PlayerDeafenManagement(InternalServer internalServer) {
+	public PlayerDeafenResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

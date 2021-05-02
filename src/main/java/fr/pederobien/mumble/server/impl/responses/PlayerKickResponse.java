@@ -10,9 +10,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.Player;
 
-public class PlayerKickManagement extends AbstractManagement {
+public class PlayerKickResponse extends AbstractResponse {
 
-	public PlayerKickManagement(InternalServer internalServer) {
+	public PlayerKickResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

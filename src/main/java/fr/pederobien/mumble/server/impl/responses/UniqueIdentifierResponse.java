@@ -7,9 +7,9 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 
-public class UniqueIdentifierManagement extends AbstractManagement {
+public class UniqueIdentifierResponse extends AbstractResponse {
 
-	public UniqueIdentifierManagement(InternalServer internalServer) {
+	public UniqueIdentifierResponse(InternalServer internalServer) {
 		super(internalServer);
 	}
 

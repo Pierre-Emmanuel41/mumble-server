@@ -10,37 +10,37 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
-import fr.pederobien.mumble.server.impl.responses.ChannelsManagement;
-import fr.pederobien.mumble.server.impl.responses.ChannelsPlayerManagement;
-import fr.pederobien.mumble.server.impl.responses.PlayerDeafenManagement;
-import fr.pederobien.mumble.server.impl.responses.PlayerKickManagement;
-import fr.pederobien.mumble.server.impl.responses.PlayerMuteByManagement;
-import fr.pederobien.mumble.server.impl.responses.PlayerMuteManagement;
-import fr.pederobien.mumble.server.impl.responses.PlayerStatusManagement;
-import fr.pederobien.mumble.server.impl.responses.ServerManagement;
-import fr.pederobien.mumble.server.impl.responses.UdpPortManagement;
-import fr.pederobien.mumble.server.impl.responses.UniqueIdentifierManagement;
+import fr.pederobien.mumble.server.impl.responses.ChannelsResponse;
+import fr.pederobien.mumble.server.impl.responses.ChannelsPlayerResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerDeafenResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerKickResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerMuteByResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerMuteResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerStatusResponse;
+import fr.pederobien.mumble.server.impl.responses.ServerResponse;
+import fr.pederobien.mumble.server.impl.responses.UdpPortResponse;
+import fr.pederobien.mumble.server.impl.responses.UniqueIdentifierResponse;
 
 public class RequestManagement {
-	private Map<Idc, Function<RequestEvent, IMessage<Header>>> answers;
+	private Map<Idc, Function<RequestEvent, IMessage<Header>>> responses;
 
 	public RequestManagement(InternalServer internalServer) {
-		answers = new HashMap<Idc, Function<RequestEvent, IMessage<Header>>>();
+		responses = new HashMap<Idc, Function<RequestEvent, IMessage<Header>>>();
 
-		answers.put(Idc.UNIQUE_IDENTIFIER, new UniqueIdentifierManagement(internalServer));
-		answers.put(Idc.PLAYER_STATUS, new PlayerStatusManagement(internalServer));
-		answers.put(Idc.CHANNELS, new ChannelsManagement(internalServer));
-		answers.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerManagement(internalServer));
-		answers.put(Idc.SERVER_CONFIGURATION, new ServerManagement(internalServer));
-		answers.put(Idc.UDP_PORT, new UdpPortManagement(internalServer));
-		answers.put(Idc.PLAYER_MUTE, new PlayerMuteManagement(internalServer));
-		answers.put(Idc.PLAYER_DEAFEN, new PlayerDeafenManagement(internalServer));
-		answers.put(Idc.PLAYER_MUTE_BY, new PlayerMuteByManagement(internalServer));
-		answers.put(Idc.PLAYER_KICK, new PlayerKickManagement(internalServer));
+		responses.put(Idc.UNIQUE_IDENTIFIER, new UniqueIdentifierResponse(internalServer));
+		responses.put(Idc.PLAYER_STATUS, new PlayerStatusResponse(internalServer));
+		responses.put(Idc.CHANNELS, new ChannelsResponse(internalServer));
+		responses.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerResponse(internalServer));
+		responses.put(Idc.SERVER_CONFIGURATION, new ServerResponse(internalServer));
+		responses.put(Idc.UDP_PORT, new UdpPortResponse(internalServer));
+		responses.put(Idc.PLAYER_MUTE, new PlayerMuteResponse(internalServer));
+		responses.put(Idc.PLAYER_DEAFEN, new PlayerDeafenResponse(internalServer));
+		responses.put(Idc.PLAYER_MUTE_BY, new PlayerMuteByResponse(internalServer));
+		responses.put(Idc.PLAYER_KICK, new PlayerKickResponse(internalServer));
 	}
 
 	public IMessage<Header> answer(RequestEvent event) {
-		Function<RequestEvent, IMessage<Header>> answer = answers.get(event.getRequest().getHeader().getIdc());
+		Function<RequestEvent, IMessage<Header>> answer = responses.get(event.getRequest().getHeader().getIdc());
 		return answer != null ? answer.apply(event) : MumbleMessageFactory.answer(event.getRequest(), ErrorCode.IDC_UNKNOWN);
 	}
 }
