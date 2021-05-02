@@ -10,9 +10,9 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.Player;
 
-public class PlayerMuteByManagement extends AbstractManagement {
+public class PlayerKickManagement extends AbstractManagement {
 
-	public PlayerMuteByManagement(InternalServer internalServer) {
+	public PlayerKickManagement(InternalServer internalServer) {
 		super(internalServer);
 	}
 
@@ -24,18 +24,17 @@ public class PlayerMuteByManagement extends AbstractManagement {
 			if (!event.getClient().getPlayer().getName().equals(playerName))
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
 
-			String playerMuteOrUnmuteName = (String) event.getRequest().getPayload()[1];
-			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getPlayer(playerMuteOrUnmuteName);
+			String playerKickName = (String) event.getRequest().getPayload()[1];
+			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getPlayer(playerKickName);
 			if (!optPlayerMuteOrUnmute.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
-			Player playerMuteOrUnmute = optPlayerMuteOrUnmute.get();
-			if (!playerMuteOrUnmute.getChannel().equals(event.getClient().getPlayer().getChannel()))
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYERS_IN_DIFFERENT_CHANNELS);
-
-			boolean isMute = (boolean) event.getRequest().getPayload()[2];
-			optPlayerMuteOrUnmute.get().setIsMuteBy(event.getClient().getPlayer(), isMute);
-			return event.getRequest().answer(playerName, playerMuteOrUnmuteName, isMute);
+			try {
+				optPlayerMuteOrUnmute.get().getChannel().removePlayer(optPlayerMuteOrUnmute.get());
+				return event.getRequest().answer(playerName, playerKickName);
+			} catch (NullPointerException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_REGISTERED);
+			}
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
 		}

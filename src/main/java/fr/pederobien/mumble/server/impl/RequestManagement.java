@@ -13,6 +13,7 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.responses.ChannelsManagement;
 import fr.pederobien.mumble.server.impl.responses.ChannelsPlayerManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerDeafenManagement;
+import fr.pederobien.mumble.server.impl.responses.PlayerKickManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteByManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteManagement;
 import fr.pederobien.mumble.server.impl.responses.PlayerStatusManagement;
@@ -35,6 +36,7 @@ public class RequestManagement {
 		answers.put(Idc.PLAYER_MUTE, new PlayerMuteManagement(internalServer));
 		answers.put(Idc.PLAYER_DEAFEN, new PlayerDeafenManagement(internalServer));
 		answers.put(Idc.PLAYER_MUTE_BY, new PlayerMuteByManagement(internalServer));
+		answers.put(Idc.PLAYER_KICK, new PlayerKickManagement(internalServer));
 	}
 
 	public IMessage<Header> answer(RequestEvent event) {
