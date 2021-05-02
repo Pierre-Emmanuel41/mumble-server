@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import fr.pederobien.communication.impl.BlockingQueueTask;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
+import fr.pederobien.utils.BlockingQueueTask;
 import fr.pederobien.utils.Observable;
 
 public class Channel implements IChannel, IObsServer {
