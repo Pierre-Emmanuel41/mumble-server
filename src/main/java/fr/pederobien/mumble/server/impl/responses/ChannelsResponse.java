@@ -57,8 +57,10 @@ public class ChannelsResponse extends AbstractResponse {
 			try {
 				getInternalServer().renameChannel(oldName, newName);
 				return event.getRequest().answer(oldName, newName);
-			} catch (ChannelAlreadyExistException | ChannelNotRegisteredException e) {
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
+			} catch (ChannelAlreadyExistException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
+			} catch (ChannelNotRegisteredException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 			}
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
