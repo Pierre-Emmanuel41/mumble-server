@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import fr.pederobien.communication.impl.TcpServerConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
@@ -23,13 +24,11 @@ public class Client {
 	}
 
 	public void sendAdminChanged(boolean isAdmin) {
-		if (tcpClient != null)
-			tcpClient.sendAdminChanged(isAdmin);
+		tryOnTcpClient(client -> client.sendAdminChanged(isAdmin));
 	}
 
 	public void sendPlayerStatusChanged(boolean isConnected) {
-		if (tcpClient != null)
-			tcpClient.sendPlayerStatusChanged(isConnected);
+		tryOnTcpClient(client -> client.sendPlayerStatusChanged(isConnected));
 	}
 
 	@Override
@@ -60,11 +59,19 @@ public class Client {
 	}
 
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		tcpClient.sendPlayerMuteChanged(playerName, isMute);
+		tryOnTcpClient(client -> client.sendPlayerMuteChanged(playerName, isMute));
 	}
 
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		tcpClient.sendPlayerDeafenChanged(playerName, isDeafen);
+		tryOnTcpClient(client -> client.sendPlayerDeafenChanged(playerName, isDeafen));
+	}
+
+	public void onJoin() {
+		tcpClient.onJoin();
+	}
+
+	public void onLeave() {
+		tcpClient.onLeave();
 	}
 
 	public Player getPlayer() {
@@ -82,5 +89,14 @@ public class Client {
 
 	public InetSocketAddress getAddress() {
 		return tcpClient == null ? address : tcpClient.getAddress();
+	}
+
+	private void tryOnTcpClient(Consumer<TcpClient> consumer) {
+		try {
+			if (tcpClient != null)
+				consumer.accept(tcpClient);
+		} catch (IllegalStateException e) {
+			// Do nothing
+		}
 	}
 }

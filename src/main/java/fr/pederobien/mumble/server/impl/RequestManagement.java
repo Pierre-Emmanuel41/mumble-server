@@ -17,6 +17,8 @@ import fr.pederobien.mumble.server.impl.responses.PlayerKickResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteByResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerStatusResponse;
+import fr.pederobien.mumble.server.impl.responses.ServerJoinResponse;
+import fr.pederobien.mumble.server.impl.responses.ServerLeaveResponse;
 import fr.pederobien.mumble.server.impl.responses.UdpPortResponse;
 import fr.pederobien.mumble.server.impl.responses.UniqueIdentifierResponse;
 
@@ -27,6 +29,8 @@ public class RequestManagement {
 		responses = new HashMap<Idc, Function<RequestEvent, IMessage<Header>>>();
 
 		responses.put(Idc.UNIQUE_IDENTIFIER, new UniqueIdentifierResponse(internalServer));
+		responses.put(Idc.SERVER_JOIN, new ServerJoinResponse(internalServer));
+		responses.put(Idc.SERVER_LEAVE, new ServerLeaveResponse(internalServer));
 		responses.put(Idc.PLAYER_STATUS, new PlayerStatusResponse(internalServer));
 		responses.put(Idc.CHANNELS, new ChannelsResponse(internalServer));
 		responses.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerResponse(internalServer));

@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
@@ -24,6 +25,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	private InternalServer internalServer;
 	private Client client;
 	private ITcpConnection connection;
+	private AtomicBoolean isJoined;
 
 	public TcpClient(InternalServer internalServer, Client client, ITcpConnection connection) {
 		this.internalServer = internalServer;
@@ -37,28 +39,33 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 
 	@Override
 	public void onChannelAdded(IChannel channel) {
+		checkIsJoined();
 		channel.addObserver(this);
 		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, channel.getName()));
 	}
 
 	@Override
 	public void onChannelRemoved(IChannel channel) {
+		checkIsJoined();
 		channel.removeObserver(this);
 		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, channel.getName()));
 	}
 
 	@Override
 	public void onChannelRenamed(IChannel channel, String oldName, String newName) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, oldName, newName));
 	}
 
 	@Override
 	public void onPlayerAdded(IChannel channel, IPlayer player) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName()));
 	}
 
 	@Override
 	public void onPlayerRemoved(IChannel channel, IPlayer player) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName()));
 	}
 
@@ -83,6 +90,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		connection.removeObserver(this);
 		if (client.getPlayer().getChannel() != null)
 			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		onLeave();
 	}
 
 	@Override
@@ -108,10 +116,12 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	}
 
 	public void sendAdminChanged(boolean isAdmin) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, isAdmin));
 	}
 
 	public void sendPlayerStatusChanged(boolean isConnected) {
+		checkIsJoined();
 		if (isConnected)
 			send(MumbleMessageFactory.create(Idc.PLAYER_STATUS, true, client.getPlayer().getName(), client.getPlayer().isAdmin()));
 		else {
@@ -122,11 +132,21 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	}
 
 	public void sendPlayerMuteChanged(String playerName, boolean isMute) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.PLAYER_MUTE, Oid.SET, playerName, isMute));
 	}
 
 	public void sendPlayerDeafenChanged(String playerName, boolean isDeafen) {
+		checkIsJoined();
 		send(MumbleMessageFactory.create(Idc.PLAYER_DEAFEN, Oid.SET, playerName, isDeafen));
+	}
+
+	public void onJoin() {
+		isJoined.set(true);
+	}
+
+	public void onLeave() {
+		isJoined.set(false);
 	}
 
 	private void send(IMessage<Header> message) {
@@ -136,8 +156,10 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
-		Idc idc = request.getHeader().getIdc();
-		switch (idc) {
+		if (!isJoined.get())
+			return request.getHeader().getIdc() == Idc.SERVER_JOIN;
+
+		switch (request.getHeader().getIdc()) {
 		case UNIQUE_IDENTIFIER:
 		case PLAYER_STATUS:
 		case UDP_PORT:
@@ -165,5 +187,10 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		default:
 			return client.getPlayer() != null && client.getPlayer().isAdmin();
 		}
+	}
+
+	private void checkIsJoined() {
+		if (!isJoined.get())
+			throw new IllegalStateException();
 	}
 }
