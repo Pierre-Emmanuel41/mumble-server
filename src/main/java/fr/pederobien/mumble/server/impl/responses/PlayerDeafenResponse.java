@@ -17,11 +17,18 @@ public class PlayerDeafenResponse extends AbstractResponse {
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
 		boolean isDeafen = (boolean) event.getRequest().getPayload()[0];
-		try {
-			event.getClient().getPlayer().setDeafen(isDeafen);
-			return event.getRequest().answer(event.getRequest().getPayload());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
+		switch (event.getRequest().getHeader().getOid()) {
+		case GET:
+			try {
+				event.getClient().getPlayer().setDeafen(isDeafen);
+				return event.getRequest().answer(event.getRequest().getPayload());
+			} catch (PlayerNotRegisteredInChannelException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_REGISTERED);
+			} catch (NullPointerException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
+			}
+		default:
+			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
 		}
 	}
 }

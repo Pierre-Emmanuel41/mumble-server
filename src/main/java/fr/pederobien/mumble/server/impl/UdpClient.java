@@ -6,6 +6,8 @@ import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
+import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
@@ -60,8 +62,11 @@ public class UdpClient implements IObsServer, IObsConnection {
 		if ((client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress())))
 			return;
 
-		byte[] data = (byte[]) MumbleMessageFactory.parse(event.getBuffer()).getPayload()[0];
-		((Channel) client.getPlayer().getChannel()).onPlayerSpeak(client.getPlayer(), data);
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
+		if (message.getHeader().getOid() != Oid.GET)
+			return;
+
+		((Channel) client.getPlayer().getChannel()).onPlayerSpeak(client.getPlayer(), (byte[]) message.getPayload()[0]);
 	}
 
 	@Override

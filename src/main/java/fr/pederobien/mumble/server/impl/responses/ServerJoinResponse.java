@@ -15,12 +15,12 @@ public class ServerJoinResponse extends AbstractResponse {
 
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
-		try {
+		switch (event.getRequest().getHeader().getOid()) {
+		case SET:
 			event.getClient().onJoin();
 			return event.getRequest().answer(event.getRequest().getPayload());
-		} catch (IllegalStateException e) {
-			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PERMISSION_REFUSED);
+		default:
+			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
 		}
 	}
-
 }

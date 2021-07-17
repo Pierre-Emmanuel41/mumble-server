@@ -31,8 +31,11 @@ public class ChannelsResponse extends AbstractResponse {
 				informations.add(channel.getName());
 				informations.add(channel.getPlayers().size());
 
-				for (IPlayer player : channel.getPlayers())
+				for (IPlayer player : channel.getPlayers()) {
 					informations.add(player.getName());
+					informations.add(player.isMute());
+					informations.add(player.isDeafen());
+				}
 			}
 			return event.getRequest().answer(informations.toArray());
 		case ADD:
