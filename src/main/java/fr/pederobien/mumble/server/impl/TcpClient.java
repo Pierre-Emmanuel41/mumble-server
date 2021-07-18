@@ -88,7 +88,8 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	@Override
 	public void onConnectionLost() {
 		connection.removeObserver(this);
-		if (client.getPlayer().getChannel() != null)
+
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
 			client.getPlayer().getChannel().removePlayer(client.getPlayer());
 		onLeave();
 	}

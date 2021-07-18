@@ -20,12 +20,13 @@ public class PlayerMuteResponse extends AbstractResponse {
 		switch (event.getRequest().getHeader().getOid()) {
 		case GET:
 			try {
+				if (event.getClient().getPlayer() == null)
+					return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
+
 				event.getClient().getPlayer().setMute(isMute);
 				return event.getRequest().answer(event.getRequest().getPayload());
 			} catch (PlayerNotRegisteredInChannelException e) {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_REGISTERED);
-			} catch (NullPointerException e) {
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 			}
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

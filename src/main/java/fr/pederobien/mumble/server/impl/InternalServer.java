@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -58,23 +57,40 @@ public class InternalServer implements IObservable<IObsServer> {
 		observers.removeObserver(obs);
 	}
 
+	/**
+	 * Starts the tcp thread and the udp thread.
+	 */
 	public void open() {
 		tcpThread.start();
 		udpThread.start();
 		isOpened = true;
 	}
 
+	/**
+	 * Interrupts the tcp thread and the udp thread.
+	 */
 	public void close() {
-		notifyObservers(obs -> obs.onServerClosing());
+		observers.notifyObservers(obs -> obs.onServerClosing());
 		tcpThread.interrupt();
 		udpThread.interrupt();
 		isOpened = false;
 	}
 
+	/**
+	 * @return True if the server is opened, false otherwise. The server is opened if and only if {@link #open()} method has been
+	 *         called.
+	 */
 	public boolean isOpened() {
 		return isOpened;
 	}
 
+	/**
+	 * First check if a client is registered for the given address, if any then returns it, else creates a new client object.
+	 * 
+	 * @param address The address used to retrieve or create a client.
+	 * 
+	 * @return The client associated to the given address.
+	 */
 	public Client getOrCreateClient(InetSocketAddress address) {
 		synchronized (lockPlayers) {
 			Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
@@ -85,6 +101,15 @@ public class InternalServer implements IObservable<IObsServer> {
 		}
 	}
 
+	/**
+	 * Creates based on the given properties.
+	 * 
+	 * @param address    The address of the player in game.
+	 * @param playerName The name of the player in game.
+	 * @param isAdmin    The admin status of the player in game.
+	 * 
+	 * @return The created player.
+	 */
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		synchronized (lockPlayers) {
 			Player player = getOrCreatePlayer(address, playerName, isAdmin);
@@ -93,50 +118,93 @@ public class InternalServer implements IObservable<IObsServer> {
 		}
 	}
 
+	/**
+	 * Removes the player associated to the given playerName.
+	 * 
+	 * @param playerName The name of the player to remove.
+	 */
 	public void removePlayer(String playerName) {
 		synchronized (lockPlayers) {
 			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
-			if (optClient.isPresent())
+			if (optClient.isPresent() && optClient.get().getPlayer() != null) {
 				optClient.get().getPlayer().setIsOnline(false);
+				optClient.get().setPlayer(null);
+			}
 		}
 	}
 
+	/**
+	 * @return The list of player currently registered for this server.
+	 */
 	public List<IPlayer> getPlayers() {
 		return Collections.unmodifiableList(clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null).collect(Collectors.toList()));
 	}
 
+	/**
+	 * Try to find the player associated to the specified playerName.
+	 * 
+	 * @param playerName The name of the player to return.
+	 * 
+	 * @return An optional that contains a player if found, an empty optional otherwise.
+	 */
 	public Optional<Player> getPlayer(String playerName) {
 		synchronized (lockPlayers) {
 			return clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null && player.getName().equals(playerName)).findFirst();
 		}
 	}
 
+	/**
+	 * Creates a channel associated to the given name.
+	 * 
+	 * @param name The name of the channel to add.
+	 * 
+	 * @return The created channel.
+	 * 
+	 * @throws ChannelAlreadyExistException If there is already a channel registered for the given name.
+	 */
 	public IChannel addChannel(String name) {
 		synchronized (lockChannels) {
-			IChannel existingChannel = getChannels().get(name);
+			IChannel existingChannel = channels.get(name);
 			if (existingChannel != null)
 				throw new ChannelAlreadyExistException(name);
 
 			Channel channel = new Channel(name);
 			channels.put(channel.getName(), channel);
-			notifyObservers(obs -> obs.onChannelAdded(channel));
+			observers.notifyObservers(obs -> obs.onChannelAdded(channel));
 			addObserver(channel);
 			return channel;
 		}
 	}
 
+	/**
+	 * Remove the channel associated to the given name.
+	 * 
+	 * @param name The name of the channel to remove.
+	 * 
+	 * @return The removed channel if registered, null otherwise.
+	 */
 	public IChannel removeChannel(String name) {
 		synchronized (lockChannels) {
 			return unsynchronizedRemove(name);
 		}
 	}
 
+	/**
+	 * Set the name of the channel associated to the specified oldName.
+	 * 
+	 * @param oldName The old channel name.
+	 * @param newName The new channel name.
+	 * 
+	 * @throws ChannelNotRegisteredException If there is no channels associated to the oldName.
+	 * @throws ChannelAlreadyExistException  If there is already a channel registered for the given newName.
+	 */
 	public void renameChannel(String oldName, String newName) {
-		Channel channel = (Channel) getChannels().get(oldName);
+		Map<String, IChannel> channels = getChannels();
+		Channel channel = (Channel) channels.get(oldName);
 		if (channel == null)
 			throw new ChannelNotRegisteredException(oldName);
 
-		if (getChannels().get(newName) != null)
+		if (channels.get(newName) != null)
 			throw new ChannelAlreadyExistException(newName);
 
 		channel.setName(newName);
@@ -146,12 +214,22 @@ public class InternalServer implements IObservable<IObsServer> {
 		}
 	}
 
+	/**
+	 * Creates a copy of the current channels map.
+	 * 
+	 * @return The created copy.
+	 */
 	public Map<String, IChannel> getChannels() {
 		synchronized (lockChannels) {
 			return new HashMap<>(channels);
 		}
 	}
 
+	/**
+	 * Removes each players from each channels registered for this server.
+	 * 
+	 * @return The list of removed channels.
+	 */
 	public List<IChannel> clearChannels() {
 		List<IChannel> channelsList = new ArrayList<IChannel>();
 		synchronized (lockChannels) {
@@ -163,28 +241,42 @@ public class InternalServer implements IObservable<IObsServer> {
 		return channelsList;
 	}
 
-	public Map<UUID, Client> getClients() {
-		return clients;
-	}
-
+	/**
+	 * Try to answer to the specified event.
+	 * 
+	 * @param event The event that contains the client which received a request from the network.
+	 * 
+	 * @return A message that contains the answer.
+	 */
 	public IMessage<Header> answer(RequestEvent event) {
 		return requestManagement.answer(event);
 	}
 
+	/**
+	 * @return The udp port used for the vocal communication.
+	 */
 	public int getUdpPort() {
 		return udpPort;
 	}
 
+	/**
+	 * Notify each client the mute status of the player associated to the given name has changed.
+	 * 
+	 * @param playerName The name of the player whose mute status has changed.
+	 * @param isMute     True if the player is now muted, false otherwise.
+	 */
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
 		clients.values().stream().forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
 	}
 
+	/**
+	 * Notify each client the deafen status of the player associated to the given name has changed.
+	 * 
+	 * @param playerName The name of the player whose deafen status has changed.
+	 * @param isMute     True if the player is now deafen, false otherwise.
+	 */
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
 		clients.values().forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
-	}
-
-	private void notifyObservers(Consumer<IObsServer> consumer) {
-		observers.notifyObservers(consumer);
 	}
 
 	private Client createClient(InetSocketAddress address) {
@@ -219,7 +311,7 @@ public class InternalServer implements IObservable<IObsServer> {
 		Channel channel = (Channel) channels.remove(name);
 		if (channel != null) {
 			channel.clear();
-			notifyObservers(obs -> obs.onChannelRemoved(channel));
+			observers.notifyObservers(obs -> obs.onChannelRemoved(channel));
 			removeObserver(channel);
 		}
 		return channel;

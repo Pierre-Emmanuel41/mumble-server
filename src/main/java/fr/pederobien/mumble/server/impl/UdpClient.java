@@ -59,7 +59,7 @@ public class UdpClient implements IObsServer, IObsConnection {
 
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
-		if ((client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress())))
+		if (client.getPlayer() == null || client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress()))
 			return;
 
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
