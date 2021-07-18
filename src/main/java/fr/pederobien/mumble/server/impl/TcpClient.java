@@ -189,6 +189,16 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 			default:
 				return false;
 			}
+		case SOUND_MODIFIER:
+			switch (request.getHeader().getOid()) {
+			case GET:
+			case INFO:
+				return true;
+			case SET:
+				return client.getPlayer() != null && client.getPlayer().isAdmin();
+			default:
+				return false;
+			}
 		default:
 			return client.getPlayer() != null && client.getPlayer().isAdmin();
 		}
