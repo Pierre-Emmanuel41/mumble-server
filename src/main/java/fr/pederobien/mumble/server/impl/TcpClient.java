@@ -18,6 +18,7 @@ import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 
@@ -67,6 +68,11 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	@Override
 	public void onPlayerRemoved(IChannel channel, IPlayer player) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName())));
+	}
+
+	@Override
+	public void onSoundModifierChanged(IChannel channel, ISoundModifier modifier) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, channel.getName(), modifier.getName())));
 	}
 
 	@Override
