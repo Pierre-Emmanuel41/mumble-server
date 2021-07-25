@@ -43,7 +43,7 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	public void onChannelAdded(IChannel channel) {
 		doIfPlayerJoined(() -> {
 			channel.addObserver(this);
-			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, channel.getName()));
+			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, channel.getName(), channel.getSoundModifier().getName()));
 		});
 	}
 

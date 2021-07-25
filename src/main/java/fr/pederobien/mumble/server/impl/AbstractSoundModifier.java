@@ -16,6 +16,18 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 		return name;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (obj == null || !(obj instanceof ISoundModifier))
+			return false;
+
+		ISoundModifier other = (ISoundModifier) obj;
+		return getName().equals(other.getName());
+	}
+
 	private static class DefaultSoundModifier extends AbstractSoundModifier {
 
 		public DefaultSoundModifier() {

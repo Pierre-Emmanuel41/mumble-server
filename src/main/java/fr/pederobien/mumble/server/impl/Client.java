@@ -80,7 +80,8 @@ public class Client {
 
 	public void setPlayer(Player player) {
 		this.player = player;
-		player.setClient(this);
+		if (player != null)
+			player.setClient(this);
 	}
 
 	public UUID getUUID() {

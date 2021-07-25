@@ -47,7 +47,7 @@ public class MumbleServer implements IMumbleServer {
 			persistence.load(getName());
 		} catch (FileNotFoundException e) {
 			// First time the plugin is on the server, need to add a default channel.
-			addChannel("General");
+			addChannel("General", "default");
 		}
 	}
 
@@ -82,9 +82,9 @@ public class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
-	public IChannel addChannel(String name) {
+	public IChannel addChannel(String name, String soundModifierName) {
 		checkIsOpened();
-		return server.addChannel(name);
+		return server.addChannel(name, soundModifierName == null ? "default" : soundModifierName);
 	}
 
 	@Override
@@ -107,6 +107,13 @@ public class MumbleServer implements IMumbleServer {
 	@Override
 	public List<IChannel> clearChannels() {
 		return server.clearChannels();
+	}
+
+	/**
+	 * @return The internal server associated to this mumble server.
+	 */
+	protected InternalServer getInternalServer() {
+		return server;
 	}
 
 	private void checkIsOpened() {

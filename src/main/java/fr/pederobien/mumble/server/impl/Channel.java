@@ -81,7 +81,10 @@ public class Channel implements IChannel, IObsServer {
 
 	@Override
 	public void setSoundModifier(ISoundModifier soundModifier) {
+		if (this.soundModifier.equals(soundModifier))
+			return;
 		this.soundModifier = soundModifier;
+		observers.notifyObservers(obs -> obs.onSoundModifierChanged(this, soundModifier));
 	}
 
 	@Override

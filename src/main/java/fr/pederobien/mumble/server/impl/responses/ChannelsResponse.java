@@ -10,6 +10,7 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
+import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -40,13 +41,16 @@ public class ChannelsResponse extends AbstractResponse {
 			}
 			return event.getRequest().answer(informations.toArray());
 		case ADD:
-			String addChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canAddChannel = getInternalServer().getChannels().get(addChannelName) == null;
-			if (canAddChannel) {
-				getInternalServer().addChannel(addChannelName);
-				return event.getRequest().answer(addChannelName);
-			} else
+			try {
+				String addChannelName = (String) event.getRequest().getPayload()[0];
+				String soundModifierName = (String) event.getRequest().getPayload()[1];
+				getInternalServer().addChannel(addChannelName, soundModifierName);
+				return event.getRequest().answer(addChannelName, soundModifierName);
+			} catch (ChannelAlreadyExistException e) {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
+			} catch (SoundModifierDoesNotExistException e) {
+				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
+			}
 		case REMOVE:
 			String removeChannelName = (String) event.getRequest().getPayload()[0];
 			boolean canRemoveChannel = getInternalServer().getChannels().get(removeChannelName) != null;

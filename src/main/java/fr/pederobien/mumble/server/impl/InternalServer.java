@@ -16,8 +16,10 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
+import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
@@ -156,19 +158,26 @@ public class InternalServer implements IObservable<IObsServer> {
 	/**
 	 * Creates a channel associated to the given name.
 	 * 
-	 * @param name The name of the channel to add.
+	 * @param name              The name of the channel to add.
+	 * @param soundModifierName The sound modifier name attached to the channel to add.
 	 * 
 	 * @return The created channel.
 	 * 
-	 * @throws ChannelAlreadyExistException If there is already a channel registered for the given name.
+	 * @throws ChannelAlreadyExistException       If there is already a channel registered for the given name.
+	 * @throws SoundModifierDoesNotExistException If the sound modifier name refers to no registered modifier.
 	 */
-	public IChannel addChannel(String name) {
+	public IChannel addChannel(String name, String soundModifierName) {
 		synchronized (lockChannels) {
 			IChannel existingChannel = channels.get(name);
 			if (existingChannel != null)
 				throw new ChannelAlreadyExistException(name);
 
+			Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
+			if (!optSoundModifier.isPresent())
+				throw new SoundModifierDoesNotExistException(soundModifierName);
+
 			Channel channel = new Channel(name);
+			channel.setSoundModifier(optSoundModifier.get());
 			channels.put(channel.getName(), channel);
 			observers.notifyObservers(obs -> obs.onChannelAdded(channel));
 			addObserver(channel);

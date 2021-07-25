@@ -53,13 +53,14 @@ public interface IMumbleServer extends IUnmodifiableNominable {
 	/**
 	 * Registered a channel to this server.
 	 * 
-	 * @param name The channel's name.
+	 * @param name              The channel's name.
+	 * @param soundModifierName the sound modifier name attached to the channel to add.
 	 * 
 	 * @return The created channel.
 	 * 
 	 * @throws ChannelAlreadyExistException If there is already a channel registered for the given name.
 	 */
-	IChannel addChannel(String name);
+	IChannel addChannel(String name, String soundModifierName);
 
 	/**
 	 * Unregistered a channel from this server.

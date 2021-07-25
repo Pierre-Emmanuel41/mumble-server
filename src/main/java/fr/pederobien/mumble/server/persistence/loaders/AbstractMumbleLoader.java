@@ -31,7 +31,7 @@ public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<
 		NodeList channels = getElementsByTagName(root, EMumbleXmlTag.CHANNEL);
 		for (int i = 0; i < channels.getLength(); i++) {
 			Element channel = (Element) channels.item(i);
-			IChannel ch = get().addChannel(getStringAttribute(channel, EMumbleXmlTag.CHANNEL_NAME));
+			IChannel ch = get().addChannel(getStringAttribute(channel, EMumbleXmlTag.CHANNEL_NAME), null);
 			SoundManager.setSoundModifier(ch, getStringAttribute(channel, EMumbleXmlTag.SOUND_MODIFIER_NAME));
 		}
 	}
