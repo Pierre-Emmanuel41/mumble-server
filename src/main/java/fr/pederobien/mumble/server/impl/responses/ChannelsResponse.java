@@ -29,6 +29,7 @@ public class ChannelsResponse extends AbstractResponse {
 
 			for (IChannel channel : getInternalServer().getChannels().values()) {
 				informations.add(channel.getName());
+				informations.add(channel.getSoundModifier().getName());
 				informations.add(channel.getPlayers().size());
 
 				for (IPlayer player : channel.getPlayers()) {
