@@ -50,7 +50,7 @@ public class SoundModifierResponse extends AbstractResponse {
 		case INFO:
 			List<Object> informations = new ArrayList<Object>();
 			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
-			informations.add(getInternalServer().getChannels().size());
+			informations.add(modifiers.size());
 
 			// Modifier informations
 			for (ISoundModifier modifier : modifiers.values())
