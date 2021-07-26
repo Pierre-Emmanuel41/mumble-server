@@ -46,7 +46,7 @@ public class SoundModifierResponse extends AbstractResponse {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
 			channel.setSoundModifier(soundModifier.get());
-			return event.getRequest().answer(channelName, soundModifier.get());
+			return event.getRequest().answer(channelName, soundModifier.get().getName());
 		case INFO:
 			List<Object> informations = new ArrayList<Object>();
 			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
