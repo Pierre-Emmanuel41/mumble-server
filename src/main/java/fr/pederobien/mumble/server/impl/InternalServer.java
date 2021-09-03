@@ -18,8 +18,13 @@ import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
+import fr.pederobien.mumble.server.event.ServerClientCreatedEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
@@ -112,6 +117,9 @@ public class InternalServer {
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		synchronized (lockPlayers) {
 			Player player = getOrCreatePlayer(address, playerName, isAdmin);
+			if (player == null)
+				return null;
+
 			player.setIsOnline(true);
 			return player;
 		}
@@ -126,8 +134,12 @@ public class InternalServer {
 		synchronized (lockPlayers) {
 			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
 			if (optClient.isPresent() && optClient.get().getPlayer() != null) {
-				optClient.get().getPlayer().setIsOnline(false);
-				optClient.get().setPlayer(null);
+				IPlayer player = optClient.get().getPlayer();
+				EventManager.callEvent(new ServerPlayerRemovePreEvent(mumbleServer, player), () -> {
+					optClient.get().getPlayer().setIsOnline(false);
+					optClient.get().setPlayer(null);
+					EventManager.callEvent(new ServerPlayerRemovePostEvent(mumbleServer, player));
+				});
 			}
 		}
 	}
@@ -300,6 +312,7 @@ public class InternalServer {
 		UUID uuid = createUUID();
 		Client client = new Client(this, uuid, address);
 		clients.put(uuid, client);
+		EventManager.callEvent(new ServerClientCreatedEvent(mumbleServer, client));
 		return client;
 	}
 
@@ -319,9 +332,18 @@ public class InternalServer {
 
 	private Player getOrCreatePlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		Client client = getOrCreateClient(address);
-		if (client.getPlayer() == null)
-			client.setPlayer(new Player(this, address, playerName, isAdmin));
-		return client.getPlayer();
+		if (client.getPlayer() == null) {
+			Player player = new Player(this, address, playerName, isAdmin);
+			ServerPlayerAddPreEvent event = new ServerPlayerAddPreEvent(mumbleServer, player);
+			EventManager.callEvent(event);
+			if (event.isCancelled())
+				return null;
+
+			client.setPlayer(player);
+			EventManager.callEvent(new ServerPlayerAddPostEvent(mumbleServer, player));
+			return player;
+		}
+		return null;
 	}
 
 	private IChannel unsynchronizedRemove(String name) {
