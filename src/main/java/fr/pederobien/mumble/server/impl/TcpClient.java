@@ -15,20 +15,20 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.interfaces.IChannel;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.mumble.server.interfaces.ISoundModifier;
-import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class TcpClient implements IEventListener, IObsChannel, IObsTcpConnection {
+public class TcpClient implements IEventListener, IObsTcpConnection {
 	private InternalServer internalServer;
 	private Client client;
 	private ITcpConnection connection;
@@ -42,27 +42,6 @@ public class TcpClient implements IEventListener, IObsChannel, IObsTcpConnection
 		isJoined = new AtomicBoolean(false);
 		EventManager.registerListener(this);
 		connection.addObserver(this);
-		internalServer.getChannels().values().forEach(channel -> channel.addObserver(this));
-	}
-
-	@Override
-	public void onChannelRenamed(IChannel channel, String oldName, String newName) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, oldName, newName)));
-	}
-
-	@Override
-	public void onPlayerAdded(IChannel channel, IPlayer player) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName())));
-	}
-
-	@Override
-	public void onPlayerRemoved(IChannel channel, IPlayer player) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName())));
-	}
-
-	@Override
-	public void onSoundModifierChanged(IChannel channel, ISoundModifier modifier) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, channel.getName(), modifier.getName())));
 	}
 
 	@Override
@@ -143,10 +122,7 @@ public class TcpClient implements IEventListener, IObsChannel, IObsTcpConnection
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
 
-		doIfPlayerJoined(() -> {
-			event.getChannel().addObserver(this);
-			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
-		});
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -154,16 +130,34 @@ public class TcpClient implements IEventListener, IObsChannel, IObsTcpConnection
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
 
-		doIfPlayerJoined(() -> {
-			event.getChannel().removeObserver(this);
-			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName()));
-		});
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	private void onServerClosing(ServerClosePostEvent event) {
 		connection.dispose();
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onChannelRenamed(ChannelNameChangePostEvent event) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName())));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerAdded(ChannelPlayerAddPostEvent event) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getChannel().getName(), event.getPlayer().getName())));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onPlayerRemoved(ChannelPlayerRemovePostEvent event) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getChannel().getName(), event.getPlayer().getName())));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
+		doIfPlayerJoined(
+				() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
 	}
 
 	private void send(IMessage<Header> message) {

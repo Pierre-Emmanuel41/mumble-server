@@ -3,8 +3,15 @@ package fr.pederobien.mumble.server.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
+import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
+import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerAddPreEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.ChannelPlayerRemovePreEvent;
+import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -12,9 +19,7 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
-import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.utils.BlockingQueueTask;
-import fr.pederobien.utils.Observable;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -25,7 +30,6 @@ public class Channel implements IChannel, IEventListener {
 	private IMumbleServer mumbleServer;
 	private String name;
 	private List<Player> players;
-	private Observable<IObsChannel> observers;
 	private ISoundModifier soundModifier;
 	private BlockingQueueTask<Dispatch> dispatcher;
 
@@ -34,20 +38,9 @@ public class Channel implements IChannel, IEventListener {
 		this.name = name;
 		soundModifier = AbstractSoundModifier.DEFAULT;
 		players = new ArrayList<Player>();
-		observers = new Observable<IObsChannel>();
 		dispatcher = new BlockingQueueTask<>(String.format("%s-dispatcher", getName()), dispatch -> dispatch(dispatch));
 		dispatcher.start();
 		EventManager.registerListener(this);
-	}
-
-	@Override
-	public void addObserver(IObsChannel obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsChannel obs) {
-		observers.removeObserver(obs);
 	}
 
 	@Override
@@ -57,18 +50,24 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void addPlayer(IPlayer player) {
-		Player playerImpl = (Player) player;
-		players.add(playerImpl);
-		playerImpl.setChannel(this);
-		notifyObservers(obs -> obs.onPlayerAdded(this, playerImpl));
+		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), () -> {
+			Player playerImpl = (Player) player;
+			players.add(playerImpl);
+			playerImpl.setChannel(this);
+			EventManager.callEvent(new ChannelPlayerAddPostEvent(this, player));
+		});
 	}
 
 	@Override
 	public void removePlayer(IPlayer player) {
-		Player playerImpl = (Player) player;
-		playerImpl.setChannel(null);
-		if (players.remove(playerImpl))
-			notifyObservers(obs -> obs.onPlayerRemoved(this, player));
+		if (!players.contains(player))
+			return;
+
+		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), () -> {
+			Player playerImpl = (Player) player;
+			playerImpl.setChannel(null);
+			EventManager.callEvent(new ChannelPlayerRemovePostEvent(this, player));
+		});
 	}
 
 	@Override
@@ -92,8 +91,12 @@ public class Channel implements IChannel, IEventListener {
 	public void setSoundModifier(ISoundModifier soundModifier) {
 		if (this.soundModifier.equals(soundModifier))
 			return;
-		this.soundModifier = soundModifier;
-		observers.notifyObservers(obs -> obs.onSoundModifierChanged(this, soundModifier));
+
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier), () -> {
+			ISoundModifier oldSoundModifier = this.soundModifier;
+			this.soundModifier = soundModifier;
+			EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
+		});
 	}
 
 	@Override
@@ -105,9 +108,11 @@ public class Channel implements IChannel, IEventListener {
 		if (this.name == name)
 			return;
 
-		String oldName = new String(this.name);
-		this.name = name;
-		notifyObservers(obs -> obs.onChannelRenamed(this, oldName, this.name));
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> {
+			String oldName = new String(this.name);
+			this.name = name;
+			EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
+		});
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
@@ -140,10 +145,6 @@ public class Channel implements IChannel, IEventListener {
 			return;
 
 		EventManager.unregisterListener(this);
-	}
-
-	private void notifyObservers(Consumer<IObsChannel> consumer) {
-		observers.notifyObservers(consumer);
 	}
 
 	private class Dispatch {

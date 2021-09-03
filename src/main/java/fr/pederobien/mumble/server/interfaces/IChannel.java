@@ -2,11 +2,9 @@ package fr.pederobien.mumble.server.interfaces;
 
 import java.util.List;
 
-import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
 import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
-import fr.pederobien.utils.IObservable;
 
-public interface IChannel extends IUnmodifiableNominable, IObservable<IObsChannel> {
+public interface IChannel extends IUnmodifiableNominable {
 
 	/**
 	 * Appends the given player to this channel. Once registered, the player can speak to players currently registered to this
