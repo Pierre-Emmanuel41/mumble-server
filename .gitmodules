@@ -2,6 +2,7 @@
 	path = mumble-common
 	url = https://github.com/Pierre-Emmanuel41/mumble-common.git
 	branch = master
+	update = rebase
 [submodule "persistence"]
 	path = persistence
 	url = https://github.com/Pierre-Emmanuel41/persistence.git

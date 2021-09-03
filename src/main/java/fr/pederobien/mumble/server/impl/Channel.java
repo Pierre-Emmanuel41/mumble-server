@@ -5,30 +5,39 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
-import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
 import fr.pederobien.utils.BlockingQueueTask;
 import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class Channel implements IChannel, IObsServer {
+public class Channel implements IChannel, IEventListener {
 	private static final double EPSILON = 1E-5;
+	private IMumbleServer mumbleServer;
 	private String name;
 	private List<Player> players;
 	private Observable<IObsChannel> observers;
 	private ISoundModifier soundModifier;
 	private BlockingQueueTask<Dispatch> dispatcher;
 
-	public Channel(String name) {
+	public Channel(IMumbleServer mumbleServer, String name) {
+		this.mumbleServer = mumbleServer;
 		this.name = name;
+		soundModifier = AbstractSoundModifier.DEFAULT;
 		players = new ArrayList<Player>();
 		observers = new Observable<IObsChannel>();
-		soundModifier = AbstractSoundModifier.DEFAULT;
 		dispatcher = new BlockingQueueTask<>(String.format("%s-dispatcher", getName()), dispatch -> dispatch(dispatch));
 		dispatcher.start();
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -88,21 +97,6 @@ public class Channel implements IChannel, IObsServer {
 	}
 
 	@Override
-	public void onChannelAdded(IChannel channel) {
-
-	}
-
-	@Override
-	public void onChannelRemoved(IChannel channel) {
-
-	}
-
-	@Override
-	public void onServerClosing() {
-		clear();
-	}
-
-	@Override
 	public String toString() {
 		return "Channel={" + name + "}";
 	}
@@ -130,6 +124,22 @@ public class Channel implements IChannel, IObsServer {
 		if (Math.abs(result.getGlobal()) < EPSILON)
 			return;
 		dispatch.getReceiver().onOtherPlayerSpeaker(dispatch.getTransmitter().getName(), dispatch.getData(), result.getGlobal(), result.getLeft(), result.getRight());
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onServerClosing(ServerClosePostEvent event) {
+		if (!event.getServer().equals(mumbleServer))
+			return;
+
+		clear();
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onChannelRemove(ServerChannelRemovePostEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {

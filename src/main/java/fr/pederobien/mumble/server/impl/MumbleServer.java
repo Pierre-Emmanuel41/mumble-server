@@ -31,7 +31,7 @@ public class MumbleServer implements IMumbleServer {
 	 */
 	public MumbleServer(String name, InetAddress address, int tcpPort, int udpPort, Path path) {
 		this.name = name;
-		this.server = new InternalServer(address, tcpPort, udpPort);
+		this.server = new InternalServer(this, address, tcpPort, udpPort);
 		persistence = new MumblePersistence(path, this);
 	}
 

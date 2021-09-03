@@ -14,49 +14,44 @@ import java.util.stream.Collectors;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
+import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
+import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
-import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
-import fr.pederobien.utils.IObservable;
-import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventManager;
 
-public class InternalServer implements IObservable<IObsServer> {
+public class InternalServer {
+	private MumbleServer mumbleServer;
 	private TcpServerThread tcpThread;
 	private UdpServerThread udpThread;
 	private boolean isOpened;
 	private Map<UUID, Client> clients;
-	private Map<String, IChannel> channels;
-	private Observable<IObsServer> observers;
+	private Map<String, Channel> channels;
 	private RequestManagement requestManagement;
 	private Object lockChannels, lockPlayers;
 	private int udpPort;
 
-	public InternalServer(InetAddress address, int tcpPort, int udpPort) {
+	public InternalServer(MumbleServer mumbleServer, InetAddress address, int tcpPort, int udpPort) {
+		this.mumbleServer = mumbleServer;
 		this.udpPort = udpPort;
 		tcpThread = new TcpServerThread(this, address, tcpPort);
 		udpThread = new UdpServerThread(this, address, udpPort);
 
 		clients = new HashMap<UUID, Client>();
-		channels = new HashMap<String, IChannel>();
-		observers = new Observable<IObsServer>();
+		channels = new HashMap<String, Channel>();
 		requestManagement = new RequestManagement(this);
 
 		lockChannels = new Object();
 		lockPlayers = new Object();
-	}
-
-	@Override
-	public void addObserver(IObsServer obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsServer obs) {
-		observers.removeObserver(obs);
 	}
 
 	/**
@@ -72,10 +67,12 @@ public class InternalServer implements IObservable<IObsServer> {
 	 * Interrupts the tcp thread and the udp thread.
 	 */
 	public void close() {
-		observers.notifyObservers(obs -> obs.onServerClosing());
-		tcpThread.interrupt();
-		udpThread.interrupt();
-		isOpened = false;
+		EventManager.callEvent(new ServerClosePreEvent(mumbleServer), () -> {
+			tcpThread.interrupt();
+			udpThread.interrupt();
+			isOpened = false;
+			EventManager.callEvent(new ServerClosePostEvent(mumbleServer));
+		});
 	}
 
 	/**
@@ -176,11 +173,15 @@ public class InternalServer implements IObservable<IObsServer> {
 			if (!optSoundModifier.isPresent())
 				throw new SoundModifierDoesNotExistException(soundModifierName);
 
-			Channel channel = new Channel(name);
+			ServerChannelAddPreEvent event = new ServerChannelAddPreEvent(mumbleServer, name, soundModifierName);
+			EventManager.callEvent(event);
+			if (event.isCancelled())
+				return null;
+
+			Channel channel = new Channel(mumbleServer, name);
 			channel.setSoundModifier(optSoundModifier.get());
 			channels.put(channel.getName(), channel);
-			observers.notifyObservers(obs -> obs.onChannelAdded(channel));
-			addObserver(channel);
+			EventManager.callEvent(new ServerChannelAddPostEvent(mumbleServer, channel));
 			return channel;
 		}
 	}
@@ -269,6 +270,13 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	/**
+	 * @return The mumble server associated to this internalServer.
+	 */
+	public IMumbleServer getMumbleServer() {
+		return mumbleServer;
+	}
+
+	/**
 	 * Notify each client the mute status of the player associated to the given name has changed.
 	 * 
 	 * @param playerName The name of the player whose mute status has changed.
@@ -317,12 +325,17 @@ public class InternalServer implements IObservable<IObsServer> {
 	}
 
 	private IChannel unsynchronizedRemove(String name) {
-		Channel channel = (Channel) channels.remove(name);
-		if (channel != null) {
-			channel.clear();
-			observers.notifyObservers(obs -> obs.onChannelRemoved(channel));
-			removeObserver(channel);
-		}
+		if (channels.get(name) == null)
+			return null;
+
+		ServerChannelRemovePreEvent event = new ServerChannelRemovePreEvent(mumbleServer, channels.get(name));
+		EventManager.callEvent(event);
+		if (event.isCancelled())
+			return null;
+
+		Channel channel = channels.remove(name);
+		channel.clear();
+		EventManager.callEvent(new ServerChannelRemovePostEvent(mumbleServer, channel));
 		return channel;
 	}
 }

@@ -16,13 +16,19 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
+import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.observers.IObsChannel;
-import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
+public class TcpClient implements IEventListener, IObsChannel, IObsTcpConnection {
 	private InternalServer internalServer;
 	private Client client;
 	private ITcpConnection connection;
@@ -34,25 +40,9 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 		this.connection = connection;
 
 		isJoined = new AtomicBoolean(false);
+		EventManager.registerListener(this);
 		connection.addObserver(this);
-		internalServer.addObserver(this);
 		internalServer.getChannels().values().forEach(channel -> channel.addObserver(this));
-	}
-
-	@Override
-	public void onChannelAdded(IChannel channel) {
-		doIfPlayerJoined(() -> {
-			channel.addObserver(this);
-			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, channel.getName(), channel.getSoundModifier().getName()));
-		});
-	}
-
-	@Override
-	public void onChannelRemoved(IChannel channel) {
-		doIfPlayerJoined(() -> {
-			channel.removeObserver(this);
-			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, channel.getName()));
-		});
 	}
 
 	@Override
@@ -73,12 +63,6 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 	@Override
 	public void onSoundModifierChanged(IChannel channel, ISoundModifier modifier) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, channel.getName(), modifier.getName())));
-	}
-
-	@Override
-	public void onServerClosing() {
-		connection.dispose();
-		internalServer.removeObserver(this);
 	}
 
 	@Override
@@ -152,6 +136,34 @@ public class TcpClient implements IObsServer, IObsChannel, IObsTcpConnection {
 
 	public void onLeave() {
 		isJoined.set(false);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onChannelAdded(ServerChannelAddPostEvent event) {
+		if (!event.getServer().equals(internalServer.getMumbleServer()))
+			return;
+
+		doIfPlayerJoined(() -> {
+			event.getChannel().addObserver(this);
+			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
+		});
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
+		if (!event.getServer().equals(internalServer.getMumbleServer()))
+			return;
+
+		doIfPlayerJoined(() -> {
+			event.getChannel().removeObserver(this);
+			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName()));
+		});
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onServerClosing(ServerClosePostEvent event) {
+		connection.dispose();
+		EventManager.unregisterListener(this);
 	}
 
 	private void send(IMessage<Header> message) {

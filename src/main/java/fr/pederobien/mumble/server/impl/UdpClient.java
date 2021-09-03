@@ -12,10 +12,13 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.server.interfaces.IChannel;
-import fr.pederobien.mumble.server.interfaces.observers.IObsServer;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class UdpClient implements IObsServer, IObsConnection {
+public class UdpClient implements IEventListener, IObsConnection {
 	private InternalServer internalServer;
 	private Client client;
 	private IUdpServerConnection connection;
@@ -27,24 +30,8 @@ public class UdpClient implements IObsServer, IObsConnection {
 		this.connection = connection;
 		this.address = address;
 
-		internalServer.addObserver(this);
 		connection.addObserver(this);
-	}
-
-	@Override
-	public void onChannelAdded(IChannel channel) {
-
-	}
-
-	@Override
-	public void onChannelRemoved(IChannel channel) {
-
-	}
-
-	@Override
-	public void onServerClosing() {
-		internalServer.removeObserver(this);
-		connection.removeObserver(this);
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -97,5 +84,13 @@ public class UdpClient implements IObsServer, IObsConnection {
 			return;
 
 		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, playerName, data, global, left, right), address));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onServerClosing(ServerClosePostEvent event) {
+		if (!event.getServer().equals(internalServer.getMumbleServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }
