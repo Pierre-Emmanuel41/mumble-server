@@ -51,16 +51,15 @@ public class TcpClient implements IEventListener, IObsTcpConnection {
 
 	@Override
 	public void onConnectionDisposed() {
-
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		onLeave();
+		connection.removeObserver(this);
 	}
 
 	@Override
 	public void onConnectionLost() {
-		connection.removeObserver(this);
-
-		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-			client.getPlayer().getChannel().removePlayer(client.getPlayer());
-		onLeave();
+		connection.dispose();
 	}
 
 	@Override
