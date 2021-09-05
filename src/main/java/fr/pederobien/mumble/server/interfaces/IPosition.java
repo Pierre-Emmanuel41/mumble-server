@@ -3,6 +3,11 @@ package fr.pederobien.mumble.server.interfaces;
 public interface IPosition {
 
 	/**
+	 * @return The player associated to this position.
+	 */
+	IPlayer getPlayer();
+
+	/**
 	 * @return The x position of the player to which this position is associated.
 	 */
 	double getX();

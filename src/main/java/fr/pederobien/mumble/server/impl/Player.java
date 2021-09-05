@@ -5,10 +5,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangeEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
+import fr.pederobien.utils.event.EventManager;
 
 public class Player implements IPlayer {
 	private InternalServer internalServer;
@@ -27,7 +33,7 @@ public class Player implements IPlayer {
 		this.name = name;
 		this.isAdmin = isAdmin;
 
-		position = new Position();
+		position = new Position(this);
 		isOnline = false;
 		muteBy = new HashMap<IPlayer, Boolean>();
 		lockMuteBy = new Object();
@@ -59,6 +65,7 @@ public class Player implements IPlayer {
 			return;
 
 		this.isAdmin = isAdmin;
+		EventManager.callEvent(new PlayerAdminStatusChangeEvent(this, isAdmin));
 		client.sendAdminChanged(isAdmin);
 	}
 
@@ -90,6 +97,7 @@ public class Player implements IPlayer {
 	public void setMute(boolean isMute) {
 		checkChannel();
 		this.isMute = isMute;
+		EventManager.callEvent(new PlayerMuteChangeEvent(this, isMute));
 		internalServer.onPlayerMuteChanged(getName(), isMute);
 	}
 
@@ -102,6 +110,7 @@ public class Player implements IPlayer {
 	public void setDeafen(boolean isDeafen) {
 		checkChannel();
 		this.isDeafen = isDeafen;
+		EventManager.callEvent(new PlayerDeafenChangeEvent(this, isDeafen));
 		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
 	}
 
@@ -153,7 +162,9 @@ public class Player implements IPlayer {
 	public void setIsOnline(boolean isOnline) {
 		if (this.isOnline == isOnline)
 			return;
+
 		this.isOnline = isOnline;
+		EventManager.callEvent(new PlayerOnlineChangeEvent(this, isOnline));
 		client.sendPlayerStatusChanged(isOnline);
 	}
 
@@ -166,6 +177,7 @@ public class Player implements IPlayer {
 	public void setIsMuteBy(IPlayer player, boolean isMute) {
 		synchronized (lockMuteBy) {
 			muteBy.put(player, isMute);
+			EventManager.callEvent(new PlayerMuteByChangeEvent(this, player));
 		}
 	}
 

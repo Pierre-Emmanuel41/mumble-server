@@ -1,23 +1,30 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.text.DecimalFormat;
+import java.util.Objects;
 
+import fr.pederobien.mumble.server.event.PlayerPositionChangeEvent;
+import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
+import fr.pederobien.utils.event.EventManager;
 
 public class Position implements IPosition {
 	private static final DecimalFormat FORMAT = new DecimalFormat("#.####");
+	private IPlayer player;
 	private double x, y, z, yaw, pitch;
 
-	public Position(double x, double y, double z, double yaw, double pitch) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-		this.yaw = yaw;
-		this.pitch = pitch;
+	public Position(IPlayer player, double x, double y, double z, double yaw, double pitch) {
+		this.player = Objects.requireNonNull(player, "The player cannot be null");
+		update(x, y, z, yaw, pitch);
 	}
 
-	public Position() {
-		this(0, 0, 0, 0, 0);
+	public Position(IPlayer player) {
+		this(player, 0, 0, 0, 0, 0);
+	}
+
+	@Override
+	public IPlayer getPlayer() {
+		return player;
 	}
 
 	@Override
@@ -85,6 +92,15 @@ public class Position implements IPosition {
 
 		IPosition other = (IPosition) obj;
 		return toString().equals(other.toString());
+	}
+
+	private void update(double x, double y, double z, double yaw, double pitch) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.yaw = yaw;
+		this.pitch = pitch;
+		EventManager.callEvent(new PlayerPositionChangeEvent(this));
 	}
 
 	private String format(double number) {
