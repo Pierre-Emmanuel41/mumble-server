@@ -66,6 +66,7 @@ public class Channel implements IChannel, IEventListener {
 		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), () -> {
 			Player playerImpl = (Player) player;
 			playerImpl.setChannel(null);
+			players.remove(player);
 			EventManager.callEvent(new ChannelPlayerRemovePostEvent(this, player));
 		});
 	}
