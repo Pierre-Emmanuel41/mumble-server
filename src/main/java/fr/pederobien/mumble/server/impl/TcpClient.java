@@ -3,10 +3,8 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
-import fr.pederobien.communication.event.LogEvent;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
-import fr.pederobien.communication.interfaces.IObsTcpConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -28,7 +26,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class TcpClient implements IEventListener, IObsTcpConnection {
+public class TcpClient implements IEventListener {
 	private InternalServer internalServer;
 	private Client client;
 	private ITcpConnection connection;
@@ -41,43 +39,6 @@ public class TcpClient implements IEventListener, IObsTcpConnection {
 
 		isJoined = new AtomicBoolean(false);
 		EventManager.registerListener(this);
-		connection.addObserver(this);
-	}
-
-	@Override
-	public void onConnectionComplete() {
-
-	}
-
-	@Override
-	public void onConnectionDisposed() {
-		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-			client.getPlayer().getChannel().removePlayer(client.getPlayer());
-		onLeave();
-		connection.removeObserver(this);
-	}
-
-	@Override
-	public void onConnectionLost() {
-		connection.dispose();
-	}
-
-	@Override
-	public void onDataReceived(DataReceivedEvent event) {
-	}
-
-	@Override
-	public void onLog(LogEvent event) {
-
-	}
-
-	@Override
-	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		IMessage<Header> request = MumbleMessageFactory.parse(event.getAnswer());
-		if (checkPermission(request))
-			send(internalServer.answer(new RequestEvent(client, request)));
-		else
-			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
 
 	public InetSocketAddress getAddress() {
@@ -139,24 +100,46 @@ public class TcpClient implements IEventListener, IObsTcpConnection {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onChannelRenamed(ChannelNameChangePostEvent event) {
+	private void onChannelRenamed(ChannelNameChangePostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onPlayerAdded(ChannelPlayerAddPostEvent event) {
+	private void onPlayerAdded(ChannelPlayerAddPostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getChannel().getName(), event.getPlayer().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onPlayerRemoved(ChannelPlayerRemovePostEvent event) {
+	private void onPlayerRemoved(ChannelPlayerRemovePostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getChannel().getName(), event.getPlayer().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
+	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
 		doIfPlayerJoined(
 				() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onConnectionDisposed(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		onLeave();
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		IMessage<Header> request = MumbleMessageFactory.parse(event.getAnswer());
+		if (checkPermission(request))
+			send(internalServer.answer(new RequestEvent(client, request)));
+		else
+			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
 
 	private void send(IMessage<Header> message) {

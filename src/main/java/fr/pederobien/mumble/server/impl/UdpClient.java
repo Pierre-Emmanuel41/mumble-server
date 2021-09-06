@@ -3,8 +3,6 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
-import fr.pederobien.communication.event.LogEvent;
-import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
@@ -18,7 +16,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class UdpClient implements IEventListener, IObsConnection {
+public class UdpClient implements IEventListener {
 	private InternalServer internalServer;
 	private Client client;
 	private IUdpServerConnection connection;
@@ -30,35 +28,7 @@ public class UdpClient implements IEventListener, IObsConnection {
 		this.connection = connection;
 		this.address = address;
 
-		connection.addObserver(this);
 		EventManager.registerListener(this);
-	}
-
-	@Override
-	public void onConnectionComplete() {
-
-	}
-
-	@Override
-	public void onConnectionDisposed() {
-
-	}
-
-	@Override
-	public void onDataReceived(DataReceivedEvent event) {
-		if (client.getPlayer() == null || client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress()))
-			return;
-
-		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		if (message.getHeader().getOid() != Oid.GET)
-			return;
-
-		((Channel) client.getPlayer().getChannel()).onPlayerSpeak(client.getPlayer(), (byte[]) message.getPayload()[0]);
-	}
-
-	@Override
-	public void onLog(LogEvent event) {
-
 	}
 
 	/**
@@ -87,10 +57,25 @@ public class UdpClient implements IEventListener, IObsConnection {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onServerClosing(ServerClosePostEvent event) {
+	private void onServerClosing(ServerClosePostEvent event) {
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
 
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onDataReceived(DataReceivedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		if (client.getPlayer() == null || client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress()))
+			return;
+
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
+		if (message.getHeader().getOid() != Oid.GET)
+			return;
+
+		((Channel) client.getPlayer().getChannel()).onPlayerSpeak(client.getPlayer(), (byte[]) message.getPayload()[0]);
 	}
 }
