@@ -20,8 +20,6 @@ import fr.pederobien.mumble.server.impl.responses.PlayerMuteResponse;
 import fr.pederobien.mumble.server.impl.responses.ServerJoinResponse;
 import fr.pederobien.mumble.server.impl.responses.ServerLeaveResponse;
 import fr.pederobien.mumble.server.impl.responses.SoundModifierResponse;
-import fr.pederobien.mumble.server.impl.responses.UdpPortResponse;
-import fr.pederobien.mumble.server.impl.responses.UniqueIdentifierResponse;
 
 public class RequestManagement {
 	private Map<Idc, Function<RequestEvent, IMessage<Header>>> responses;
@@ -29,13 +27,11 @@ public class RequestManagement {
 	public RequestManagement(InternalServer internalServer) {
 		responses = new HashMap<Idc, Function<RequestEvent, IMessage<Header>>>();
 
-		responses.put(Idc.UNIQUE_IDENTIFIER, new UniqueIdentifierResponse(internalServer));
 		responses.put(Idc.SERVER_JOIN, new ServerJoinResponse(internalServer));
 		responses.put(Idc.SERVER_LEAVE, new ServerLeaveResponse(internalServer));
 		responses.put(Idc.PLAYER_INFO, new PlayerInfoResponse(internalServer));
 		responses.put(Idc.CHANNELS, new ChannelsResponse(internalServer));
 		responses.put(Idc.CHANNELS_PLAYER, new ChannelsPlayerResponse(internalServer));
-		responses.put(Idc.UDP_PORT, new UdpPortResponse(internalServer));
 		responses.put(Idc.PLAYER_MUTE, new PlayerMuteResponse(internalServer));
 		responses.put(Idc.PLAYER_DEAFEN, new PlayerDeafenResponse(internalServer));
 		responses.put(Idc.PLAYER_MUTE_BY, new PlayerMuteByResponse(internalServer));

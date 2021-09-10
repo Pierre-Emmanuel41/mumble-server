@@ -153,9 +153,7 @@ public class TcpClient implements IEventListener {
 			return request.getHeader().getIdc() == Idc.SERVER_JOIN;
 
 		switch (request.getHeader().getIdc()) {
-		case UNIQUE_IDENTIFIER:
 		case PLAYER_INFO:
-		case UDP_PORT:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 			return true;

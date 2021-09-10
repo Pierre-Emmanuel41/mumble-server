@@ -8,7 +8,6 @@ import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
@@ -80,7 +79,7 @@ public class ServerJoinResponse extends AbstractResponse {
 				informations.add(event.getClient().getPlayer().isOnline());
 			} else
 				informations.add(false);
-			return MumbleMessageFactory.answer(event.getRequest(), Oid.INFO, informations.toArray());
+			return event.getRequest().answer(informations.toArray());
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);
 		}
