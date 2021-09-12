@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -121,13 +123,13 @@ public class TcpClient implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(connection))
-			return;
+	private void OnConnectionLostEvent(ConnectionLostEvent event) {
+		removePlayerFromChannel(event);
+	}
 
-		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-			client.getPlayer().getChannel().removePlayer(client.getPlayer());
-		onLeave();
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onConnectionDisposed(ConnectionDisposedEvent event) {
+		removePlayerFromChannel(event);
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -193,5 +195,14 @@ public class TcpClient implements IEventListener {
 	private void doIfPlayerJoined(Runnable runnable) {
 		if (isJoined.get())
 			runnable.run();
+	}
+
+	private void removePlayerFromChannel(ConnectionEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		onLeave();
 	}
 }
