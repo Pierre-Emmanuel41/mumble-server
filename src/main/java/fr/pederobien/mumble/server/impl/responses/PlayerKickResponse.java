@@ -9,7 +9,6 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.Player;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
 
 public class PlayerKickResponse extends AbstractResponse {
 
@@ -21,14 +20,7 @@ public class PlayerKickResponse extends AbstractResponse {
 	public IMessage<Header> apply(RequestEvent event) {
 		switch (event.getRequest().getHeader().getOid()) {
 		case SET:
-			IPlayer player = event.getClient().getPlayer();
-			if (player == null)
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
-
 			String playerName = (String) event.getRequest().getPayload()[0];
-			if (!player.getName().equals(playerName))
-				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
-
 			String playerKickName = (String) event.getRequest().getPayload()[1];
 			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getPlayer(playerKickName);
 			if (!optPlayerMuteOrUnmute.isPresent())
