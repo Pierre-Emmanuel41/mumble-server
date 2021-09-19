@@ -33,18 +33,8 @@ public class Position implements IPosition {
 	}
 
 	@Override
-	public void setX(double x) {
-		this.x = x;
-	}
-
-	@Override
 	public double getY() {
 		return y;
-	}
-
-	@Override
-	public void setY(double y) {
-		this.y = y;
 	}
 
 	@Override
@@ -53,28 +43,13 @@ public class Position implements IPosition {
 	}
 
 	@Override
-	public void setZ(double z) {
-		this.z = z;
-	}
-
-	@Override
 	public double getYaw() {
 		return yaw;
 	}
 
 	@Override
-	public void setYaw(double yaw) {
-		this.yaw = yaw;
-	}
-
-	@Override
 	public double getPitch() {
 		return pitch;
-	}
-
-	@Override
-	public void setPitch(double pitch) {
-		this.pitch = pitch;
 	}
 
 	@Override
@@ -94,7 +69,8 @@ public class Position implements IPosition {
 		return toString().equals(other.toString());
 	}
 
-	private void update(double x, double y, double z, double yaw, double pitch) {
+	@Override
+	public void update(double x, double y, double z, double yaw, double pitch) {
 		this.x = x;
 		this.y = y;
 		this.z = z;

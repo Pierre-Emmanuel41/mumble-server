@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.interfaces;
 
+import fr.pederobien.mumble.server.event.PlayerPositionChangeEvent;
+
 public interface IPosition {
 
 	/**
@@ -13,23 +15,9 @@ public interface IPosition {
 	double getX();
 
 	/**
-	 * Set the x position of the player to which this position is associated.
-	 * 
-	 * @param x the new x position.
-	 */
-	void setX(double x);
-
-	/**
 	 * @return The y position of the player to which this position is associated.
 	 */
 	double getY();
-
-	/**
-	 * Set the y position of the player to which this position is associated.
-	 * 
-	 * @param y the new y position.
-	 */
-	void setY(double y);
 
 	/**
 	 * @return The z position of the player to which this position is associated.
@@ -37,23 +25,9 @@ public interface IPosition {
 	double getZ();
 
 	/**
-	 * Set the z position of the player to which this position is associated.
-	 * 
-	 * @param z the new z position.
-	 */
-	void setZ(double z);
-
-	/**
 	 * @return The yaw of the player to which this position is associated.
 	 */
 	double getYaw();
-
-	/**
-	 * Set the yaw of the player to which this position is associated.
-	 * 
-	 * @param yaw the new yaw position.
-	 */
-	void setYaw(double yaw);
 
 	/**
 	 * @return The pitch of the player to which this position is associated.
@@ -61,9 +35,13 @@ public interface IPosition {
 	double getPitch();
 
 	/**
-	 * Set the pitch of the player to which this position is associated.
+	 * Update the coordinates associated to this position. Rise an {@link PlayerPositionChangeEvent}.
 	 * 
-	 * @param pitch the new pitch position.
+	 * @param x     The new x position.
+	 * @param y     The new y position.
+	 * @param z     The new z position.
+	 * @param yaw   The new yaw value.
+	 * @param pitch The new pitch value.
 	 */
-	void setPitch(double pitch);
+	void update(double x, double y, double z, double yaw, double pitch);
 }
