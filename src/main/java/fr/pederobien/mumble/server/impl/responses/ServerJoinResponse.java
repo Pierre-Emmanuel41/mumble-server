@@ -25,7 +25,9 @@ public class ServerJoinResponse extends AbstractResponse {
 	public IMessage<Header> apply(RequestEvent event) {
 		switch (event.getRequest().getHeader().getOid()) {
 		case SET:
-			event.getClient().onJoin();
+			if (event.getClient() != null)
+				event.getClient().onJoin();
+
 			List<Object> informations = new ArrayList<Object>();
 
 			// UDP port number
