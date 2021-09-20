@@ -49,7 +49,7 @@ public class MumbleGameServer extends MumbleServer {
 	 * @param socket The socket used to send/receive data from the game server.
 	 */
 	protected void createGameServerClient(Socket socket) {
-		if (gameServerClient != null)
+		if (gameServerClient == null)
 			gameServerClient = new MumbleGameServerClient(getInternalServer(), new TcpServerConnection(socket, new MessageExtractor()));
 	}
 

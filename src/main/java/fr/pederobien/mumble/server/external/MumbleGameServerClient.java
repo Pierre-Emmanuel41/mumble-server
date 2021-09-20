@@ -90,6 +90,7 @@ public class MumbleGameServerClient implements IEventListener {
 	private boolean checkPermission(IMessage<Header> request) {
 		switch (request.getHeader().getIdc()) {
 		case SERVER_JOIN:
+		case PLAYER_INFO:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case CHANNELS:
