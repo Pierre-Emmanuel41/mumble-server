@@ -96,6 +96,7 @@ public class MumbleGameServerClient implements IEventListener {
 		case CHANNELS:
 		case SOUND_MODIFIER:
 		case PLAYER_KICK:
+		case PLAYER_POSITION:
 			return true;
 		default:
 			return false;

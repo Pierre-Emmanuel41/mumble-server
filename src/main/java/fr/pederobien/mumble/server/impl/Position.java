@@ -54,7 +54,7 @@ public class Position implements IPosition {
 
 	@Override
 	public String toString() {
-		return "Position={" + format(x) + "," + format(y) + "," + format(z) + "," + format(yaw) + "," + format(pitch) + "}";
+		return String.format("Position={x=%s, y=%s, z=%s, yaw=%s, pitch=%s}", format(x), format(y), format(z), format(yaw), format(pitch));
 	}
 
 	@Override

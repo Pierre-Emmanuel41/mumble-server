@@ -17,6 +17,7 @@ import fr.pederobien.mumble.server.impl.responses.PlayerInfoResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerKickResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteByResponse;
 import fr.pederobien.mumble.server.impl.responses.PlayerMuteResponse;
+import fr.pederobien.mumble.server.impl.responses.PlayerPositionResponse;
 import fr.pederobien.mumble.server.impl.responses.ServerJoinResponse;
 import fr.pederobien.mumble.server.impl.responses.ServerLeaveResponse;
 import fr.pederobien.mumble.server.impl.responses.SoundModifierResponse;
@@ -37,6 +38,7 @@ public class RequestManagement {
 		responses.put(Idc.PLAYER_MUTE_BY, new PlayerMuteByResponse(internalServer));
 		responses.put(Idc.PLAYER_KICK, new PlayerKickResponse(internalServer));
 		responses.put(Idc.SOUND_MODIFIER, new SoundModifierResponse(internalServer));
+		responses.put(Idc.PLAYER_POSITION, new PlayerPositionResponse(internalServer));
 	}
 
 	public IMessage<Header> answer(RequestEvent event) {
