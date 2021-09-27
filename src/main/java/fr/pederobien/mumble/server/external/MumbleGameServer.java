@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.server.external;
 
-import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Path;
 
@@ -22,9 +21,9 @@ public class MumbleGameServer extends MumbleServer {
 	 * @param udpPort        The port number for the UDP communication (voice) between this server and the future Mumble client.
 	 * @param path           The folder that contains the server configuration file.
 	 */
-	public MumbleGameServer(String name, InetAddress address, int gameServerPort, int tcpPort, int udpPort, Path path) {
-		super(name, address, tcpPort, udpPort, path);
-		gameServerThread = new MumbleGameServerThread(this, address, gameServerPort);
+	public MumbleGameServer(String name, int gameServerPort, int tcpPort, int udpPort, Path path) {
+		super(name, tcpPort, udpPort, path);
+		gameServerThread = new MumbleGameServerThread(this, gameServerPort);
 	}
 
 	/**

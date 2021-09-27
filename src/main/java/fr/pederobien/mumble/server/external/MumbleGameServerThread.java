@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.server.external;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
@@ -10,12 +9,10 @@ public class MumbleGameServerThread extends Thread {
 	private Semaphore semaphore;
 	private MumbleGameServer externalServer;
 	private ServerSocket server;
-	private InetAddress address;
 	private int port;
 
-	protected MumbleGameServerThread(MumbleGameServer externalServer, InetAddress address, int port) {
+	protected MumbleGameServerThread(MumbleGameServer externalServer, int port) {
 		this.externalServer = externalServer;
-		this.address = address;
 		this.port = port;
 		setName("GameServerThread-");
 
@@ -30,7 +27,7 @@ public class MumbleGameServerThread extends Thread {
 	@Override
 	public synchronized void start() {
 		try {
-			server = new ServerSocket(port, 20, address);
+			server = new ServerSocket(port, 20);
 			super.start();
 		} catch (IOException e) {
 			e.printStackTrace();

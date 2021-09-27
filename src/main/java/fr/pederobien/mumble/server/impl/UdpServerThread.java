@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.concurrent.Semaphore;
@@ -18,12 +17,10 @@ public class UdpServerThread extends Thread implements IEventListener {
 	private Semaphore semaphore;
 	private InternalServer internalServer;
 	private IUdpServerConnection server;
-	private InetAddress address;
 	private int port;
 
-	public UdpServerThread(InternalServer internalServer, InetAddress address, int port) {
+	public UdpServerThread(InternalServer internalServer, int port) {
 		this.internalServer = internalServer;
-		this.address = address;
 		this.port = port;
 		setName("UDPThread-");
 
@@ -40,7 +37,7 @@ public class UdpServerThread extends Thread implements IEventListener {
 	@Override
 	public void run() {
 		try {
-			server = new UdpServerConnection(new InetSocketAddress(address, port), 20000, () -> new MessageExtractor());
+			server = new UdpServerConnection(new InetSocketAddress(port), 20000, () -> new MessageExtractor());
 			semaphore.acquire();
 		} catch (SocketException e) {
 			e.printStackTrace();

@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,11 +44,11 @@ public class InternalServer {
 	private Object lockChannels, lockPlayers;
 	private int udpPort;
 
-	public InternalServer(MumbleServer mumbleServer, InetAddress address, int tcpPort, int udpPort) {
+	public InternalServer(MumbleServer mumbleServer, int tcpPort, int udpPort) {
 		this.mumbleServer = mumbleServer;
 		this.udpPort = udpPort;
-		tcpThread = new TcpServerThread(this, address, tcpPort);
-		udpThread = new UdpServerThread(this, address, udpPort);
+		tcpThread = new TcpServerThread(this, tcpPort);
+		udpThread = new UdpServerThread(this, udpPort);
 
 		clients = new HashMap<UUID, Client>();
 		channels = new HashMap<String, Channel>();

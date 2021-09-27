@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,12 +8,10 @@ import java.net.Socket;
 public class TcpServerThread extends Thread {
 	private InternalServer internalServer;
 	private ServerSocket server;
-	private InetAddress address;
 	private int port;
 
-	protected TcpServerThread(InternalServer internalServer, InetAddress address, int port) {
+	protected TcpServerThread(InternalServer internalServer, int port) {
 		this.internalServer = internalServer;
-		this.address = address;
 		this.port = port;
 		setName("TCPThread-");
 	}
@@ -22,7 +19,7 @@ public class TcpServerThread extends Thread {
 	@Override
 	public synchronized void start() {
 		try {
-			server = new ServerSocket(port, 20, address);
+			server = new ServerSocket(port, 20);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

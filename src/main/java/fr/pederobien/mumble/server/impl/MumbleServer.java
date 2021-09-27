@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.io.FileNotFoundException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -24,14 +23,13 @@ public class MumbleServer implements IMumbleServer {
 	 * Create a mumble server.
 	 * 
 	 * @param name    The server name.
-	 * @param address The server address.
 	 * @param tcpPort The tcp port for communication with clients.
 	 * @param udpPort The udp port for audio communication with clients.
 	 * @param path    The folder that contains the server configuration file.
 	 */
-	public MumbleServer(String name, InetAddress address, int tcpPort, int udpPort, Path path) {
+	public MumbleServer(String name, int tcpPort, int udpPort, Path path) {
 		this.name = name;
-		this.server = new InternalServer(this, address, tcpPort, udpPort);
+		this.server = new InternalServer(this, tcpPort, udpPort);
 		persistence = new MumblePersistence(path, this);
 	}
 
