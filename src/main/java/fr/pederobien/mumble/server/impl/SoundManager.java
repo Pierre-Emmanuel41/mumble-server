@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 

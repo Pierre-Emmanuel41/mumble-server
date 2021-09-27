@@ -14,6 +14,7 @@ import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -117,7 +118,7 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
-		players.stream().filter(p -> !p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
+		players.stream().filter(p -> p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
 	}
 
 	public void dispatch(Dispatch dispatch) {
