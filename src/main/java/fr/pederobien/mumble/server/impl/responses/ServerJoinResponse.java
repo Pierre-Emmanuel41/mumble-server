@@ -33,6 +33,15 @@ public class ServerJoinResponse extends AbstractResponse {
 			// UDP port number
 			informations.add(getInternalServer().getUdpPort());
 
+			// Number of sound modifier
+			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+			informations.add(modifiers.size());
+
+			// Modifier informations
+			for (ISoundModifier modifier : modifiers.values())
+				// Modifier's name
+				informations.add(modifier.getName());
+
 			// Number of channels
 			informations.add(getInternalServer().getChannels().size());
 			for (IChannel channel : getInternalServer().getChannels().values()) {
@@ -56,15 +65,6 @@ public class ServerJoinResponse extends AbstractResponse {
 					informations.add(player.isDeafen());
 				}
 			}
-
-			// Number of sound modifier
-			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
-			informations.add(modifiers.size());
-
-			// Modifier informations
-			for (ISoundModifier modifier : modifiers.values())
-				// Modifier's name
-				informations.add(modifier.getName());
 
 			// Player identifier
 			informations.add(event.getClient().getUUID());
