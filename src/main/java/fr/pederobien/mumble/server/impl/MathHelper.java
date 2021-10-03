@@ -3,11 +3,20 @@ package fr.pederobien.mumble.server.impl;
 import fr.pederobien.mumble.server.impl.modifiers.Axis;
 import fr.pederobien.mumble.server.impl.modifiers.Plan;
 import fr.pederobien.mumble.server.interfaces.IPosition;
-import fr.pederobien.utils.AsyncConsole;
 
 public class MathHelper {
-	public static final double MATH_PI = Math.PI;
-	public static final double MATH_2PI = 2 * Math.PI;
+	private static final int PRECISION = 8;
+	private static final double[] COS_VALUES = new double[90 * PRECISION + 1];
+
+	static {
+		// Precomputing cosinus value for calculation optimization.
+		int index = 0;
+		for (double i = 0; i <= 90; i += 1.0 / (double) PRECISION) {
+			COS_VALUES[index++] = Math.cos(Math.toRadians(i));
+			if (i == 90)
+				COS_VALUES[COS_VALUES.length - 1] = 0;
+		}
+	}
 
 	/**
 	 * Calculate the yaw between the first position "from" and the other position "to".
@@ -43,12 +52,15 @@ public class MathHelper {
 	 */
 	public static double[] getDefaultLeftAndRightVolume(IPosition from, IPosition to) {
 		double yaw = getInverseYaw(from, to);
-		AsyncConsole.print("Yaw : %s", Math.toDegrees(yaw));
+		// First getting the yaw between 0 and PI/2
+		// Second getting the angle in degrees in order to get the precomputed cosinus value.
+		int index = (int) Math.toDegrees(Math.abs(inRange(yaw, -Math.PI / 2, Math.PI / 2))) * PRECISION;
+
 		double leftVolume = 1.0, rightVolume = 1.0;
 		if (0 <= yaw && yaw < Math.PI)
-			leftVolume = Math.abs(Math.cos(yaw));
+			leftVolume = Math.abs(COS_VALUES[index]);
 		else
-			rightVolume = Math.abs(Math.cos(yaw));
+			rightVolume = Math.abs(COS_VALUES[index]);
 		return new double[] { leftVolume, rightVolume };
 	}
 
@@ -102,18 +114,28 @@ public class MathHelper {
 	 */
 	public static double getDistance3D(IPosition from, IPosition to) {
 		return Math.sqrt(Math.pow(getDistance1D(from, to, Axis.X), 2) + Math.pow(getDistance1D(from, to, Axis.Y), 2) + Math.pow(getDistance1D(from, to, Axis.Z), 2));
-
 	}
 
 	/**
-	 * Check the value of the given angle in order to put it in range -<i>pi</i> through <i>pi</i>.
+	 * Check the value of the given angle in order to put it in range -<i>pi</i> and <i>pi</i>.
 	 * 
-	 * @param angle the angle to check in radians.
+	 * @param angle the angle in radians to check.
 	 * 
 	 * @return The same angle but in the right range.
 	 */
 	public static double inRange(double angle) {
-		return angle > MATH_PI ? angle - MATH_2PI : angle < -MATH_PI ? angle + MATH_2PI : angle;
+		return inRange(angle, -Math.PI, Math.PI);
+	}
+
+	/**
+	 * Check the value of the given angle in order to put it in given range. The range must be centered in 0.
+	 * 
+	 * @param angle the angle in radians to check.
+	 * 
+	 * @return The same angle but in the right range.
+	 */
+	private static double inRange(double angle, double infRange, double supRange) {
+		return angle > supRange ? angle - (supRange - infRange) : angle < infRange ? angle + (supRange - infRange) : angle;
 	}
 
 	private static double getYaw(IPosition from, IPosition to, double yawPlayer) {
