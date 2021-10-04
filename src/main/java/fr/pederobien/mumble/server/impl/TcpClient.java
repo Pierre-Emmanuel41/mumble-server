@@ -125,6 +125,9 @@ public class TcpClient implements IEventListener {
 		if (!event.getConnection().equals(connection))
 			return;
 
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+
 		event.getConnection().dispose();
 	}
 
