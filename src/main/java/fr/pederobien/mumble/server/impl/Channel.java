@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
@@ -20,7 +21,6 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
-import fr.pederobien.utils.BlockingQueueTask;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -32,15 +32,12 @@ public class Channel implements IChannel, IEventListener {
 	private String name;
 	private List<Player> players;
 	private ISoundModifier soundModifier;
-	private BlockingQueueTask<Dispatch> dispatcher;
 
 	public Channel(IMumbleServer mumbleServer, String name) {
 		this.mumbleServer = mumbleServer;
 		this.name = name;
 		soundModifier = AbstractSoundModifier.DEFAULT;
 		players = new ArrayList<Player>();
-		dispatcher = new BlockingQueueTask<>(String.format("%s-dispatcher", getName()), dispatch -> dispatch(dispatch));
-		dispatcher.start();
 		EventManager.registerListener(this);
 	}
 
@@ -118,19 +115,20 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
-		players.stream().filter(p -> p.equals(player)).forEach(p -> dispatcher.add(new Dispatch(player, p, data)));
-	}
+		List<Player> receivers = players.stream().filter(p -> !p.equals(player)).collect(Collectors.toList());
 
-	public void dispatch(Dispatch dispatch) {
-		// No need to send data to the player if he is deafen.
-		// No need to send data to the player if the player is muted by the receiver
-		if (dispatch.getReceiver().isDeafen() || dispatch.getTransmitter().isMuteBy(dispatch.getReceiver()))
-			return;
+		for (Player receiver : receivers) {
+			// No need to send data to the player if he is deafen.
+			// No need to send data to the player if the player is muted by the receiver
+			if (receiver.isDeafen() || receiver.isMuteBy(receiver))
+				return;
 
-		VolumeResult result = soundModifier.calculate(dispatch.getTransmitter(), dispatch.getReceiver());
-		if (Math.abs(result.getGlobal()) < EPSILON)
-			return;
-		dispatch.getReceiver().onOtherPlayerSpeaker(dispatch.getTransmitter().getName(), dispatch.getData(), result.getGlobal(), result.getLeft(), result.getRight());
+			VolumeResult result = soundModifier.calculate(player, receiver);
+			if (Math.abs(result.getGlobal()) < EPSILON)
+				return;
+
+			receiver.onOtherPlayerSpeaker(player.getName(), data, result.getGlobal(), result.getLeft(), result.getRight());
+		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -147,28 +145,5 @@ public class Channel implements IChannel, IEventListener {
 			return;
 
 		EventManager.unregisterListener(this);
-	}
-
-	private class Dispatch {
-		private Player transmitter, receiver;
-		private byte[] data;
-
-		public Dispatch(Player transmitter, Player receiver, byte[] data) {
-			this.transmitter = transmitter;
-			this.receiver = receiver;
-			this.data = data;
-		}
-
-		public Player getTransmitter() {
-			return transmitter;
-		}
-
-		public Player getReceiver() {
-			return receiver;
-		}
-
-		public byte[] getData() {
-			return data;
-		}
 	}
 }
