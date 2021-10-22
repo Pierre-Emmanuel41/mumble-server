@@ -30,9 +30,6 @@ public class ServerJoinResponse extends AbstractResponse {
 
 			List<Object> informations = new ArrayList<Object>();
 
-			// UDP port number
-			informations.add(getInternalServer().getUdpPort());
-
 			// Number of sound modifier
 			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
 			informations.add(modifiers.size());

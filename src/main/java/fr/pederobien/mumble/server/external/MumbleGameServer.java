@@ -17,12 +17,11 @@ public class MumbleGameServer extends MumbleServer {
 	 * @param name           The server name.
 	 * @param address        The server IP address.
 	 * @param gameServerPort The port number for the TCP communication between the game server and this server.
-	 * @param tcpPort        The port number for the TCP communication between this server and the future Mumble client.
-	 * @param udpPort        The port number for the UDP communication (voice) between this server and the future Mumble client.
+	 * @param port           The port number for the TCP and UDP communication between this server and Mumble clients.
 	 * @param path           The folder that contains the server configuration file.
 	 */
-	public MumbleGameServer(String name, int gameServerPort, int tcpPort, int udpPort, Path path) {
-		super(name, tcpPort, udpPort, path);
+	public MumbleGameServer(String name, int gameServerPort, int port, Path path) {
+		super(name, port, path);
 		gameServerThread = new MumbleGameServerThread(this, gameServerPort);
 	}
 

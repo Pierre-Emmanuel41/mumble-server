@@ -42,13 +42,13 @@ public class InternalServer {
 	private Map<String, Channel> channels;
 	private RequestManagement requestManagement;
 	private Object lockChannels, lockPlayers;
-	private int udpPort;
+	private int port;
 
-	public InternalServer(MumbleServer mumbleServer, int tcpPort, int udpPort) {
+	public InternalServer(MumbleServer mumbleServer, int port) {
 		this.mumbleServer = mumbleServer;
-		this.udpPort = udpPort;
-		tcpThread = new TcpServerThread(this, tcpPort);
-		udpThread = new UdpServerThread(this, udpPort);
+		this.port = port;
+		tcpThread = new TcpServerThread(this, port);
+		udpThread = new UdpServerThread(this, port);
 
 		clients = new HashMap<UUID, Client>();
 		channels = new HashMap<String, Channel>();
@@ -274,10 +274,10 @@ public class InternalServer {
 	}
 
 	/**
-	 * @return The udp port used for the vocal communication.
+	 * @return The port used for TCP and UDP communication.
 	 */
-	public int getUdpPort() {
-		return udpPort;
+	public int getPort() {
+		return port;
 	}
 
 	/**

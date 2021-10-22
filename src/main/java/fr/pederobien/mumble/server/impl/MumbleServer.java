@@ -22,14 +22,13 @@ public class MumbleServer implements IMumbleServer {
 	/**
 	 * Create a mumble server.
 	 * 
-	 * @param name    The server name.
-	 * @param tcpPort The tcp port for communication with clients.
-	 * @param udpPort The udp port for audio communication with clients.
-	 * @param path    The folder that contains the server configuration file.
+	 * @param name The server name.
+	 * @param port The port for TCP and UDP communication with clients.
+	 * @param path The folder that contains the server configuration file.
 	 */
-	public MumbleServer(String name, int tcpPort, int udpPort, Path path) {
+	public MumbleServer(String name, int port, Path path) {
 		this.name = name;
-		this.server = new InternalServer(this, tcpPort, udpPort);
+		this.server = new InternalServer(this, port);
 		persistence = new MumblePersistence(path, this);
 	}
 
