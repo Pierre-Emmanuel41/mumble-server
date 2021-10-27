@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.server.interfaces.IPosition;
 
 public class PlayerPositionChangeEvent extends PlayerEvent {
@@ -20,5 +22,13 @@ public class PlayerPositionChangeEvent extends PlayerEvent {
 	 */
 	public IPosition getPosition() {
 		return position;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("position=" + getPosition());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
 public class PlayerDeafenChangeEvent extends PlayerEvent {
@@ -21,5 +23,13 @@ public class PlayerDeafenChangeEvent extends PlayerEvent {
 	 */
 	public boolean isDeafen() {
 		return isDeafen;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("deafen=" + isDeafen());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

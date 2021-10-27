@@ -177,7 +177,7 @@ public class Player implements IPlayer {
 	public void setIsMuteBy(IPlayer player, boolean isMute) {
 		synchronized (lockMuteBy) {
 			muteBy.put(player, isMute);
-			EventManager.callEvent(new PlayerMuteByChangeEvent(this, player));
+			EventManager.callEvent(new PlayerMuteByChangeEvent(this, player, isMute));
 		}
 	}
 

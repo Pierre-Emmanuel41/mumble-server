@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.ICancellable;
@@ -34,5 +36,14 @@ public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements 
 	 */
 	public ISoundModifier getNewSoundModifier() {
 		return newSoundModifier;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("channel=" + getChannel().getName());
+		joiner.add("currentSoundModifier=" + getChannel().getSoundModifier().getName());
+		joiner.add("newSoundModifier=" + getNewSoundModifier().getName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

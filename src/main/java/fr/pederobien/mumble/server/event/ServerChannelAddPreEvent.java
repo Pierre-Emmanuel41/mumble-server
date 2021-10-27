@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
@@ -42,5 +44,14 @@ public class ServerChannelAddPreEvent extends ServerEvent implements ICancellabl
 	 */
 	public String getSoundModifierName() {
 		return soundModifierName;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("server=" + getServer().getName());
+		joiner.add("channelName=" + getChannelName());
+		joiner.add("soundModifierName=" + getSoundModifierName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }
