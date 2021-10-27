@@ -60,12 +60,12 @@ public class InternalServer {
 	 * Interrupts the tcp thread and the udp thread.
 	 */
 	public void close() {
-		EventManager.callEvent(new ServerClosePreEvent(mumbleServer), () -> {
+		Runnable close = () -> {
 			tcpThread.interrupt();
 			udpThread.interrupt();
 			isOpened = false;
-			EventManager.callEvent(new ServerClosePostEvent(mumbleServer));
-		});
+		};
+		EventManager.callEvent(new ServerClosePreEvent(mumbleServer), close, new ServerClosePostEvent(mumbleServer));
 	}
 
 	/**

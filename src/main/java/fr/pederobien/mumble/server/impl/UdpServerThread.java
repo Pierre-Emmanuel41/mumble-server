@@ -11,7 +11,6 @@ import fr.pederobien.communication.interfaces.IUdpServerConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class UdpServerThread extends Thread implements IEventListener {
@@ -55,7 +54,7 @@ public class UdpServerThread extends Thread implements IEventListener {
 		semaphore.release();
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	public void onDataReceived(DataReceivedEvent event) {
 		Optional<Client> optClient = internalServer.getClients().getClient(event.getAddress().getAddress(), event.getAddress().getPort());
 		if (optClient.isPresent())

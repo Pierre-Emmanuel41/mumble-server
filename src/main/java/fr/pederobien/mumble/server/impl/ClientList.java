@@ -65,7 +65,7 @@ public class ClientList implements IEventListener {
 		ITcpConnection connection = new TcpServerConnection(socket, new MessageExtractor());
 		Client client = getOrCreateClientByMumble(connection);
 		client.createTcpClient(connection);
-		EventManager.callEvent(new LogEvent(String.format("Adding mumble client with address %s:%s", socket.getInetAddress().getHostAddress(), socket.getPort())));
+		EventManager.callEvent(new LogEvent("Adding mumble client with address %s:%s", socket.getInetAddress().getHostAddress(), socket.getPort()));
 		return client;
 	}
 
@@ -133,7 +133,7 @@ public class ClientList implements IEventListener {
 		client.setGameAddress(address);
 		client.setPlayer(optPlayer.get());
 		optPlayer.get().setIsOnline(true);
-		EventManager.callEvent(new LogEvent(String.format("Adding player with address %s:%s", address.getAddress().getHostAddress(), address.getPort())));
+		EventManager.callEvent(new LogEvent("Adding player with address %s:%s", address.getAddress().getHostAddress(), address.getPort()));
 		return optPlayer.get();
 	}
 
@@ -283,7 +283,7 @@ public class ClientList implements IEventListener {
 		if (clients.isEmpty()) {
 			Client client = createClient();
 			clients.add(client);
-			EventManager.callEvent(new LogEvent(String.format("Registering 1st client #%s for address %s", client.hashCode(), address.getHostAddress())));
+			EventManager.callEvent(new LogEvent("Registering 1st client #%s for address %s", client.hashCode(), address.getHostAddress()));
 			return client;
 		}
 
@@ -291,21 +291,20 @@ public class ClientList implements IEventListener {
 		for (Client client : clients) {
 			// The game address or the mumble address correspond exactly to the IP address and port number.
 			if (client.isAssociatedTo(socketAddress.getPort())) {
-				EventManager.callEvent(new LogEvent(String.format("Client #%s associated to port n°%s", client.hashCode(), socketAddress.getPort())));
+				EventManager.callEvent(new LogEvent("Client #%s associated to port n°%s", client.hashCode(), socketAddress.getPort()));
 				return client;
 			}
 
 			// Verifying if the given port number is used on client side.
 			if (new GamePort(client.getTcpClient().getConnection()).check(socketAddress)) {
-				EventManager.callEvent(new LogEvent(String.format("Client #%s used port n°%s to play game", client.hashCode(), socketAddress.getPort())));
+				EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", client.hashCode(), socketAddress.getPort()));
 				return client;
 			}
 		}
 
 		Client client = createClient();
 		clients.add(client);
-		EventManager.callEvent(
-				new LogEvent(String.format("Registering new client #%s for address %s:%s", client.hashCode(), address.getHostAddress(), socketAddress.getPort())));
+		EventManager.callEvent(new LogEvent("Registering new client #%s for address %s:%s", client.hashCode(), address.getHostAddress(), socketAddress.getPort()));
 		return client;
 	}
 
@@ -327,7 +326,7 @@ public class ClientList implements IEventListener {
 		if (clients.isEmpty()) {
 			Client client = createClient();
 			clients.add(client);
-			EventManager.callEvent(new LogEvent(String.format("Registering 1st client #%s for address %s", client.hashCode(), address.getAddress().getHostAddress())));
+			EventManager.callEvent(new LogEvent("Registering 1st client #%s for address %s", client.hashCode(), address.getAddress().getHostAddress()));
 			return client;
 		}
 
@@ -335,21 +334,20 @@ public class ClientList implements IEventListener {
 		for (Client client : clients) {
 			// The game address or the mumble address correspond exactly to the IP address and port number.
 			if (client.isAssociatedTo(connection.getAddress().getPort())) {
-				EventManager.callEvent(new LogEvent(String.format("Client #%s associated to port n°%s", client.hashCode(), address.getPort())));
+				EventManager.callEvent(new LogEvent("Client #%s associated to port n°%s", client.hashCode(), address.getPort()));
 				return client;
 			}
 
 			// Verifying if the given port number is used on client side.
 			if (new GamePort(connection).check(client.getGameAddress())) {
-				EventManager.callEvent(new LogEvent(String.format("Client #%s used port n°%s to play game", client.hashCode(), client.getGameAddress().getPort())));
+				EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", client.hashCode(), client.getGameAddress().getPort()));
 				return client;
 			}
 		}
 
 		Client client = createClient();
 		clients.add(client);
-		EventManager.callEvent(
-				new LogEvent(String.format("Registering new client #%s for address %s:%s", client.hashCode(), address.getAddress().getHostAddress(), address.getPort())));
+		EventManager.callEvent(new LogEvent("Registering new client #%s for address %s:%s", client.hashCode(), address.getAddress().getHostAddress(), address.getPort()));
 		return client;
 	}
 
@@ -456,7 +454,7 @@ public class ClientList implements IEventListener {
 	 * @param client The client to remove.
 	 */
 	private void removeClient(Client client) {
-		EventManager.callEvent(new LogEvent(String.format("Removing client #%s", client.hashCode())));
+		EventManager.callEvent(new LogEvent("Removing client #%s", client.hashCode()));
 		Iterator<Entry<String, List<Client>>> entryIterator = getIterator();
 		while (entryIterator.hasNext()) {
 			List<Client> clientsList = entryIterator.next().getValue();
@@ -471,7 +469,7 @@ public class ClientList implements IEventListener {
 	 * @param client The client to remove.
 	 */
 	private void garbage(Client client) {
-		if (client.getPlayer() == null && client.getTcpClient().getConnection().isDisposed())
+		if (client.getPlayer() == null && (client.getTcpClient() == null || client.getTcpClient().getConnection().isDisposed()))
 			removeClient(client);
 	}
 

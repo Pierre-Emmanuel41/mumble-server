@@ -18,6 +18,7 @@ public class ServerPlayerRemovePreEvent extends ServerEvent implements ICancella
 	 */
 	public ServerPlayerRemovePreEvent(IMumbleServer server, IPlayer player) {
 		super(server);
+		this.player = player;
 	}
 
 	@Override

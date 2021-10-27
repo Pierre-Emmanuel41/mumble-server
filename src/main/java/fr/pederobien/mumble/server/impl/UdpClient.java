@@ -64,7 +64,7 @@ public class UdpClient implements IEventListener {
 		EventManager.unregisterListener(this);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	public void onDataReceived(DataReceivedEvent event) {
 		if (!event.getConnection().equals(connection))
 			return;

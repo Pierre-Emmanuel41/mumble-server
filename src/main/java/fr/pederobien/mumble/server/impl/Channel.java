@@ -48,12 +48,12 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void addPlayer(IPlayer player) {
-		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), () -> {
+		Runnable add = () -> {
 			Player playerImpl = (Player) player;
 			players.add(playerImpl);
 			playerImpl.setChannel(this);
-			EventManager.callEvent(new ChannelPlayerAddPostEvent(this, player));
-		});
+		};
+		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), add, new ChannelPlayerAddPostEvent(this, player));
 	}
 
 	@Override
@@ -61,12 +61,12 @@ public class Channel implements IChannel, IEventListener {
 		if (!players.contains(player))
 			return;
 
-		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), () -> {
+		Runnable remove = () -> {
 			Player playerImpl = (Player) player;
 			playerImpl.setChannel(null);
 			players.remove(player);
-			EventManager.callEvent(new ChannelPlayerRemovePostEvent(this, player));
-		});
+		};
+		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), remove, new ChannelPlayerRemovePostEvent(this, player));
 	}
 
 	@Override
@@ -91,11 +91,9 @@ public class Channel implements IChannel, IEventListener {
 		if (this.soundModifier.equals(soundModifier))
 			return;
 
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier), () -> {
-			ISoundModifier oldSoundModifier = this.soundModifier;
-			this.soundModifier = soundModifier;
-			EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
-		});
+		ISoundModifier oldSoundModifier = this.soundModifier;
+		Runnable set = () -> this.soundModifier = soundModifier;
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier), set, new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 
 	@Override
@@ -107,11 +105,8 @@ public class Channel implements IChannel, IEventListener {
 		if (this.name == name)
 			return;
 
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> {
-			String oldName = new String(this.name);
-			this.name = name;
-			EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
-		});
+		String oldName = this.name;
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> this.name = name, new ChannelNameChangePostEvent(this, oldName));
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
