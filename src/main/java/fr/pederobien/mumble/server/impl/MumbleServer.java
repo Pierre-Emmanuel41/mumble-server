@@ -63,19 +63,19 @@ public class MumbleServer implements IMumbleServer {
 	@Override
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		checkIsOpened();
-		return server.addPlayer(address, playerName, isAdmin);
+		return server.getClients().addPlayer(address, playerName, isAdmin);
 	}
 
 	@Override
 	public void removePlayer(String playerName) {
 		checkIsOpened();
-		server.removePlayer(playerName);
+		server.getClients().removePlayer(playerName);
 	}
 
 	@Override
 	public List<IPlayer> getPlayers() {
 		checkIsOpened();
-		return server.getPlayers();
+		return server.getClients().getPlayers();
 	}
 
 	@Override

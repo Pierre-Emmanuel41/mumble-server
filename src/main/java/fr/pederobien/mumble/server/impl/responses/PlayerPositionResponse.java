@@ -26,7 +26,7 @@ public class PlayerPositionResponse extends AbstractResponse {
 		case GET:
 			playerName = (String) event.getRequest().getPayload()[0];
 
-			optPlayer = getInternalServer().getPlayer(playerName);
+			optPlayer = getInternalServer().getClients().getPlayer(playerName);
 			if (!optPlayer.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
@@ -41,7 +41,7 @@ public class PlayerPositionResponse extends AbstractResponse {
 			double yaw = (double) event.getRequest().getPayload()[4];
 			double pitch = (double) event.getRequest().getPayload()[5];
 
-			optPlayer = getInternalServer().getPlayer(playerName);
+			optPlayer = getInternalServer().getClients().getPlayer(playerName);
 			if (!optPlayer.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 

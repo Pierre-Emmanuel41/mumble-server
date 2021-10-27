@@ -26,7 +26,7 @@ public class ServerJoinResponse extends AbstractResponse {
 		switch (event.getRequest().getHeader().getOid()) {
 		case SET:
 			if (event.getClient() != null)
-				event.getClient().onJoin();
+				event.getClient().getTcpClient().onJoin();
 
 			List<Object> informations = new ArrayList<Object>();
 

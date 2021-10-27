@@ -30,7 +30,7 @@ public class PlayerMuteByResponse extends AbstractResponse {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
 
 			String playerMuteOrUnmuteName = (String) event.getRequest().getPayload()[1];
-			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getPlayer(playerMuteOrUnmuteName);
+			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getClients().getPlayer(playerMuteOrUnmuteName);
 			if (!optPlayerMuteOrUnmute.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 

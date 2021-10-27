@@ -165,7 +165,7 @@ public class Player implements IPlayer {
 
 		this.isOnline = isOnline;
 		EventManager.callEvent(new PlayerOnlineChangeEvent(this, isOnline));
-		client.sendPlayerStatusChanged(isOnline);
+		client.sendOnlineChanged(isOnline);
 	}
 
 	/**

@@ -34,7 +34,7 @@ public class ChannelsPlayerResponse extends AbstractResponse {
 
 			// Getting player associated to its name.
 			playerName = (String) event.getRequest().getPayload()[1];
-			final Optional<Player> optPlayerAdd = getInternalServer().getPlayer(playerName);
+			final Optional<Player> optPlayerAdd = getInternalServer().getClients().getPlayer(playerName);
 			if (!optPlayerAdd.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
@@ -56,7 +56,7 @@ public class ChannelsPlayerResponse extends AbstractResponse {
 
 			// Getting player associated to its name.
 			playerName = (String) event.getRequest().getPayload()[1];
-			final Optional<IPlayer> optPlayerRemove = getInternalServer().getPlayers().stream().filter(player -> player.getName().equals(playerName)).findFirst();
+			final Optional<Player> optPlayerRemove = getInternalServer().getClients().getPlayer(playerName);
 			if (!optPlayerRemove.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 

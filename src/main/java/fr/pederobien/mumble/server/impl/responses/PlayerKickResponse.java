@@ -22,7 +22,7 @@ public class PlayerKickResponse extends AbstractResponse {
 		case SET:
 			String playerName = (String) event.getRequest().getPayload()[0];
 			String playerKickName = (String) event.getRequest().getPayload()[1];
-			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getPlayer(playerKickName);
+			final Optional<Player> optPlayerMuteOrUnmute = getInternalServer().getClients().getPlayer(playerKickName);
 			if (!optPlayerMuteOrUnmute.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 

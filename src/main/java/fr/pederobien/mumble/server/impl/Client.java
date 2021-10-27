@@ -1,13 +1,12 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import fr.pederobien.communication.impl.TcpServerConnection;
+import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
-import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.Idc;
 
 public class Client {
 	private InternalServer internalServer;
@@ -15,20 +14,11 @@ public class Client {
 	private UdpClient udpClient;
 	private Player player;
 	private UUID uuid;
-	private InetSocketAddress address;
+	private InetSocketAddress gameAddress;
 
-	protected Client(InternalServer internalServer, UUID uuid, InetSocketAddress address) {
+	protected Client(InternalServer internalServer, UUID uuid) {
 		this.internalServer = internalServer;
 		this.uuid = uuid;
-		this.address = address;
-	}
-
-	public void sendAdminChanged(boolean isAdmin) {
-		tryOnTcpClient(client -> client.sendAdminChanged(isAdmin));
-	}
-
-	public void sendPlayerStatusChanged(boolean isConnected) {
-		tryOnTcpClient(client -> client.sendPlayerStatusChanged(isConnected));
 	}
 
 	@Override
@@ -40,56 +30,156 @@ public class Client {
 			return false;
 
 		Client other = (Client) obj;
-		return uuid.equals(other.getUUID()) || getAddress().equals(other.getAddress());
+		return uuid.equals(other.getUUID());
 	}
 
-	public void createTcpClient(Socket socket) {
-		tcpClient = new TcpClient(internalServer, this, new TcpServerConnection(socket, new MessageExtractor()));
+	/**
+	 * Send a request associated to the Idc {@link Idc#PLAYER_ADMIN} to the mumble client, if defined.
+	 * 
+	 * @param isAdmin The new player admin status.
+	 */
+	public void sendAdminChanged(boolean isAdmin) {
+		tryOnTcpClient(client -> client.sendAdminChanged(isAdmin));
 	}
 
+	/**
+	 * Send a request associated to the Idc {@link Idc#PLAYER_INFO} to the mumble client, if defined.
+	 * 
+	 * @param isOnline The new player online status.
+	 */
+	public void sendOnlineChanged(boolean isOnline) {
+		tryOnTcpClient(client -> client.sendOnlineChanged(isOnline));
+	}
+
+	/**
+	 * Creates a TCP client associated to the given socket
+	 * 
+	 * @param socket The underlying socket used by the TCP connection to send data to the remote TCP lient.
+	 */
+	public void createTcpClient(ITcpConnection connection) {
+		tcpClient = new TcpClient(internalServer, this, connection);
+	}
+
+	/**
+	 * Creates a UDP client associated to the given connection.
+	 * 
+	 * @param udpServerConnection the connection used to send audio stream.
+	 * @param address             The address associated to the remote UDP client.
+	 */
 	public void createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
 		if (udpClient == null)
 			udpClient = new UdpClient(internalServer, this, udpServerConnection, address);
 		udpClient.setAddress(address);
 	}
 
+	/**
+	 * Send a request associated to the Idc {@link Idc#PLAYER_SPEAK} to the mumble client, if defined.
+	 * 
+	 * @param playerName The name of the speaking player.
+	 * @param data       The bytes array that contains audio sample.
+	 * @param global     The global volume of the sample.
+	 * @param left       The volume of the left channel.
+	 * @param right      The volume of the right channel.
+	 */
 	public void onOtherPlayerSpeak(String playerName, byte[] data, double global, double left, double right) {
 		if (udpClient != null)
-			udpClient.send(playerName, data, global, left, right);
+			udpClient.onPlayerSpeak(playerName, data, global, left, right);
 	}
 
+	/**
+	 * Send a request associated to the Idc {@link Idc#PLAYER_MUTE} to the mumble client, if defined.
+	 * 
+	 * @param playerName The name of the player whose the mute status has changed.
+	 * @param isMute     The new player mute status.
+	 */
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
 		tryOnTcpClient(client -> client.sendPlayerMuteChanged(playerName, isMute));
 	}
 
+	/**
+	 * Send a request associated to the Idc {@link Idc#PLAYER_DEAFEN} to the mumble client, if defined.
+	 * 
+	 * @param playerName The name of the player whose the deafen status has changed.
+	 * @param isDeafen   The new player deafen status.
+	 */
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
 		tryOnTcpClient(client -> client.sendPlayerDeafenChanged(playerName, isDeafen));
 	}
 
-	public void onJoin() {
-		tcpClient.onJoin();
+	/**
+	 * Check if the game address or the mumble address correspond to the given address and port number. If the mumble client is
+	 * registered then a request is sent to know if the the given port is used.
+	 * 
+	 * @param port The port number used to play at the game.
+	 * 
+	 * @return True if the game address or the mumble address correspond to the given address and port.
+	 */
+	public boolean isAssociatedTo(int port) {
+		boolean isAssociated = false;
+		if (gameAddress != null && gameAddress.getPort() == port)
+			isAssociated = true;
+
+		if (getMumbleAddress() != null && getMumbleAddress().getPort() == port)
+			isAssociated = true;
+
+		return isAssociated;
 	}
 
-	public void onLeave() {
-		tcpClient.onLeave();
+	/**
+	 * @return The TCP client associated to this mumble client.
+	 */
+	public TcpClient getTcpClient() {
+		return tcpClient;
 	}
 
+	/**
+	 * @return The player associated to this client.
+	 */
 	public Player getPlayer() {
 		return player;
 	}
 
+	/**
+	 * Set the player associated to this client.
+	 * 
+	 * @param player The new player.
+	 */
 	public void setPlayer(Player player) {
 		this.player = player;
 		if (player != null)
 			player.setClient(this);
+		else
+			gameAddress = null;
 	}
 
+	/**
+	 * @return The identifier of this client.
+	 */
 	public UUID getUUID() {
 		return uuid;
 	}
 
-	public InetSocketAddress getAddress() {
-		return tcpClient == null ? address : tcpClient.getAddress();
+	/**
+	 * @return the address of the player used to play at the game. Null if the player is not connected in game.
+	 */
+	public InetSocketAddress getGameAddress() {
+		return gameAddress;
+	}
+
+	/**
+	 * Set the address of the player used to play at the game.
+	 * 
+	 * @param gameAddress The address used by the player to player at the game.
+	 */
+	public void setGameAddress(InetSocketAddress gameAddress) {
+		this.gameAddress = gameAddress;
+	}
+
+	/**
+	 * @return The address used by the player to speak to the other players. Null if there the player is not connected with mumble.
+	 */
+	public InetSocketAddress getMumbleAddress() {
+		return tcpClient == null ? null : tcpClient.getAddress();
 	}
 
 	private void tryOnTcpClient(Consumer<TcpClient> consumer) {

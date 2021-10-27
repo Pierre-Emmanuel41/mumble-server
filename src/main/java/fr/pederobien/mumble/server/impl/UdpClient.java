@@ -49,7 +49,7 @@ public class UdpClient implements IEventListener {
 	 * @param playerName The player name whose data should be sent.
 	 * @param data       the byte array containing what the player said.
 	 */
-	public void send(String playerName, byte[] data, double global, double left, double right) {
+	public void onPlayerSpeak(String playerName, byte[] data, double global, double left, double right) {
 		if (connection == null || connection.isDisposed())
 			return;
 

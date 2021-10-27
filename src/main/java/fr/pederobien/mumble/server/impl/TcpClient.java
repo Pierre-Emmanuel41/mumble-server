@@ -17,6 +17,7 @@ import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
@@ -49,9 +50,9 @@ public class TcpClient implements IEventListener {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, isAdmin)));
 	}
 
-	public void sendPlayerStatusChanged(boolean isConnected) {
+	public void sendOnlineChanged(boolean isOnline) {
 		doIfPlayerJoined(() -> {
-			if (isConnected)
+			if (isOnline)
 				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, true, client.getPlayer().getName(), client.getPlayer().isAdmin()));
 			else {
 				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, false));
@@ -69,12 +70,25 @@ public class TcpClient implements IEventListener {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_DEAFEN, Oid.SET, playerName, isDeafen)));
 	}
 
+	/**
+	 * Specify that the mumble client has joined the server.
+	 */
 	public void onJoin() {
 		isJoined.set(true);
 	}
 
+	/**
+	 * Specify that the mumble client has left the server.
+	 */
 	public void onLeave() {
 		isJoined.set(false);
+	}
+
+	/**
+	 * @return The TCP connection with the mumble client.
+	 */
+	public ITcpConnection getConnection() {
+		return connection;
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -128,7 +142,8 @@ public class TcpClient implements IEventListener {
 		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
 			client.getPlayer().getChannel().removePlayer(client.getPlayer());
 
-		event.getConnection().dispose();
+		connection.dispose();
+		EventManager.callEvent(new ClientDisconnectPostEvent(client));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -158,6 +173,7 @@ public class TcpClient implements IEventListener {
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case SERVER_LEAVE:
+		case GAME_PORT:
 			return true;
 		case CHANNELS:
 			switch (request.getHeader().getOid()) {

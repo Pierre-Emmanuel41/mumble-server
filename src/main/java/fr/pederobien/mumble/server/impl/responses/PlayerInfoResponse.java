@@ -38,12 +38,12 @@ public class PlayerInfoResponse extends AbstractResponse {
 				int port = (int) event.getRequest().getPayload()[3];
 				boolean isAdmin = (boolean) event.getRequest().getPayload()[4];
 				try {
-					getInternalServer().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port), playerName, isAdmin);
+					getInternalServer().getClients().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port), playerName, isAdmin);
 				} catch (UnknownHostException e) {
 					return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.UNEXPECTED_ERROR);
 				}
 			} else
-				getInternalServer().removePlayer(playerName);
+				getInternalServer().getClients().removePlayer(playerName);
 			return event.getRequest().answer(event.getRequest().getPayload());
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

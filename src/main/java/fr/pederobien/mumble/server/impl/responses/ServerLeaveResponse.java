@@ -17,7 +17,7 @@ public class ServerLeaveResponse extends AbstractResponse {
 	public IMessage<Header> apply(RequestEvent event) {
 		switch (event.getRequest().getHeader().getOid()) {
 		case SET:
-			event.getClient().onLeave();
+			event.getClient().getTcpClient().onLeave();
 			return event.getRequest().answer(event.getRequest().getPayload());
 		default:
 			return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.INCOMPATIBLE_IDC_OID);

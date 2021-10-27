@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
@@ -56,7 +57,8 @@ public class UdpServerThread extends Thread implements IEventListener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onDataReceived(DataReceivedEvent event) {
-		Client client = internalServer.getOrCreateClient(event.getAddress());
-		client.createUdpClient(server, event.getAddress());
+		Optional<Client> optClient = internalServer.getClients().getClient(event.getAddress().getAddress(), event.getAddress().getPort());
+		if (optClient.isPresent())
+			optClient.get().createUdpClient(server, event.getAddress());
 	}
 }

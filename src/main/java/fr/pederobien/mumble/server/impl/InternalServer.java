@@ -1,14 +1,10 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
@@ -17,19 +13,13 @@ import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
-import fr.pederobien.mumble.server.event.ServerClientCreatedEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
 
@@ -38,10 +28,10 @@ public class InternalServer {
 	private TcpServerThread tcpThread;
 	private UdpServerThread udpThread;
 	private boolean isOpened;
-	private Map<UUID, Client> clients;
+	private ClientList clients;
 	private Map<String, Channel> channels;
 	private RequestManagement requestManagement;
-	private Object lockChannels, lockPlayers;
+	private Object lockChannels;
 	private int port;
 
 	public InternalServer(MumbleServer mumbleServer, int port) {
@@ -50,12 +40,11 @@ public class InternalServer {
 		tcpThread = new TcpServerThread(this, port);
 		udpThread = new UdpServerThread(this, port);
 
-		clients = new HashMap<UUID, Client>();
+		clients = new ClientList(this);
 		channels = new HashMap<String, Channel>();
 		requestManagement = new RequestManagement(this);
 
 		lockChannels = new Object();
-		lockPlayers = new Object();
 	}
 
 	/**
@@ -88,79 +77,10 @@ public class InternalServer {
 	}
 
 	/**
-	 * First check if a client is registered for the given address, if any then returns it, else creates a new client object.
-	 * 
-	 * @param address The address used to retrieve or create a client.
-	 * 
-	 * @return The client associated to the given address.
+	 * @return The port used for TCP and UDP communication.
 	 */
-	public Client getOrCreateClient(InetSocketAddress address) {
-		synchronized (lockPlayers) {
-			Optional<Client> optClient = clients.values().stream().filter(client -> client.getAddress().getAddress().equals(address.getAddress())).findFirst();
-			if (optClient.isPresent())
-				return optClient.get();
-			else
-				return createClient(address);
-		}
-	}
-
-	/**
-	 * Creates based on the given properties.
-	 * 
-	 * @param address    The address of the player in game.
-	 * @param playerName The name of the player in game.
-	 * @param isAdmin    The admin status of the player in game.
-	 * 
-	 * @return The created player.
-	 */
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		synchronized (lockPlayers) {
-			Player player = getOrCreatePlayer(address, playerName, isAdmin);
-			if (player == null)
-				return null;
-
-			player.setIsOnline(true);
-			return player;
-		}
-	}
-
-	/**
-	 * Removes the player associated to the given playerName.
-	 * 
-	 * @param playerName The name of the player to remove.
-	 */
-	public void removePlayer(String playerName) {
-		synchronized (lockPlayers) {
-			Optional<Client> optClient = clients.values().stream().filter(c -> c.getPlayer() != null && c.getPlayer().getName().equals(playerName)).findFirst();
-			if (optClient.isPresent() && optClient.get().getPlayer() != null) {
-				IPlayer player = optClient.get().getPlayer();
-				EventManager.callEvent(new ServerPlayerRemovePreEvent(mumbleServer, player), () -> {
-					optClient.get().getPlayer().setIsOnline(false);
-					optClient.get().setPlayer(null);
-					EventManager.callEvent(new ServerPlayerRemovePostEvent(mumbleServer, player));
-				});
-			}
-		}
-	}
-
-	/**
-	 * @return The list of player currently registered for this server.
-	 */
-	public List<IPlayer> getPlayers() {
-		return Collections.unmodifiableList(clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null).collect(Collectors.toList()));
-	}
-
-	/**
-	 * Try to find the player associated to the specified playerName.
-	 * 
-	 * @param playerName The name of the player to return.
-	 * 
-	 * @return An optional that contains a player if found, an empty optional otherwise.
-	 */
-	public Optional<Player> getPlayer(String playerName) {
-		synchronized (lockPlayers) {
-			return clients.values().stream().map(client -> client.getPlayer()).filter(player -> player != null && player.getName().equals(playerName)).findFirst();
-		}
+	public int getPort() {
+		return port;
 	}
 
 	/**
@@ -274,17 +194,17 @@ public class InternalServer {
 	}
 
 	/**
-	 * @return The port used for TCP and UDP communication.
-	 */
-	public int getPort() {
-		return port;
-	}
-
-	/**
 	 * @return The mumble server associated to this internalServer.
 	 */
 	public IMumbleServer getMumbleServer() {
 		return mumbleServer;
+	}
+
+	/**
+	 * @return The list of clients registered for this server.
+	 */
+	public ClientList getClients() {
+		return clients;
 	}
 
 	/**
@@ -294,7 +214,7 @@ public class InternalServer {
 	 * @param isMute     True if the player is now muted, false otherwise.
 	 */
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		clients.values().stream().forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
+		clients.forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
 	}
 
 	/**
@@ -304,45 +224,7 @@ public class InternalServer {
 	 * @param isMute     True if the player is now deafen, false otherwise.
 	 */
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		clients.values().forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
-	}
-
-	private Client createClient(InetSocketAddress address) {
-		UUID uuid = createUUID();
-		Client client = new Client(this, uuid, address);
-		clients.put(uuid, client);
-		EventManager.callEvent(new ServerClientCreatedEvent(mumbleServer, client));
-		return client;
-	}
-
-	private UUID createUUID() {
-		UUID uuid;
-		if (clients.isEmpty())
-			uuid = UUID.randomUUID();
-		else {
-			boolean uuidAlreadyExists;
-			do {
-				final UUID uuidToTest = uuid = UUID.randomUUID();
-				uuidAlreadyExists = clients.keySet().stream().filter(id -> id.equals(uuidToTest)).findFirst().isPresent();
-			} while (uuidAlreadyExists);
-		}
-		return uuid;
-	}
-
-	private Player getOrCreatePlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		Client client = getOrCreateClient(address);
-		if (client.getPlayer() == null) {
-			Player player = new Player(this, address, playerName, isAdmin);
-			ServerPlayerAddPreEvent event = new ServerPlayerAddPreEvent(mumbleServer, player);
-			EventManager.callEvent(event);
-			if (event.isCancelled())
-				return null;
-
-			client.setPlayer(player);
-			EventManager.callEvent(new ServerPlayerAddPostEvent(mumbleServer, player));
-			return player;
-		}
-		return null;
+		clients.forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
 	}
 
 	private IChannel unsynchronizedRemove(String name) {

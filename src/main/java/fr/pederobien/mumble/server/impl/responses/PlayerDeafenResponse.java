@@ -24,7 +24,7 @@ public class PlayerDeafenResponse extends AbstractResponse {
 		switch (event.getRequest().getHeader().getOid()) {
 		case SET:
 			try {
-				Optional<Player> optPlayer = getInternalServer().getPlayer(playerName);
+				Optional<Player> optPlayer = getInternalServer().getClients().getPlayer(playerName);
 				if (!optPlayer.isPresent())
 					return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.PLAYER_NOT_RECOGNIZED);
 
