@@ -24,7 +24,6 @@ import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class TcpClient implements IEventListener {
@@ -82,6 +81,7 @@ public class TcpClient implements IEventListener {
 	 */
 	public void onLeave() {
 		isJoined.set(false);
+		removePlayerFromChannel();
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class TcpClient implements IEventListener {
 		return connection;
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
@@ -99,7 +99,7 @@ public class TcpClient implements IEventListener {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
@@ -107,46 +107,45 @@ public class TcpClient implements IEventListener {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onServerClosing(ServerClosePostEvent event) {
 		connection.dispose();
 		EventManager.unregisterListener(this);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onChannelRenamed(ChannelNameChangePostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onPlayerAdded(ChannelPlayerAddPostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getChannel().getName(), event.getPlayer().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onPlayerRemoved(ChannelPlayerRemovePostEvent event) {
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getChannel().getName(), event.getPlayer().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
 		doIfPlayerJoined(
 				() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void OnConnectionLostEvent(ConnectionLostEvent event) {
 		if (!event.getConnection().equals(connection))
 			return;
 
-		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		removePlayerFromChannel();
 
 		connection.dispose();
 		EventManager.callEvent(new ClientDisconnectPostEvent(client));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		if (!event.getConnection().equals(connection))
 			return;
@@ -162,6 +161,11 @@ public class TcpClient implements IEventListener {
 		if (connection == null || connection.isDisposed())
 			return;
 		connection.send(new MumbleCallbackMessage(message, null));
+	}
+
+	private void removePlayerFromChannel() {
+		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+			client.getPlayer().getChannel().removePlayer(client.getPlayer());
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
