@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 import fr.pederobien.mumble.server.impl.Client;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
-public class ServerClientCreatedEvent extends ServerEvent {
+public class ServerClientAddPostEvent extends ServerEvent {
 	private Client client;
 	private Origin origin;
 	private InetSocketAddress address;
@@ -17,7 +17,7 @@ public class ServerClientCreatedEvent extends ServerEvent {
 	 * @param server The server on which the client has been created.
 	 * @param client The created client.
 	 */
-	public ServerClientCreatedEvent(IMumbleServer server, Client client, Origin origin, InetSocketAddress address) {
+	public ServerClientAddPostEvent(IMumbleServer server, Client client, Origin origin, InetSocketAddress address) {
 		super(server);
 		this.client = client;
 		this.origin = origin;

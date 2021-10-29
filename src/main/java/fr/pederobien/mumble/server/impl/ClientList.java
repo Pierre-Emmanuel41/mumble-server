@@ -20,8 +20,9 @@ import fr.pederobien.communication.impl.TcpServerConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
-import fr.pederobien.mumble.server.event.ServerClientCreatedEvent;
-import fr.pederobien.mumble.server.event.ServerClientCreatedEvent.Origin;
+import fr.pederobien.mumble.server.event.ServerClientAddPostEvent;
+import fr.pederobien.mumble.server.event.ServerClientAddPostEvent.Origin;
+import fr.pederobien.mumble.server.event.ServerClientRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
@@ -401,7 +402,7 @@ public class ClientList implements IEventListener {
 
 	private Client createClient(Origin origin, InetSocketAddress address) {
 		Client client = new Client(internalServer, createUUID());
-		EventManager.callEvent(new ServerClientCreatedEvent(internalServer.getMumbleServer(), client, origin, address));
+		EventManager.callEvent(new ServerClientAddPostEvent(internalServer.getMumbleServer(), client, origin, address));
 		return client;
 	}
 
@@ -456,13 +457,13 @@ public class ClientList implements IEventListener {
 	 * @param client The client to remove.
 	 */
 	private void removeClient(Client client) {
-		EventManager.callEvent(new LogEvent("Removing client #%s", client.hashCode()));
 		Iterator<Entry<String, List<Client>>> entryIterator = getIterator();
 		while (entryIterator.hasNext()) {
 			List<Client> clientsList = entryIterator.next().getValue();
 			if (clientsList.contains(client))
 				clientsList.remove(client);
 		}
+		EventManager.callEvent(new ServerClientRemovePostEvent(internalServer.getMumbleServer(), client));
 	}
 
 	/**

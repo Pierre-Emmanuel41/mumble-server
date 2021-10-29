@@ -1,11 +1,18 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -13,10 +20,13 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.persistence.interfaces.IPersistence;
+import fr.pederobien.utils.event.EventCalledEvent;
+import fr.pederobien.utils.event.EventLogger;
 
 public class MumbleServer implements IMumbleServer {
 	private InternalServer server;
 	private String name;
+	private Path path;
 	private IPersistence<IMumbleServer> persistence;
 
 	/**
@@ -28,6 +38,7 @@ public class MumbleServer implements IMumbleServer {
 	 */
 	public MumbleServer(String name, int port, Path path) {
 		this.name = name;
+		this.path = path;
 		this.server = new InternalServer(this, port);
 		persistence = new MumblePersistence(path, this);
 	}
@@ -52,6 +63,7 @@ public class MumbleServer implements IMumbleServer {
 	public void close() {
 		checkIsOpened();
 		persistence.save();
+		saveLog();
 		server.close();
 	}
 
@@ -116,5 +128,33 @@ public class MumbleServer implements IMumbleServer {
 	private void checkIsOpened() {
 		if (!isOpened())
 			throw new ServerNotOpenedException();
+	}
+
+	private void saveLog() {
+		Path logPath = path.resolve("logs");
+
+		// Creates intermediate folders if they don't exist.
+		if (!Files.exists(logPath))
+			logPath.toFile().mkdirs();
+
+		String name = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
+		logPath = logPath.resolve(String.format("log_%s.zip", name));
+
+		try {
+			ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(logPath.toFile()));
+			ZipEntry zipEntry = new ZipEntry(String.format("log_%s.txt", name));
+			zipOutputStream.putNextEntry(zipEntry);
+
+			for (EventCalledEvent event : EventLogger.instance().getEvents()) {
+				String entry = String.format("[%s %s] %s\r\n", event.getTime().toLocalDate(), event.getTime().toLocalTime(), event.getEvent().toString());
+				zipOutputStream.write(entry.getBytes());
+			}
+
+			zipOutputStream.closeEntry();
+			zipOutputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 }
