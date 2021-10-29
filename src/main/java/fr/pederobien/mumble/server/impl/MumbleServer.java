@@ -63,8 +63,8 @@ public class MumbleServer implements IMumbleServer {
 	public void close() {
 		checkIsOpened();
 		persistence.save();
-		saveLog();
 		server.close();
+		saveLog();
 	}
 
 	@Override
