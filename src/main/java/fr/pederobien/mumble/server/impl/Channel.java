@@ -110,7 +110,7 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	public void onPlayerSpeak(Player player, byte[] data) {
-		List<Player> receivers = players.stream().filter(p -> !p.equals(player)).collect(Collectors.toList());
+		List<Player> receivers = players.stream().filter(p -> p.equals(player)).collect(Collectors.toList());
 
 		for (Player receiver : receivers) {
 			// No need to send data to the player if he is deafen.

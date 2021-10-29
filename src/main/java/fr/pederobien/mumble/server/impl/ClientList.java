@@ -12,24 +12,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.impl.TcpServerConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.common.impl.Header;
-import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
-import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
 import fr.pederobien.mumble.server.event.ServerClientCreatedEvent;
+import fr.pederobien.mumble.server.event.ServerClientCreatedEvent.Origin;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
@@ -65,7 +57,6 @@ public class ClientList implements IEventListener {
 		ITcpConnection connection = new TcpServerConnection(socket, new MessageExtractor());
 		Client client = getOrCreateClientByMumble(connection);
 		client.createTcpClient(connection);
-		EventManager.callEvent(new LogEvent("Adding mumble client with address %s:%s", socket.getInetAddress().getHostAddress(), socket.getPort()));
 		return client;
 	}
 
@@ -133,7 +124,6 @@ public class ClientList implements IEventListener {
 		client.setGameAddress(address);
 		client.setPlayer(optPlayer.get());
 		optPlayer.get().setIsOnline(true);
-		EventManager.callEvent(new LogEvent("Adding player with address %s:%s", address.getAddress().getHostAddress(), address.getPort()));
 		return optPlayer.get();
 	}
 
@@ -281,7 +271,7 @@ public class ClientList implements IEventListener {
 
 		// No client registered
 		if (clients.isEmpty()) {
-			Client client = createClient();
+			Client client = createClient(Origin.PLAYER_CONNECTED_IN_GAME, socketAddress);
 			clients.add(client);
 			EventManager.callEvent(new LogEvent("Registering 1st client #%s for address %s", client.hashCode(), address.getHostAddress()));
 			return client;
@@ -296,13 +286,19 @@ public class ClientList implements IEventListener {
 			}
 
 			// Verifying if the given port number is used on client side.
-			if (new GamePort(client.getTcpClient().getConnection()).check(socketAddress)) {
-				EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", client.hashCode(), socketAddress.getPort()));
-				return client;
-			}
+			/*
+			 * if (new GamePort(client.getTcpClient().getConnection()).check(socketAddress)) { EventManager.callEvent(new
+			 * LogEvent("Client #%s used port n°%s to play game", client.hashCode(), socketAddress.getPort())); return client; }
+			 */
 		}
 
-		Client client = createClient();
+		Optional<Client> optClient = new GamePortAnalyzer(clients, null).check(socketAddress);
+		if (optClient.isPresent()) {
+			EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", optClient.get().hashCode(), socketAddress.getPort()));
+			return optClient.get();
+		}
+
+		Client client = createClient(Origin.PLAYER_CONNECTED_IN_GAME, socketAddress);
 		clients.add(client);
 		EventManager.callEvent(new LogEvent("Registering new client #%s for address %s:%s", client.hashCode(), address.getHostAddress(), socketAddress.getPort()));
 		return client;
@@ -324,7 +320,7 @@ public class ClientList implements IEventListener {
 
 		// No client registered
 		if (clients.isEmpty()) {
-			Client client = createClient();
+			Client client = createClient(Origin.PLAYER_CONNECTED_IN_MUMBLE, connection.getAddress());
 			clients.add(client);
 			EventManager.callEvent(new LogEvent("Registering 1st client #%s for address %s", client.hashCode(), address.getAddress().getHostAddress()));
 			return client;
@@ -339,13 +335,19 @@ public class ClientList implements IEventListener {
 			}
 
 			// Verifying if the given port number is used on client side.
-			if (new GamePort(connection).check(client.getGameAddress())) {
-				EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", client.hashCode(), client.getGameAddress().getPort()));
-				return client;
-			}
+			/*
+			 * if (new GamePort(connection).check(client.getGameAddress())) { EventManager.callEvent(new
+			 * LogEvent("Client #%s used port n°%s to play game", client.hashCode(), client.getGameAddress().getPort())); return client; }
+			 */
 		}
 
-		Client client = createClient();
+		Optional<Client> optClient = new GamePortAnalyzer(clients, connection).check(null);
+		if (optClient.isPresent()) {
+			EventManager.callEvent(new LogEvent("Client #%s used port n°%s to play game", optClient.get().hashCode(), optClient.get().getGameAddress().getPort()));
+			return optClient.get();
+		}
+
+		Client client = createClient(Origin.PLAYER_CONNECTED_IN_MUMBLE, connection.getAddress());
 		clients.add(client);
 		EventManager.callEvent(new LogEvent("Registering new client #%s for address %s:%s", client.hashCode(), address.getAddress().getHostAddress(), address.getPort()));
 		return client;
@@ -397,9 +399,9 @@ public class ClientList implements IEventListener {
 		return uuid;
 	}
 
-	private Client createClient() {
+	private Client createClient(Origin origin, InetSocketAddress address) {
 		Client client = new Client(internalServer, createUUID());
-		EventManager.callEvent(new ServerClientCreatedEvent(internalServer.getMumbleServer(), client));
+		EventManager.callEvent(new ServerClientCreatedEvent(internalServer.getMumbleServer(), client, origin, address));
 		return client;
 	}
 
@@ -471,61 +473,5 @@ public class ClientList implements IEventListener {
 	private void garbage(Client client) {
 		if (client.getPlayer() == null && (client.getTcpClient() == null || client.getTcpClient().getConnection().isDisposed()))
 			removeClient(client);
-	}
-
-	private class GamePort implements IEventListener {
-		private ITcpConnection connection;
-		private Lock lock;
-		private Condition received;
-		private boolean isUsed;
-
-		public GamePort(ITcpConnection connection) {
-			this.connection = connection;
-
-			lock = new ReentrantLock();
-			received = lock.newCondition();
-			EventManager.registerListener(this);
-		}
-
-		/**
-		 * Send synchronously a request to the client in order to check if the port of the specified address is used.
-		 * 
-		 * @param port The port to check.
-		 * 
-		 * @return True if the port is used on the client side, false otherwise.
-		 */
-		public boolean check(InetSocketAddress address) {
-			lock.lock();
-			try {
-				connection.send(new MumbleCallbackMessage(MumbleMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
-				}));
-				if (!received.await(5000, TimeUnit.MILLISECONDS))
-					isUsed = false;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} finally {
-				lock.unlock();
-			}
-			return isUsed;
-		}
-
-		@EventHandler
-		private void onDataReceived(DataReceivedEvent event) {
-			if (!event.getConnection().equals(connection))
-				return;
-
-			IMessage<Header> response = MumbleMessageFactory.parse(event.getBuffer());
-			if (response.getHeader().getIdc() != Idc.GAME_PORT && response.getHeader().getOid() != Oid.SET)
-				return;
-
-			isUsed = (boolean) response.getPayload()[1];
-			EventManager.unregisterListener(this);
-			lock.lock();
-			try {
-				received.signal();
-			} finally {
-				lock.unlock();
-			}
-		}
 	}
 }
