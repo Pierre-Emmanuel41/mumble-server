@@ -18,6 +18,8 @@ import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
+import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
@@ -59,14 +61,6 @@ public class TcpClient implements IEventListener {
 					client.getPlayer().getChannel().removePlayer(client.getPlayer());
 			}
 		});
-	}
-
-	public void sendPlayerMuteChanged(String playerName, boolean isMute) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_MUTE, Oid.SET, playerName, isMute)));
-	}
-
-	public void sendPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_DEAFEN, Oid.SET, playerName, isDeafen)));
 	}
 
 	/**
@@ -155,6 +149,16 @@ public class TcpClient implements IEventListener {
 			send(internalServer.answer(new RequestEvent(client, request)));
 		else
 			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+	}
+
+	@EventHandler
+	private void sendPlayerMuteChanged(PlayerMuteChangeEvent event) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_MUTE, Oid.SET, event.getPlayer().getName(), event.isMute())));
+	}
+
+	@EventHandler
+	private void sendPlayerDeafenChanged(PlayerDeafenChangeEvent event) {
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_DEAFEN, Oid.SET, event.getPlayer().getName(), event.isDeafen())));
 	}
 
 	private void send(IMessage<Header> message) {

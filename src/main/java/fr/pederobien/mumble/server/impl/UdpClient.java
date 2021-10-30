@@ -10,10 +10,12 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.mumble.server.event.PlayerSpeakPostEvent;
+import fr.pederobien.mumble.server.event.PlayerSpeakPreEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class UdpClient implements IEventListener {
@@ -46,17 +48,20 @@ public class UdpClient implements IEventListener {
 	/**
 	 * Send the data associated to the given event to the player.
 	 * 
-	 * @param playerName The player name whose data should be sent.
-	 * @param data       the byte array containing what the player said.
+	 * @param player The speaking player.
+	 * @param data   The bytes array that contains audio sample.
+	 * @param global The global volume of the sample.
+	 * @param left   The volume of the left channel.
+	 * @param right  The volume of the right channel.
 	 */
-	public void onPlayerSpeak(String playerName, byte[] data, double global, double left, double right) {
+	public void onPlayerSpeak(IPlayer player, byte[] data, double global, double left, double right) {
 		if (connection == null || connection.isDisposed())
 			return;
 
-		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, playerName, data, global, left, right), address));
+		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, player.getName(), data, global, left, right), address));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onServerClosing(ServerClosePostEvent event) {
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
@@ -76,6 +81,7 @@ public class UdpClient implements IEventListener {
 		if (message.getHeader().getOid() != Oid.GET)
 			return;
 
-		((Channel) client.getPlayer().getChannel()).onPlayerSpeak(client.getPlayer(), (byte[]) message.getPayload()[0]);
+		byte[] data = (byte[]) message.getPayload()[0];
+		EventManager.callEvent(new PlayerSpeakPreEvent(client.getPlayer(), data), new PlayerSpeakPostEvent(client.getPlayer(), data));
 	}
 }

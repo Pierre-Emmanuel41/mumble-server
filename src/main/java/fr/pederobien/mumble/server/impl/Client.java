@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
 import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.server.interfaces.IPlayer;
 
 public class Client {
 	private InternalServer internalServer;
@@ -75,35 +76,15 @@ public class Client {
 	/**
 	 * Send a request associated to the Idc {@link Idc#PLAYER_SPEAK} to the mumble client, if defined.
 	 * 
-	 * @param playerName The name of the speaking player.
-	 * @param data       The bytes array that contains audio sample.
-	 * @param global     The global volume of the sample.
-	 * @param left       The volume of the left channel.
-	 * @param right      The volume of the right channel.
+	 * @param player The speaking player.
+	 * @param data   The bytes array that contains audio sample.
+	 * @param global The global volume of the sample.
+	 * @param left   The volume of the left channel.
+	 * @param right  The volume of the right channel.
 	 */
-	public void onOtherPlayerSpeak(String playerName, byte[] data, double global, double left, double right) {
+	public void onOtherPlayerSpeak(IPlayer player, byte[] data, double global, double left, double right) {
 		if (udpClient != null)
-			udpClient.onPlayerSpeak(playerName, data, global, left, right);
-	}
-
-	/**
-	 * Send a request associated to the Idc {@link Idc#PLAYER_MUTE} to the mumble client, if defined.
-	 * 
-	 * @param playerName The name of the player whose the mute status has changed.
-	 * @param isMute     The new player mute status.
-	 */
-	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		tryOnTcpClient(client -> client.sendPlayerMuteChanged(playerName, isMute));
-	}
-
-	/**
-	 * Send a request associated to the Idc {@link Idc#PLAYER_DEAFEN} to the mumble client, if defined.
-	 * 
-	 * @param playerName The name of the player whose the deafen status has changed.
-	 * @param isDeafen   The new player deafen status.
-	 */
-	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		tryOnTcpClient(client -> client.sendPlayerDeafenChanged(playerName, isDeafen));
+			udpClient.onPlayerSpeak(player, data, global, left, right);
 	}
 
 	/**

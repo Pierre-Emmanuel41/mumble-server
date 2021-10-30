@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
@@ -104,16 +105,14 @@ public class InternalServer {
 			if (!optSoundModifier.isPresent())
 				throw new SoundModifierDoesNotExistException(soundModifierName);
 
-			ServerChannelAddPreEvent event = new ServerChannelAddPreEvent(mumbleServer, name, soundModifierName);
-			EventManager.callEvent(event);
-			if (event.isCancelled())
-				return null;
-
-			Channel channel = new Channel(mumbleServer, name);
-			channel.setSoundModifier(optSoundModifier.get());
-			channels.put(channel.getName(), channel);
-			EventManager.callEvent(new ServerChannelAddPostEvent(mumbleServer, channel));
-			return channel;
+			ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(mumbleServer, name, soundModifierName);
+			Supplier<IChannel> add = () -> {
+				Channel channel = new Channel(mumbleServer, name);
+				channel.setSoundModifier(optSoundModifier.get());
+				channels.put(channel.getName(), channel);
+				return channel;
+			};
+			return EventManager.callEvent(preEvent, add, channel -> new ServerChannelAddPostEvent(mumbleServer, channel));
 		}
 	}
 
@@ -207,38 +206,17 @@ public class InternalServer {
 		return clients;
 	}
 
-	/**
-	 * Notify each client the mute status of the player associated to the given name has changed.
-	 * 
-	 * @param playerName The name of the player whose mute status has changed.
-	 * @param isMute     True if the player is now muted, false otherwise.
-	 */
-	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		clients.forEach(client -> client.onPlayerMuteChanged(playerName, isMute));
-	}
-
-	/**
-	 * Notify each client the deafen status of the player associated to the given name has changed.
-	 * 
-	 * @param playerName The name of the player whose deafen status has changed.
-	 * @param isMute     True if the player is now deafen, false otherwise.
-	 */
-	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		clients.forEach(client -> client.onPlayerDeafenChanged(playerName, isDeafen));
-	}
-
 	private IChannel unsynchronizedRemove(String name) {
-		if (channels.get(name) == null)
+		IChannel channel = channels.get(name);
+		if (channel == null)
 			return null;
 
-		ServerChannelRemovePreEvent event = new ServerChannelRemovePreEvent(mumbleServer, channels.get(name));
-		EventManager.callEvent(event);
-		if (event.isCancelled())
-			return null;
-
-		Channel channel = channels.remove(name);
-		channel.clear();
-		EventManager.callEvent(new ServerChannelRemovePostEvent(mumbleServer, channel));
-		return channel;
+		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(mumbleServer, channel);
+		Supplier<IChannel> remove = () -> {
+			IChannel c = channels.remove(name);
+			c.clear();
+			return c;
+		};
+		return EventManager.callEvent(preEvent, remove, c -> new ServerChannelRemovePostEvent(mumbleServer, c));
 	}
 }

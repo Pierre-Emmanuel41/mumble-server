@@ -132,24 +132,21 @@ public class ClientList implements IEventListener {
 	 * Find the client associated to the given name and if it exists, then remove the player associated to the client.
 	 * 
 	 * @param name The player name.
-	 * 
-	 * @return True if the player has been removed, false otherwise.
 	 */
-	public boolean removePlayer(String name) {
+	public void removePlayer(String name) {
 		Optional<Client> optClient = getClient(name);
 		if (optClient.isPresent() && optClient.get().getPlayer() != null) {
 			Player player = optClient.get().getPlayer();
-			ServerPlayerRemovePreEvent serverPlayerRemovePreEvent = new ServerPlayerRemovePreEvent(internalServer.getMumbleServer(), player);
-			EventManager.callEvent(serverPlayerRemovePreEvent);
-			if (serverPlayerRemovePreEvent.isCancelled())
-				return false;
+			Runnable remove = () -> {
+				player.setIsOnline(false);
+				optClient.get().setPlayer(null);
+				garbage(optClient.get());
+			};
 
-			player.setIsOnline(false);
-			optClient.get().setPlayer(null);
-			garbage(optClient.get());
-			EventManager.callEvent(new ServerPlayerRemovePostEvent(internalServer.getMumbleServer(), player));
+			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer.getMumbleServer(), player);
+			ServerPlayerRemovePostEvent postEvent = new ServerPlayerRemovePostEvent(internalServer.getMumbleServer(), player);
+			EventManager.callEvent(preEvent, remove, postEvent);
 		}
-		return false;
 	}
 
 	/**
@@ -364,14 +361,11 @@ public class ClientList implements IEventListener {
 	 * @return An optional that contains the created player if it was possible to create one, an empty optional otherwise.
 	 */
 	private Optional<Player> createPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		Player player = new Player(internalServer, address, playerName, isAdmin);
-		ServerPlayerAddPreEvent event = new ServerPlayerAddPreEvent(internalServer.getMumbleServer(), player);
-		EventManager.callEvent(event);
-		if (event.isCancelled())
-			return Optional.empty();
+		Player player = new Player(address, playerName, isAdmin);
 
-		EventManager.callEvent(new ServerPlayerAddPostEvent(internalServer.getMumbleServer(), player));
-		return Optional.of(player);
+		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(internalServer.getMumbleServer(), player);
+		ServerPlayerAddPostEvent postEvent = new ServerPlayerAddPostEvent(internalServer.getMumbleServer(), player);
+		return Optional.ofNullable(EventManager.callEvent(preEvent, () -> player, ignored -> postEvent));
 	}
 
 	/**

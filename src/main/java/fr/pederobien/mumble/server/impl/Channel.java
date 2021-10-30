@@ -13,6 +13,7 @@ import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePreEvent;
+import fr.pederobien.mumble.server.event.PlayerSpeakPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
@@ -23,7 +24,6 @@ import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier.VolumeResult;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class Channel implements IChannel, IEventListener {
@@ -109,24 +109,7 @@ public class Channel implements IChannel, IEventListener {
 		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> this.name = name, new ChannelNameChangePostEvent(this, oldName));
 	}
 
-	public void onPlayerSpeak(Player player, byte[] data) {
-		List<Player> receivers = players.stream().filter(p -> p.equals(player)).collect(Collectors.toList());
-
-		for (Player receiver : receivers) {
-			// No need to send data to the player if he is deafen.
-			// No need to send data to the player if the player is muted by the receiver
-			if (receiver.isDeafen() || receiver.isMuteBy(receiver))
-				return;
-
-			VolumeResult result = soundModifier.calculate(player, receiver);
-			if (Math.abs(result.getGlobal()) < EPSILON)
-				return;
-
-			receiver.onOtherPlayerSpeaker(player.getName(), data, result.getGlobal(), result.getLeft(), result.getRight());
-		}
-	}
-
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onServerClosing(ServerClosePostEvent event) {
 		if (!event.getServer().equals(mumbleServer))
 			return;
@@ -134,11 +117,29 @@ public class Channel implements IChannel, IEventListener {
 		clear();
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onChannelRemove(ServerChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(this))
 			return;
 
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onPlayerSpeak(PlayerSpeakPostEvent event) {
+		List<Player> receivers = players.stream().filter(p -> p.equals(event.getPlayer())).collect(Collectors.toList());
+
+		for (Player receiver : receivers) {
+			// No need to send data to the player if he is deafen.
+			// No need to send data to the player if the player is muted by the receiver
+			if (receiver.isDeafen() || ((Player) event.getPlayer()).isMuteBy(receiver))
+				return;
+
+			VolumeResult result = soundModifier.calculate(event.getPlayer(), receiver);
+			if (Math.abs(result.getGlobal()) < EPSILON)
+				return;
+
+			receiver.onOtherPlayerSpeaker(event.getPlayer(), event.getData(), result.getGlobal(), result.getLeft(), result.getRight());
+		}
 	}
 }

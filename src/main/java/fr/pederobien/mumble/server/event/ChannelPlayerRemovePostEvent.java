@@ -30,7 +30,7 @@ public class ChannelPlayerRemovePostEvent extends ChannelEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("channel=" + getChannel().getName());
-		joiner.add("player=" + getPlayer());
+		joiner.add("player=" + getPlayer().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

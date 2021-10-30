@@ -17,7 +17,6 @@ import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
 
 public class Player implements IPlayer {
-	private InternalServer internalServer;
 	private InetSocketAddress address;
 	private String name;
 	private IPosition position;
@@ -27,8 +26,7 @@ public class Player implements IPlayer {
 	private Map<IPlayer, Boolean> muteBy;
 	private Object lockMuteBy;
 
-	protected Player(InternalServer internalServer, InetSocketAddress address, String name, boolean isAdmin) {
-		this.internalServer = internalServer;
+	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
 		this.address = address;
 		this.name = name;
 		this.isAdmin = isAdmin;
@@ -98,7 +96,6 @@ public class Player implements IPlayer {
 		checkChannel();
 		this.isMute = isMute;
 		EventManager.callEvent(new PlayerMuteChangeEvent(this, isMute));
-		internalServer.onPlayerMuteChanged(getName(), isMute);
 	}
 
 	@Override
@@ -111,7 +108,6 @@ public class Player implements IPlayer {
 		checkChannel();
 		this.isDeafen = isDeafen;
 		EventManager.callEvent(new PlayerDeafenChangeEvent(this, isDeafen));
-		internalServer.onPlayerDeafenChanged(getName(), isDeafen);
 	}
 
 	@Override
@@ -134,14 +130,14 @@ public class Player implements IPlayer {
 	/**
 	 * Send the data to the client in order to play it on the client side.
 	 * 
-	 * @param playerName The speaking player.
-	 * @param data       The byte array that correspond to what the player is saying.
-	 * @param global     The global volume of the signal.
-	 * @param left       The left channel volume of the signal.
-	 * @param right      The right channel volume of the signal.
+	 * @param player The speaking player.
+	 * @param data   The byte array that correspond to what the player is saying.
+	 * @param global The global volume of the signal.
+	 * @param left   The left channel volume of the signal.
+	 * @param right  The right channel volume of the signal.
 	 */
-	public void onOtherPlayerSpeaker(String playerName, byte[] data, double global, double left, double right) {
-		client.onOtherPlayerSpeak(playerName, data, global, left, right);
+	public void onOtherPlayerSpeaker(IPlayer player, byte[] data, double global, double left, double right) {
+		client.onOtherPlayerSpeak(player, data, global, left, right);
 	}
 
 	/**
