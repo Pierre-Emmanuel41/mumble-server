@@ -37,11 +37,13 @@ import fr.pederobien.utils.event.LogEvent;
 public class ClientList implements IEventListener {
 	private InternalServer internalServer;
 	private Map<String, List<Client>> clients;
+	private Map<String, Client> players;
 	private Lock lock;
 
 	public ClientList(InternalServer internalServer) {
 		this.internalServer = internalServer;
 		clients = new HashMap<String, List<Client>>();
+		players = new HashMap<String, Client>();
 		lock = new ReentrantLock(true);
 
 		EventManager.registerListener(this);
@@ -95,14 +97,7 @@ public class ClientList implements IEventListener {
 	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
 	 */
 	public Optional<Client> getClient(String name) {
-		Iterator<Map.Entry<String, List<Client>>> iterator = getIterator();
-		while (iterator.hasNext()) {
-			List<Client> clientsList = iterator.next().getValue();
-			for (Client client : clientsList)
-				if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
-					return Optional.of(client);
-		}
-		return Optional.empty();
+		return Optional.ofNullable(players.get(name));
 	}
 
 	/**
@@ -125,6 +120,7 @@ public class ClientList implements IEventListener {
 		client.setGameAddress(address);
 		client.setPlayer(optPlayer.get());
 		optPlayer.get().setIsOnline(true);
+		players.put(playerName, client);
 		return optPlayer.get();
 	}
 
@@ -141,6 +137,7 @@ public class ClientList implements IEventListener {
 				player.setIsOnline(false);
 				optClient.get().setPlayer(null);
 				garbage(optClient.get());
+				players.remove(name);
 			};
 
 			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer.getMumbleServer(), player);

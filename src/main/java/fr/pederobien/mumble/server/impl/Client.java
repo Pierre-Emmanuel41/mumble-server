@@ -66,11 +66,14 @@ public class Client {
 	 * 
 	 * @param udpServerConnection the connection used to send audio stream.
 	 * @param address             The address associated to the remote UDP client.
+	 * 
+	 * @return The created or updated UDP client.
 	 */
-	public void createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
+	public UdpClient createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
 		if (udpClient == null)
-			udpClient = new UdpClient(internalServer, this, udpServerConnection, address);
+			udpClient = new UdpClient(internalServer, udpServerConnection, address);
 		udpClient.setAddress(address);
+		return udpClient;
 	}
 
 	/**

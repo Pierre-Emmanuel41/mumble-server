@@ -8,7 +8,12 @@ import java.util.concurrent.Semaphore;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.impl.UdpServerConnection;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
+import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.common.impl.Header;
+import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -22,6 +27,7 @@ public class UdpServerThread extends Thread implements IEventListener {
 	public UdpServerThread(InternalServer internalServer, int port) {
 		this.internalServer = internalServer;
 		this.port = port;
+
 		setName("UDPThread-");
 
 		semaphore = new Semaphore(1);
@@ -56,8 +62,16 @@ public class UdpServerThread extends Thread implements IEventListener {
 
 	@EventHandler
 	public void onDataReceived(DataReceivedEvent event) {
-		Optional<Client> optClient = internalServer.getClients().getClient(event.getAddress().getAddress(), event.getAddress().getPort());
+		if (!event.getConnection().equals(server))
+			return;
+
+		IMessage<Header> response = MumbleMessageFactory.parse(event.getBuffer());
+		if (response.getHeader().getIdc() != Idc.PLAYER_SPEAK || response.getHeader().getOid() != Oid.GET)
+			return;
+
+		String playerName = (String) response.getPayload()[0];
+		Optional<Client> optClient = internalServer.getClients().getClient(playerName);
 		if (optClient.isPresent())
-			optClient.get().createUdpClient(server, event.getAddress());
+			optClient.get().createUdpClient(server, event.getAddress()).onPlayerSpeak(playerName, (byte[]) response.getPayload()[1]);
 	}
 }

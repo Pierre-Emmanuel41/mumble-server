@@ -1,36 +1,27 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
+import java.util.Optional;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.interfaces.IUdpServerConnection;
-import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.PlayerSpeakPostEvent;
 import fr.pederobien.mumble.server.event.PlayerSpeakPreEvent;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.IEventListener;
 
-public class UdpClient implements IEventListener {
+public class UdpClient {
 	private InternalServer internalServer;
-	private Client client;
 	private IUdpServerConnection connection;
 	private InetSocketAddress address;
 
-	public UdpClient(InternalServer internalServer, Client client, IUdpServerConnection connection, InetSocketAddress address) {
+	public UdpClient(InternalServer internalServer, IUdpServerConnection connection, InetSocketAddress address) {
 		this.internalServer = internalServer;
-		this.client = client;
 		this.connection = connection;
 		this.address = address;
-
-		EventManager.registerListener(this);
 	}
 
 	/**
@@ -46,7 +37,7 @@ public class UdpClient implements IEventListener {
 	}
 
 	/**
-	 * Send the data associated to the given event to the player.
+	 * Send to the mumble client a request in order to play the given bytes array with the given sound volumes.
 	 * 
 	 * @param player The speaking player.
 	 * @param data   The bytes array that contains audio sample.
@@ -61,27 +52,18 @@ public class UdpClient implements IEventListener {
 		connection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, Oid.SET, player.getName(), data, global, left, right), address));
 	}
 
-	@EventHandler
-	private void onServerClosing(ServerClosePostEvent event) {
-		if (!event.getServer().equals(internalServer.getMumbleServer()))
+	/**
+	 * Dispatch to each registered channel a <code>player speak event</code> in order to send to each player registered in the same
+	 * channel as the speaking player the audio sample.
+	 * 
+	 * @param playerName The name of the speaking player.
+	 * @param data       The bytes array that contains the audio sample.
+	 */
+	public void onPlayerSpeak(String playerName, byte[] data) {
+		Optional<Client> optClient = internalServer.getClients().getClient(playerName);
+		if (!optClient.isPresent())
 			return;
 
-		EventManager.unregisterListener(this);
-	}
-
-	@EventHandler
-	public void onDataReceived(DataReceivedEvent event) {
-		if (!event.getConnection().equals(connection))
-			return;
-
-		if (client.getPlayer() == null || client.getPlayer().getChannel() == null || !address.getAddress().equals(event.getAddress().getAddress()))
-			return;
-
-		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		if (message.getHeader().getOid() != Oid.GET)
-			return;
-
-		byte[] data = (byte[]) message.getPayload()[0];
-		EventManager.callEvent(new PlayerSpeakPreEvent(client.getPlayer(), data), new PlayerSpeakPostEvent(client.getPlayer(), data));
+		EventManager.callEvent(new PlayerSpeakPreEvent(optClient.get().getPlayer(), data), new PlayerSpeakPostEvent(optClient.get().getPlayer(), data));
 	}
 }
