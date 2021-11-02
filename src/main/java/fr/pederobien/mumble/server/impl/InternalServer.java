@@ -7,8 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import fr.pederobien.communication.event.NewTcpClientEvent;
+import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
+import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
@@ -22,11 +25,13 @@ import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class InternalServer {
+public class InternalServer implements IEventListener {
 	private MumbleServer mumbleServer;
-	private TcpServerThread tcpThread;
+	private TcpServer tcpServer;
 	private UdpServerThread udpThread;
 	private boolean isOpened;
 	private ClientList clients;
@@ -38,7 +43,7 @@ public class InternalServer {
 	public InternalServer(MumbleServer mumbleServer, int port) {
 		this.mumbleServer = mumbleServer;
 		this.port = port;
-		tcpThread = new TcpServerThread(this, port);
+		tcpServer = new TcpServer(port, () -> new MessageExtractor());
 		udpThread = new UdpServerThread(this, port);
 
 		clients = new ClientList(this);
@@ -46,13 +51,14 @@ public class InternalServer {
 		requestManagement = new RequestManagement(this);
 
 		lockChannels = new Object();
+		EventManager.registerListener(this);
 	}
 
 	/**
 	 * Starts the tcp thread and the udp thread.
 	 */
 	public void open() {
-		tcpThread.start();
+		tcpServer.connect();
 		udpThread.start();
 		isOpened = true;
 	}
@@ -62,11 +68,12 @@ public class InternalServer {
 	 */
 	public void close() {
 		Runnable close = () -> {
-			tcpThread.interrupt();
+			tcpServer.disconnect();
 			udpThread.interrupt();
 			isOpened = false;
 		};
 		EventManager.callEvent(new ServerClosePreEvent(mumbleServer), close, new ServerClosePostEvent(mumbleServer));
+		EventManager.unregisterListener(this);
 	}
 
 	/**
@@ -218,5 +225,13 @@ public class InternalServer {
 			return c;
 		};
 		return EventManager.callEvent(preEvent, remove, c -> new ServerChannelRemovePostEvent(mumbleServer, c));
+	}
+
+	@EventHandler
+	private void onNewClientConnect(NewTcpClientEvent event) {
+		if (!event.getServer().equals(tcpServer))
+			return;
+
+		getClients().createClient(event.getConnection());
 	}
 }

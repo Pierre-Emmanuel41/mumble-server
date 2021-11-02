@@ -20,6 +20,7 @@ import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.utils.event.LogEvent;
 
 public class GamePortAnalyzer {
 	private List<Client> clients;
@@ -60,14 +61,19 @@ public class GamePortAnalyzer {
 	}
 
 	private void singleCheck(Client client, InetSocketAddress address, CountDownLatch countDownLatch) {
+		EventManager.callEvent(new LogEvent("Asking client #%s", client.hashCode()));
 		// connection null means the client is created by the game.
 		if (connection == null) {
-			if (new GamePort(client.getTcpClient().getConnection()).check(address))
+			if (new GamePort(client.getTcpClient().getConnection()).check(address)) {
+				EventManager.callEvent(new LogEvent("[FROM GAME] Client #%s is using the port %s", client.hashCode(), address.getPort()));
 				this.client = client;
+			}
 		}
 		// connection not null means the client is created by mumble.
-		else if (new GamePort(connection).check(client.getGameAddress()))
+		else if (new GamePort(connection).check(client.getGameAddress())) {
+			EventManager.callEvent(new LogEvent("[FROM MUMBLE] Client #%s is using the port %s", client.hashCode(), client.getGameAddress().getPort()));
 			this.client = client;
+		}
 
 		// Execution finished, notifying the waiting thread.
 		countDownLatch.countDown();
@@ -85,6 +91,7 @@ public class GamePortAnalyzer {
 			lock = new ReentrantLock();
 			received = lock.newCondition();
 			EventManager.registerListener(this);
+			EventManager.callEvent(new LogEvent("Creating GamePort #%s", hashCode()));
 		}
 
 		/**
@@ -102,8 +109,10 @@ public class GamePortAnalyzer {
 			try {
 				connection.send(new MumbleCallbackMessage(MumbleMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
 				}));
-				if (!received.await(3000, TimeUnit.MILLISECONDS))
+				if (!received.await(3000, TimeUnit.MILLISECONDS)) {
+					EventManager.callEvent(new LogEvent("Timeout with GamePort #%s", hashCode()));
 					isUsed = false;
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
@@ -121,8 +130,9 @@ public class GamePortAnalyzer {
 			if (response.getHeader().getIdc() != Idc.GAME_PORT && response.getHeader().getOid() != Oid.SET)
 				return;
 
-			isUsed = (boolean) response.getPayload()[1];
 			EventManager.unregisterListener(this);
+			EventManager.callEvent(new LogEvent("Receiving answer : %s from GamePort #%s", response.getPayload()[1], hashCode()));
+			isUsed = (boolean) response.getPayload()[1];
 			lock.lock();
 			try {
 				received.signal();

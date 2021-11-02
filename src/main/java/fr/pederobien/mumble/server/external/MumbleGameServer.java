@@ -3,7 +3,7 @@ package fr.pederobien.mumble.server.external;
 import java.net.Socket;
 import java.nio.file.Path;
 
-import fr.pederobien.communication.impl.TcpServerConnection;
+import fr.pederobien.communication.impl.TcpClientServerImpl;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.impl.MumbleServer;
 
@@ -48,7 +48,7 @@ public class MumbleGameServer extends MumbleServer {
 	 */
 	protected void createGameServerClient(Socket socket) {
 		if (gameServerClient == null)
-			gameServerClient = new MumbleGameServerClient(getInternalServer(), new TcpServerConnection(socket, new MessageExtractor()));
+			gameServerClient = new MumbleGameServerClient(getInternalServer(), new TcpClientServerImpl(socket, new MessageExtractor()));
 	}
 
 	/**
