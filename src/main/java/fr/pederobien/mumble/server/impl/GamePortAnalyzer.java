@@ -112,16 +112,17 @@ public class GamePortAnalyzer {
 				lock.lock();
 				try {
 					received.signal();
+				} catch (Exception e) {
+					e.printStackTrace();
 				} finally {
 					lock.unlock();
 				}
-			}));
+			}, 3000));
 
 			// Step 2: Waiting for an answer.
 			lock.lock();
 			try {
-				if (!received.await(3000, TimeUnit.MILLISECONDS))
-					isUsed = false;
+				received.await();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {

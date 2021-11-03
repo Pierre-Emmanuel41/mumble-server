@@ -2,12 +2,14 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
+import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerSpeakPreEvent extends PlayerEvent implements ICancellable {
 	private boolean isCancelled;
 	private byte[] data;
+	private IChannel channel;
 
 	/**
 	 * Creates an event thrown when a player is about to speak to other player.
@@ -17,6 +19,7 @@ public class PlayerSpeakPreEvent extends PlayerEvent implements ICancellable {
 	 */
 	public PlayerSpeakPreEvent(IPlayer player, byte[] data) {
 		super(player);
+		this.channel = player.getChannel();
 		this.data = data;
 	}
 
@@ -31,6 +34,13 @@ public class PlayerSpeakPreEvent extends PlayerEvent implements ICancellable {
 	}
 
 	/**
+	 * @return The channel in which the player is about to speak.
+	 */
+	public IChannel getChannel() {
+		return channel;
+	}
+
+	/**
 	 * @return The bytes array that contains the audio sample.
 	 */
 	public byte[] getData() {
@@ -41,7 +51,7 @@ public class PlayerSpeakPreEvent extends PlayerEvent implements ICancellable {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("channel=" + getPlayer().getChannel().getName());
+		joiner.add("channel=" + getChannel().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

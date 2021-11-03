@@ -2,10 +2,12 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
+import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
 public class PlayerSpeakPostEvent extends PlayerEvent {
 	private byte[] data;
+	private IChannel channel;
 
 	/**
 	 * Creates an event thrown when a player speaks to other player.
@@ -15,6 +17,7 @@ public class PlayerSpeakPostEvent extends PlayerEvent {
 	 */
 	public PlayerSpeakPostEvent(IPlayer player, byte[] data) {
 		super(player);
+		this.channel = player.getChannel();
 		this.data = data;
 	}
 
@@ -25,11 +28,18 @@ public class PlayerSpeakPostEvent extends PlayerEvent {
 		return data;
 	}
 
+	/**
+	 * @return The channel in which the player is speaking.
+	 */
+	public IChannel getChannel() {
+		return channel;
+	}
+
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("channel=" + getPlayer().getChannel().getName());
+		joiner.add("channel=" + getChannel().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

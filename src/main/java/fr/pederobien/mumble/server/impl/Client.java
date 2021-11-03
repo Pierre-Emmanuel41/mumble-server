@@ -5,7 +5,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.communication.interfaces.IUdpServerConnection;
+import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
@@ -69,7 +69,7 @@ public class Client {
 	 * 
 	 * @return The created or updated UDP client.
 	 */
-	public UdpClient createUdpClient(IUdpServerConnection udpServerConnection, InetSocketAddress address) {
+	public UdpClient createUdpClient(IUdpConnection udpServerConnection, InetSocketAddress address) {
 		if (udpClient == null)
 			udpClient = new UdpClient(internalServer, udpServerConnection, address);
 		udpClient.setAddress(address);

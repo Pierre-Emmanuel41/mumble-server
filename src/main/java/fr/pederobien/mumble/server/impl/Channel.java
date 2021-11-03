@@ -130,7 +130,7 @@ public class Channel implements IChannel, IEventListener {
 		if (!players.contains(event.getPlayer()))
 			return;
 
-		List<Player> receivers = players.stream().filter(p -> !p.equals(event.getPlayer())).collect(Collectors.toList());
+		List<Player> receivers = players.stream().filter(p -> p.equals(event.getPlayer())).collect(Collectors.toList());
 
 		for (Player receiver : receivers) {
 			// No need to send data to the player if he is deafen.

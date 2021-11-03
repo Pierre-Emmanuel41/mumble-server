@@ -7,11 +7,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
+import fr.pederobien.communication.impl.UdpServer;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
+import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
@@ -32,7 +37,7 @@ import fr.pederobien.utils.event.IEventListener;
 public class InternalServer implements IEventListener {
 	private MumbleServer mumbleServer;
 	private TcpServer tcpServer;
-	private UdpServerThread udpThread;
+	private UdpServer udpServer;
 	private boolean isOpened;
 	private ClientList clients;
 	private Map<String, Channel> channels;
@@ -44,7 +49,7 @@ public class InternalServer implements IEventListener {
 		this.mumbleServer = mumbleServer;
 		this.port = port;
 		tcpServer = new TcpServer(port, () -> new MessageExtractor());
-		udpThread = new UdpServerThread(this, port);
+		udpServer = new UdpServer(port, () -> new MessageExtractor());
 
 		clients = new ClientList(this);
 		channels = new HashMap<String, Channel>();
@@ -59,7 +64,7 @@ public class InternalServer implements IEventListener {
 	 */
 	public void open() {
 		tcpServer.connect();
-		udpThread.start();
+		udpServer.connect();
 		isOpened = true;
 	}
 
@@ -69,7 +74,7 @@ public class InternalServer implements IEventListener {
 	public void close() {
 		Runnable close = () -> {
 			tcpServer.disconnect();
-			udpThread.interrupt();
+			udpServer.disconnect();
 			isOpened = false;
 		};
 		EventManager.callEvent(new ServerClosePreEvent(mumbleServer), close, new ServerClosePostEvent(mumbleServer));
@@ -233,5 +238,20 @@ public class InternalServer implements IEventListener {
 			return;
 
 		getClients().createClient(event.getConnection());
+	}
+
+	@EventHandler
+	public void onDataReceived(DataReceivedEvent event) {
+		if (!event.getConnection().equals(udpServer.getConnection()))
+			return;
+
+		IMessage<Header> response = MumbleMessageFactory.parse(event.getBuffer());
+		if (response.getHeader().getIdc() != Idc.PLAYER_SPEAK || response.getHeader().getOid() != Oid.GET)
+			return;
+
+		String playerName = (String) response.getPayload()[0];
+		Optional<Client> optClient = getClients().getClient(playerName);
+		if (optClient.isPresent())
+			optClient.get().createUdpClient(udpServer.getConnection(), event.getAddress()).onPlayerSpeak(playerName, (byte[]) response.getPayload()[1]);
 	}
 }

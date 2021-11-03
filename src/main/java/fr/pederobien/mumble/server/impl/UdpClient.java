@@ -3,7 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 
-import fr.pederobien.communication.interfaces.IUdpServerConnection;
+import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
@@ -15,10 +15,10 @@ import fr.pederobien.utils.event.EventManager;
 
 public class UdpClient {
 	private InternalServer internalServer;
-	private IUdpServerConnection connection;
+	private IUdpConnection connection;
 	private InetSocketAddress address;
 
-	public UdpClient(InternalServer internalServer, IUdpServerConnection connection, InetSocketAddress address) {
+	public UdpClient(InternalServer internalServer, IUdpConnection connection, InetSocketAddress address) {
 		this.internalServer = internalServer;
 		this.connection = connection;
 		this.address = address;
@@ -61,7 +61,7 @@ public class UdpClient {
 	 */
 	public void onPlayerSpeak(String playerName, byte[] data) {
 		Optional<Client> optClient = internalServer.getClients().getClient(playerName);
-		if (!optClient.isPresent())
+		if (!optClient.isPresent() || optClient.get().getPlayer() == null || optClient.get().getPlayer().getChannel() == null)
 			return;
 
 		EventManager.callEvent(new PlayerSpeakPreEvent(optClient.get().getPlayer(), data), new PlayerSpeakPostEvent(optClient.get().getPlayer(), data));
