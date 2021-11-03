@@ -145,6 +145,11 @@ public class TcpClient implements IEventListener {
 			return;
 
 		IMessage<Header> request = MumbleMessageFactory.parse(event.getAnswer());
+
+		// No need to check the permission for this Idc.
+		if (request.getHeader().getIdc() == Idc.GAME_PORT)
+			return;
+
 		if (checkPermission(request))
 			send(internalServer.answer(new RequestEvent(client, request)));
 		else
@@ -181,7 +186,6 @@ public class TcpClient implements IEventListener {
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case SERVER_LEAVE:
-		case GAME_PORT:
 			return true;
 		case CHANNELS:
 			switch (request.getHeader().getOid()) {

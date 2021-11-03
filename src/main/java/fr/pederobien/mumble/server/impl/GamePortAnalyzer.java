@@ -9,17 +9,13 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 
 public class GamePortAnalyzer {
@@ -79,7 +75,7 @@ public class GamePortAnalyzer {
 		countDownLatch.countDown();
 	}
 
-	private class GamePort implements IEventListener {
+	private class GamePort {
 		private ITcpConnection connection;
 		private Lock lock;
 		private Condition received;
@@ -90,8 +86,6 @@ public class GamePortAnalyzer {
 
 			lock = new ReentrantLock();
 			received = lock.newCondition();
-			EventManager.registerListener(this);
-			EventManager.callEvent(new LogEvent("Creating GamePort #%s", hashCode()));
 		}
 
 		/**
@@ -105,40 +99,35 @@ public class GamePortAnalyzer {
 			if (address == null)
 				return false;
 
+			// Step 1: Sending the request to the client.
+			connection.send(new MumbleCallbackMessage(MumbleMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
+				if (args.isTimeout())
+					isUsed = false;
+				else {
+					IMessage<Header> response = MumbleMessageFactory.parse(args.getResponse().getBytes());
+					isUsed = (boolean) response.getPayload()[1];
+				}
+
+				// Step 3: Signaling an answer has been received.
+				lock.lock();
+				try {
+					received.signal();
+				} finally {
+					lock.unlock();
+				}
+			}));
+
+			// Step 2: Waiting for an answer.
 			lock.lock();
 			try {
-				connection.send(new MumbleCallbackMessage(MumbleMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
-				}));
-				if (!received.await(3000, TimeUnit.MILLISECONDS)) {
-					EventManager.callEvent(new LogEvent("Timeout with GamePort #%s", hashCode()));
+				if (!received.await(3000, TimeUnit.MILLISECONDS))
 					isUsed = false;
-				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
 				lock.unlock();
 			}
 			return isUsed;
-		}
-
-		@EventHandler
-		private void onDataReceived(DataReceivedEvent event) {
-			if (!event.getConnection().equals(connection))
-				return;
-
-			IMessage<Header> response = MumbleMessageFactory.parse(event.getBuffer());
-			if (response.getHeader().getIdc() != Idc.GAME_PORT && response.getHeader().getOid() != Oid.SET)
-				return;
-
-			EventManager.unregisterListener(this);
-			EventManager.callEvent(new LogEvent("Receiving answer : %s from GamePort #%s", response.getPayload()[1], hashCode()));
-			isUsed = (boolean) response.getPayload()[1];
-			lock.lock();
-			try {
-				received.signal();
-			} finally {
-				lock.unlock();
-			}
 		}
 	}
 }
