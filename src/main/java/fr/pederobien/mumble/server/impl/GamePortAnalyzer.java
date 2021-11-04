@@ -15,8 +15,6 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.LogEvent;
 
 public class GamePortAnalyzer {
 	private List<Client> clients;
@@ -57,19 +55,14 @@ public class GamePortAnalyzer {
 	}
 
 	private void singleCheck(Client client, InetSocketAddress address, CountDownLatch countDownLatch) {
-		EventManager.callEvent(new LogEvent("Asking client #%s", client.hashCode()));
 		// connection null means the client is created by the game.
 		if (connection == null) {
-			if (new GamePort(client.getTcpClient().getConnection()).check(address)) {
-				EventManager.callEvent(new LogEvent("[FROM GAME] Client #%s is using the port %s", client.hashCode(), address.getPort()));
+			if (new GamePort(client.getTcpClient().getConnection()).check(address))
 				this.client = client;
-			}
 		}
 		// connection not null means the client is created by mumble.
-		else if (new GamePort(connection).check(client.getGameAddress())) {
-			EventManager.callEvent(new LogEvent("[FROM MUMBLE] Client #%s is using the port %s", client.hashCode(), client.getGameAddress().getPort()));
+		else if (new GamePort(connection).check(client.getGameAddress()))
 			this.client = client;
-		}
 
 		// Execution finished, notifying the waiting thread.
 		countDownLatch.countDown();
