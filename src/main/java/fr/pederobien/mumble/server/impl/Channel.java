@@ -3,7 +3,6 @@ package fr.pederobien.mumble.server.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
@@ -130,9 +129,7 @@ public class Channel implements IChannel, IEventListener {
 		if (!players.contains(event.getPlayer()))
 			return;
 
-		List<Player> receivers = players.stream().filter(p -> p.equals(event.getPlayer())).collect(Collectors.toList());
-
-		for (Player receiver : receivers) {
+		for (Player receiver : players) {
 			// No need to send data to the player if he is deafen.
 			// No need to send data to the player if the player is muted by the receiver
 			if (receiver.isDeafen() || ((Player) event.getPlayer()).isMuteBy(receiver))

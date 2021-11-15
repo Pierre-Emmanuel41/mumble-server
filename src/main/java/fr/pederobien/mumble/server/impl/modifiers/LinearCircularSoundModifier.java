@@ -13,6 +13,9 @@ public class LinearCircularSoundModifier extends AbstractSoundModifier {
 
 	@Override
 	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
+		if (transmitter.equals(receiver))
+			return VolumeResult.DEFAULT;
+		
 		double distance = MathHelper.getDistance3D(transmitter.getPosition(), receiver.getPosition());
 		double[] volumes = MathHelper.getDefaultLeftAndRightVolume(transmitter.getPosition(), receiver.getPosition());
 		return new VolumeResult(slope * distance + 1, volumes[0], volumes[1]);
