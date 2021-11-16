@@ -7,7 +7,6 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
 public abstract class AbstractSoundModifier implements ISoundModifier {
-	public static final ISoundModifier DEFAULT = new DefaultSoundModifier();
 	private String name;
 	private ParameterList parameters;
 	private IChannel channel;
@@ -71,17 +70,5 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 	 */
 	protected ParameterList getParametersList() {
 		return parameters;
-	}
-
-	private static class DefaultSoundModifier extends AbstractSoundModifier {
-
-		public DefaultSoundModifier() {
-			super("default");
-		}
-
-		@Override
-		public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-			return VolumeResult.DEFAULT;
-		}
 	}
 }

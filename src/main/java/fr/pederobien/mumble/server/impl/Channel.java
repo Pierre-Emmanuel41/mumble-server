@@ -35,7 +35,7 @@ public class Channel implements IChannel, IEventListener {
 	public Channel(IMumbleServer mumbleServer, String name) {
 		this.mumbleServer = mumbleServer;
 		this.name = name;
-		soundModifier = AbstractSoundModifier.DEFAULT;
+		soundModifier = SoundManager.getDefaultSoundModifier();
 		players = new ArrayList<Player>();
 		EventManager.registerListener(this);
 	}
@@ -90,9 +90,16 @@ public class Channel implements IChannel, IEventListener {
 		if (this.soundModifier.equals(soundModifier))
 			return;
 
-		ISoundModifier oldSoundModifier = this.soundModifier;
-		Runnable set = () -> this.soundModifier = soundModifier;
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier), set, new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
+		ISoundModifier futur = soundModifier == null ? SoundManager.getDefaultSoundModifier() : soundModifier;
+		AbstractSoundModifier oldSoundModifier = (AbstractSoundModifier) this.soundModifier;
+		Runnable set = () -> {
+			oldSoundModifier.setChannel(null);
+			this.soundModifier = futur;
+			((AbstractSoundModifier) this.soundModifier).setChannel(this);
+		};
+		ChannelSoundModifierChangePreEvent preEvent = new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), futur);
+		ChannelSoundModifierChangePostEvent postEvent = new ChannelSoundModifierChangePostEvent(this, oldSoundModifier);
+		EventManager.callEvent(preEvent, set, postEvent);
 	}
 
 	@Override
