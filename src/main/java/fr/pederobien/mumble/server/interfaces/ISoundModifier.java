@@ -1,11 +1,21 @@
 package fr.pederobien.mumble.server.interfaces;
 
-public interface ISoundModifier {
+public interface ISoundModifier extends Cloneable {
 
 	/**
 	 * @return The name of this sound modifier.
 	 */
 	String getName();
+
+	/**
+	 * @return The list of parameters associated to this sound modifier.
+	 */
+	IParameterList getParameters();
+
+	/**
+	 * @return The channel associated to this sound modifier.
+	 */
+	IChannel getChannel();
 
 	/**
 	 * Calculate the left audio channel volume, the right audio channel volume and the signal global volume.
@@ -16,6 +26,13 @@ public interface ISoundModifier {
 	 * @return The result.
 	 */
 	VolumeResult calculate(IPlayer transmitter, IPlayer receiver);
+
+	/**
+	 * Clone this sound modifier. It creates a new parameter based on the properties of this sound modifier.
+	 * 
+	 * @return A new sound modifier.
+	 */
+	ISoundModifier clone();
 
 	public class VolumeResult {
 		public static final VolumeResult DEFAULT = new VolumeResult(1.0, 1.0, 1.0);
