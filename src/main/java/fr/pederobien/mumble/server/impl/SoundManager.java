@@ -6,10 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import fr.pederobien.mumble.server.event.SoundModifierRegisterPostEvent;
+import fr.pederobien.mumble.server.event.SoundModifierRegisterPreEvent;
+import fr.pederobien.mumble.server.event.SoundModifierUnregisterPostEvent;
+import fr.pederobien.mumble.server.event.SoundModifierUnregisterPreEvent;
 import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventManager;
 
 public class SoundManager {
 	public static final String DEFAULT_SOUND_MODIFIER_NAME = "default";
@@ -34,13 +39,16 @@ public class SoundManager {
 		if (soundModifier.getName().equals(DEFAULT_SOUND_MODIFIER_NAME))
 			return;
 
-		sounds.put(soundModifier.getName(), soundModifier);
-		List<IChannel> channels = pendings.remove(soundModifier.getName());
-		if (channels == null)
-			return;
+		Runnable add = () -> {
+			sounds.put(soundModifier.getName(), soundModifier);
+			List<IChannel> channels = pendings.remove(soundModifier.getName());
+			if (channels == null)
+				return;
 
-		for (IChannel channel : channels)
-			channel.setSoundModifier(soundModifier.clone());
+			for (IChannel channel : channels)
+				channel.setSoundModifier(soundModifier.clone());
+		};
+		EventManager.callEvent(new SoundModifierRegisterPreEvent(soundModifier), add, new SoundModifierRegisterPostEvent(soundModifier));
 	}
 
 	/**
@@ -53,7 +61,16 @@ public class SoundManager {
 	public static boolean remove(ISoundModifier soundModifier) {
 		if (soundModifier.getName().equals(DEFAULT_SOUND_MODIFIER_NAME))
 			return false;
-		return sounds.remove(soundModifier.getName()) != null;
+
+		SoundModifierUnregisterPreEvent preEvent = new SoundModifierUnregisterPreEvent(soundModifier);
+		EventManager.callEvent(preEvent);
+		if (preEvent.isCancelled())
+			return false;
+
+		boolean registered = sounds.remove(soundModifier.getName()) != null;
+		if (registered)
+			EventManager.callEvent(new SoundModifierUnregisterPostEvent(soundModifier));
+		return registered;
 	}
 
 	/**
@@ -107,6 +124,7 @@ public class SoundManager {
 
 		public DefaultSoundModifier() {
 			super(DEFAULT_SOUND_MODIFIER_NAME);
+
 		}
 
 		@Override
