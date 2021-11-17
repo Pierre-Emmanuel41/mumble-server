@@ -32,6 +32,6 @@ public class SoundModifierUnregisterPreEvent extends SoundModifierEvent implemen
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("soundModifier=" + getSoundModifier().getName());
-		return String.format("%s_%s", joiner);
+		return String.format("%s_%s", getName(), joiner);
 	}
 }
