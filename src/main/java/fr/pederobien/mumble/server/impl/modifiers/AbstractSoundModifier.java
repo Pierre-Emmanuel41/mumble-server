@@ -13,6 +13,7 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 
 	public AbstractSoundModifier(String name) {
 		this.name = name;
+		parameters = new ParameterList();
 	}
 
 	@Override
