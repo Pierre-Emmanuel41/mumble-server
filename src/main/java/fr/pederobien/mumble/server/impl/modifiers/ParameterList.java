@@ -47,6 +47,16 @@ public class ParameterList implements IParameterList {
 	}
 
 	@Override
+	public void update(IParameterList parameterList) {
+		for (IParameter<?> parameter : parameterList) {
+			IParameter<?> param = parameters.get(parameter.getName());
+			if (param == null)
+				continue;
+			param.setValue(parameter.getValue());
+		}
+	}
+
+	@Override
 	public ParameterList clone() {
 		ParameterList list = new ParameterList();
 		for (IParameter<?> parameter : this)

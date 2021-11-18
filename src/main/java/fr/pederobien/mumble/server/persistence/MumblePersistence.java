@@ -6,8 +6,10 @@ import java.nio.file.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
+import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.persistence.loaders.MumbleLoaderV10;
 import fr.pederobien.persistence.impl.xml.AbstractXmlPersistence;
 
@@ -37,8 +39,40 @@ public class MumblePersistence extends AbstractXmlPersistence<IMumbleServer> {
 		Element channels = createElement(doc, EMumbleXmlTag.CHANNELS);
 		for (IChannel c : get().getChannels().values()) {
 			Element channel = createElement(doc, EMumbleXmlTag.CHANNEL);
-			setAttribute(channel, EMumbleXmlTag.CHANNEL_NAME, c.getName());
-			setAttribute(channel, EMumbleXmlTag.SOUND_MODIFIER_NAME, c.getSoundModifier().getName());
+			setAttribute(channel, EMumbleXmlTag.NAME, c.getName());
+
+			Element soundModifier = createElement(doc, EMumbleXmlTag.SOUND_MODIFIER);
+			setAttribute(soundModifier, EMumbleXmlTag.NAME, c.getSoundModifier().getName());
+			channel.appendChild(soundModifier);
+
+			Element parameters = createElement(doc, EMumbleXmlTag.PARAMETERS);
+			for (IParameter<?> p : c.getSoundModifier().getParameters()) {
+				Element parameter = createElement(doc, EMumbleXmlTag.PARAMETER);
+				setAttribute(parameter, EMumbleXmlTag.NAME, p.getName());
+
+				Element type = createElement(doc, EMumbleXmlTag.TYPE);
+				setAttribute(type, EMumbleXmlTag.NAME, p.getType().toString());
+				type.appendChild(doc.createTextNode("" + p.getType().getCode()));
+				parameter.appendChild(type);
+
+				Element defaultValue = createElement(doc, EMumbleXmlTag.DEFAULT_VALUE);
+				defaultValue.appendChild(doc.createTextNode("" + p.getDefaultValue()));
+				parameter.appendChild(defaultValue);
+
+				Element value = createElement(doc, EMumbleXmlTag.VALUE);
+				value.appendChild(doc.createTextNode("" + p.getValue()));
+				parameter.appendChild(value);
+
+				if (p instanceof RangeParameter) {
+					RangeParameter<?> rangeParameter = (RangeParameter<?>) p;
+					Element range = createElement(doc, EMumbleXmlTag.RANGE);
+					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getRange().getFrom());
+					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getRange().getTo());
+					parameter.appendChild(range);
+				}
+				parameters.appendChild(parameter);
+			}
+			soundModifier.appendChild(parameters);
 			channels.appendChild(channel);
 		}
 		root.appendChild(channels);

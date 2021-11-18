@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl.modifiers;
 
 import java.util.StringJoiner;
 
+import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.Range;
@@ -34,6 +35,23 @@ public class RangeParameter<T extends Number & Comparable<T>> extends Parameter<
 	 */
 	public static <T extends Number & Comparable<T>> RangeParameter<T> of(ISoundModifier soundModifier, String name, T defaultValue, Range<T> range) {
 		return of(soundModifier, name, defaultValue, defaultValue, range);
+	}
+
+	/**
+	 * Creates a new parameter based on the given parameters. The parameter type is used to parse correctly the string representation
+	 * of the defaultValue and value.
+	 * 
+	 * @param <T>          The type of this parameter.
+	 * @param type         the type of this parameter.
+	 * @param name         The parameter name.
+	 * @param defaultValue the parameter default value.
+	 * @param value        The parameter value.
+	 * @param min          The minimum of the range associated to the created range parameter.
+	 * @param max          The maximum of the range associated to the created range parameter.
+	 * @return The created parameter initialized with the given parameters.
+	 */
+	public static <T> Parameter<T> fromType(ParameterType<T> type, String name, String defaultValue, String value, String min, String max) {
+		return of(null, name, type.getValue(defaultValue), type.getValue(value));
 	}
 
 	/**

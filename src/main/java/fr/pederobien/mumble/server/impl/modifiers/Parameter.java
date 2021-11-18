@@ -58,6 +58,21 @@ public class Parameter<T> implements IParameter<T> {
 		return of(soundModifier, name, defaultValue, defaultValue);
 	}
 
+	/**
+	 * Creates a new parameter based on the given parameters. The parameter type is used to parse correctly the string representation
+	 * of the defaultValue and value.
+	 * 
+	 * @param <T>          The type of this parameter.
+	 * @param type         the type of this parameter.
+	 * @param name         The parameter name.
+	 * @param defaultValue the parameter default value.
+	 * @param value        The parameter value.
+	 * @return The created parameter initialized with the given parameters.
+	 */
+	public static <T> Parameter<T> fromType(ParameterType<T> type, String name, String defaultValue, String value) {
+		return of(null, name, type.getValue(defaultValue), type.getValue(value));
+	}
+
 	private String name;
 	private T value, defaultValue;
 	private ParameterType<T> type;
@@ -100,7 +115,6 @@ public class Parameter<T> implements IParameter<T> {
 		T oldValue = this.value;
 		Runnable set = () -> this.value = type.cast(value);
 		EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value), set, new ParameterValueChangePostEvent(this, oldValue));
-
 	}
 
 	@Override
