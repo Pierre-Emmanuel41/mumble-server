@@ -64,8 +64,8 @@ public class ServerJoinResponse extends AbstractResponse {
 					// Parameter's range value
 					if (parameter instanceof RangeParameter) {
 						RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
-						informations.add(rangeParameter.getRange().getFrom());
-						informations.add(rangeParameter.getRange().getTo());
+						informations.add(rangeParameter.getMin());
+						informations.add(rangeParameter.getMax());
 					}
 				}
 			}

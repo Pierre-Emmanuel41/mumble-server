@@ -66,8 +66,8 @@ public class MumblePersistence extends AbstractXmlPersistence<IMumbleServer> {
 				if (p instanceof RangeParameter) {
 					RangeParameter<?> rangeParameter = (RangeParameter<?>) p;
 					Element range = createElement(doc, EMumbleXmlTag.RANGE);
-					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getRange().getFrom());
-					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getRange().getTo());
+					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getMin());
+					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getMax());
 					parameter.appendChild(range);
 				}
 				parameters.appendChild(parameter);
