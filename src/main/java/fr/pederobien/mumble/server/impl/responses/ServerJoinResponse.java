@@ -11,7 +11,9 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
+import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
@@ -35,9 +37,38 @@ public class ServerJoinResponse extends AbstractResponse {
 			informations.add(modifiers.size());
 
 			// Modifier informations
-			for (ISoundModifier modifier : modifiers.values())
+			for (ISoundModifier modifier : modifiers.values()) {
 				// Modifier's name
 				informations.add(modifier.getName());
+
+				// Number of parameter
+				informations.add(modifier.getParameters().size());
+
+				// Modifier's parameter
+				for (IParameter<?> parameter : modifier.getParameters()) {
+					// Parameter's name
+					informations.add(parameter.getName());
+
+					// Parameter's type
+					informations.add(parameter.getType());
+
+					// isRangeParameter
+					informations.add(parameter instanceof RangeParameter);
+
+					// Parameter's default value
+					informations.add(parameter.getDefaultValue());
+
+					// Parameter's value
+					informations.add(parameter.getValue());
+
+					// Parameter's range value
+					if (parameter instanceof RangeParameter) {
+						RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
+						informations.add(rangeParameter.getRange().getFrom());
+						informations.add(rangeParameter.getRange().getTo());
+					}
+				}
+			}
 
 			// Number of channels
 			informations.add(getInternalServer().getChannels().size());
@@ -47,6 +78,20 @@ public class ServerJoinResponse extends AbstractResponse {
 
 				// Channel's sound modifier name
 				informations.add(channel.getSoundModifier().getName());
+
+				// Number of parameters
+				informations.add(channel.getSoundModifier().getParameters().size());
+
+				for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+					// Parameter's name
+					informations.add(parameter.getName());
+
+					// Parameter's type
+					informations.add(parameter.getType());
+
+					// Parameter's value
+					informations.add(parameter.getValue());
+				}
 
 				// Number of players
 				informations.add(channel.getPlayers().size());
