@@ -9,6 +9,8 @@ import fr.pederobien.mumble.server.event.SoundModifierRegisterPreEvent;
 import fr.pederobien.mumble.server.event.SoundModifierUnregisterPostEvent;
 import fr.pederobien.mumble.server.event.SoundModifierUnregisterPreEvent;
 import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
+import fr.pederobien.mumble.server.impl.modifiers.Parameter;
+import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -90,6 +92,9 @@ public class SoundManager {
 
 		public DefaultSoundModifier() {
 			super(DEFAULT_SOUND_MODIFIER_NAME);
+			getParametersList().add(Parameter.of(this, "Enabled", true));
+			getParametersList().add(RangeParameter.of(this, "Radius", 50, 0, 100));
+			getParametersList().add(Parameter.of(this, "Slope", 1.0 / 50.0));
 		}
 
 		@Override

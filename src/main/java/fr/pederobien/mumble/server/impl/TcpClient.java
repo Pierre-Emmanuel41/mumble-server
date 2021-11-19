@@ -1,6 +1,8 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.pederobien.communication.event.ConnectionLostEvent;
@@ -24,6 +26,7 @@ import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -90,7 +93,30 @@ public class TcpClient implements IEventListener {
 		if (!event.getServer().equals(internalServer.getMumbleServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
+		doIfPlayerJoined(() -> {
+			List<Object> informations = new ArrayList<Object>();
+
+			// Channel's name
+			informations.add(event.getChannel().getName());
+
+			// Modifier's name
+			informations.add(event.getChannel().getSoundModifier().getName());
+
+			// Number of parameters
+			informations.add(event.getChannel().getSoundModifier().getParameters().size());
+
+			for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+				// Parameter's name
+				informations.add(parameter.getName());
+
+				// Parameter's type
+				informations.add(parameter.getType());
+
+				// Parameter's value
+				informations.add(parameter.getValue());
+			}
+			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, informations.toArray()));
+		});
 	}
 
 	@EventHandler

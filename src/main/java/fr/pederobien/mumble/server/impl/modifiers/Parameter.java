@@ -73,6 +73,21 @@ public class Parameter<T> implements IParameter<T> {
 		return of(null, name, type.getValue(defaultValue), type.getValue(value));
 	}
 
+	/**
+	 * Creates a new parameter based on the given parameters. The parameter type is used to parse correctly the string representation
+	 * of the defaultValue and value.
+	 * 
+	 * @param <T>          The type of this parameter.
+	 * @param type         the type of this parameter.
+	 * @param name         The parameter name.
+	 * @param defaultValue the parameter default value.
+	 * @param value        The parameter value.
+	 * @return The created parameter initialized with the given parameters.
+	 */
+	public static <T> Parameter<T> fromType(ParameterType<T> type, String name, Object defaultValue, Object value) {
+		return of(null, name, type.cast(defaultValue), type.cast(value));
+	}
+
 	private String name;
 	private T value, defaultValue;
 	private ParameterType<T> type;
@@ -89,7 +104,7 @@ public class Parameter<T> implements IParameter<T> {
 	@SuppressWarnings("unchecked")
 	protected Parameter(ISoundModifier soundModifier, String name, T defaultValue, T value) {
 		if ((type = (ParameterType<T>) PRIMITIVE_TYPES.get(value.getClass())) == null)
-			throw new IllegalArgumentException("The type of the generic parameter must be a primitive type.");
+			throw new IllegalArgumentException(String.format("The type must be a primitive type (found %s instead).", value.getClass().getSimpleName()));
 
 		this.soundModifier = soundModifier;
 		this.name = name;

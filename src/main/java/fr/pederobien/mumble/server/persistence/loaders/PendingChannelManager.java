@@ -34,7 +34,7 @@ public class PendingChannelManager implements IEventListener {
 		Optional<ISoundModifier> optModifier = SoundManager.getByName(soundModifierName);
 		if (optModifier.isPresent()) {
 			channel.setSoundModifier(optModifier.get());
-			optModifier.get().getParameters().update(parameterList);
+			channel.getSoundModifier().getParameters().update(parameterList);
 			return;
 		}
 
