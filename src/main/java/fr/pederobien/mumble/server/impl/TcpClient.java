@@ -20,8 +20,10 @@ import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
+import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangeEvent;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
@@ -50,22 +52,6 @@ public class TcpClient implements IEventListener {
 		return connection.getAddress();
 	}
 
-	public void sendAdminChanged(boolean isAdmin) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, client.getPlayer().getName(), client.getPlayer().isAdmin())));
-	}
-
-	public void sendOnlineChanged(boolean isOnline) {
-		doIfPlayerJoined(() -> {
-			if (isOnline)
-				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, true, client.getPlayer().getName(), client.getPlayer().isAdmin()));
-			else {
-				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, false));
-				if (client.getPlayer().getChannel() != null)
-					client.getPlayer().getChannel().removePlayer(client.getPlayer());
-			}
-		});
-	}
-
 	/**
 	 * Specify that the mumble client has joined the server.
 	 */
@@ -86,6 +72,30 @@ public class TcpClient implements IEventListener {
 	 */
 	public ITcpConnection getConnection() {
 		return connection;
+	}
+
+	@EventHandler
+	private void onPlayerAdminChange(PlayerAdminStatusChangeEvent event) {
+		if (!event.getPlayer().equals(client.getPlayer()))
+			return;
+
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, event.getPlayer().getName(), event.getPlayer().isAdmin())));
+	}
+
+	@EventHandler
+	private void onPlayerOnlineChange(PlayerOnlineChangeEvent event) {
+		if (!event.getPlayer().equals(client.getPlayer()))
+			return;
+
+		doIfPlayerJoined(() -> {
+			if (event.isOnline())
+				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, true, event.getPlayer().getName(), event.getPlayer().isAdmin()));
+			else {
+				if (event.getPlayer().getChannel() != null)
+					event.getPlayer().getChannel().removePlayer(client.getPlayer());
+				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, false));
+			}
+		});
 	}
 
 	@EventHandler

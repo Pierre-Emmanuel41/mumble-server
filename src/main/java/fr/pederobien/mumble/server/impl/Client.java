@@ -2,7 +2,6 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
@@ -32,24 +31,6 @@ public class Client {
 
 		Client other = (Client) obj;
 		return uuid.equals(other.getUUID());
-	}
-
-	/**
-	 * Send a request associated to the Idc {@link Idc#PLAYER_ADMIN} to the mumble client, if defined.
-	 * 
-	 * @param isAdmin The new player admin status.
-	 */
-	public void sendAdminChanged(boolean isAdmin) {
-		tryOnTcpClient(client -> client.sendAdminChanged(isAdmin));
-	}
-
-	/**
-	 * Send a request associated to the Idc {@link Idc#PLAYER_INFO} to the mumble client, if defined.
-	 * 
-	 * @param isOnline The new player online status.
-	 */
-	public void sendOnlineChanged(boolean isOnline) {
-		tryOnTcpClient(client -> client.sendOnlineChanged(isOnline));
 	}
 
 	/**
@@ -164,14 +145,5 @@ public class Client {
 	 */
 	public InetSocketAddress getMumbleAddress() {
 		return tcpClient == null ? null : tcpClient.getAddress();
-	}
-
-	private void tryOnTcpClient(Consumer<TcpClient> consumer) {
-		try {
-			if (tcpClient != null)
-				consumer.accept(tcpClient);
-		} catch (IllegalStateException e) {
-			// Do nothing
-		}
 	}
 }

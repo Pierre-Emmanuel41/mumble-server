@@ -64,7 +64,6 @@ public class Player implements IPlayer {
 
 		this.isAdmin = isAdmin;
 		EventManager.callEvent(new PlayerAdminStatusChangeEvent(this, isAdmin));
-		client.sendAdminChanged(isAdmin);
 	}
 
 	@Override
@@ -161,7 +160,6 @@ public class Player implements IPlayer {
 
 		this.isOnline = isOnline;
 		EventManager.callEvent(new PlayerOnlineChangeEvent(this, isOnline));
-		client.sendOnlineChanged(isOnline);
 	}
 
 	/**
