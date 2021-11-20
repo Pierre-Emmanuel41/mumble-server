@@ -51,7 +51,7 @@ public class TcpClient implements IEventListener {
 	}
 
 	public void sendAdminChanged(boolean isAdmin) {
-		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, isAdmin)));
+		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, client.getPlayer().getName(), client.getPlayer().isAdmin())));
 	}
 
 	public void sendOnlineChanged(boolean isOnline) {
