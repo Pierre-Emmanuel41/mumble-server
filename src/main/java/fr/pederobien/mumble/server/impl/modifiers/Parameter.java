@@ -127,9 +127,13 @@ public class Parameter<T> implements IParameter<T> {
 		if (this.value.equals(value))
 			return;
 
-		T oldValue = this.value;
-		Runnable set = () -> this.value = type.cast(value);
-		EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value), set, new ParameterValueChangePostEvent(this, oldValue));
+		if (soundModifier.getChannel() == null)
+			this.value = type.cast(value);
+		else {
+			T oldValue = this.value;
+			Runnable set = () -> this.value = type.cast(value);
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value), set, new ParameterValueChangePostEvent(this, oldValue));
+		}
 	}
 
 	@Override

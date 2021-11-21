@@ -20,6 +20,7 @@ import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
+import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
@@ -162,14 +163,51 @@ public class TcpClient implements IEventListener {
 	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
 		doIfPlayerJoined(() -> {
 			List<Object> informations = new ArrayList<Object>();
+
+			// Channel's name
 			informations.add(event.getChannel().getName());
+
+			// Modifier's name
 			informations.add(event.getChannel().getSoundModifier().getName());
+
+			// Number of parameters
 			informations.add(event.getChannel().getSoundModifier().getParameters().size());
 			for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+				// Parmaeter's name
 				informations.add(parameter.getName());
+
+				// Parameter's type
 				informations.add(parameter.getType());
+
+				// Parameter's value
 				informations.add(parameter.getValue());
 			}
+			send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()));
+		});
+	}
+
+	@EventHandler
+	private void onParameterValueChange(ParameterValueChangePostEvent event) {
+		doIfPlayerJoined(() -> {
+			List<Object> informations = new ArrayList<Object>();
+
+			// Channel's name
+			informations.add(event.getParameter().getSoundModifier().getChannel().getName());
+
+			// Modifier's name
+			informations.add(event.getParameter().getSoundModifier().getName());
+
+			// Number of parameters
+			informations.add(1);
+
+			// Parameter's name
+			informations.add(event.getParameter().getName());
+
+			// Parameter's type
+			informations.add(event.getParameter().getType());
+
+			// Parameter's value
+			informations.add(event.getParameter().getValue());
 			send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()));
 		});
 	}
