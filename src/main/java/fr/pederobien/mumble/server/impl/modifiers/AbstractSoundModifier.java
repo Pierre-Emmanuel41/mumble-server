@@ -2,7 +2,6 @@ package fr.pederobien.mumble.server.impl.modifiers;
 
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameter;
-import fr.pederobien.mumble.server.interfaces.IParameterList;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
@@ -22,7 +21,7 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 	}
 
 	@Override
-	public IParameterList getParameters() {
+	public ParameterList getParameters() {
 		return parameters;
 	}
 
@@ -64,12 +63,5 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 	 */
 	public void setChannel(IChannel channel) {
 		this.channel = channel;
-	}
-
-	/**
-	 * @return The list of registered parameters;
-	 */
-	protected ParameterList getParametersList() {
-		return parameters;
 	}
 }

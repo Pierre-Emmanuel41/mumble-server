@@ -9,10 +9,15 @@ import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
+import fr.pederobien.mumble.server.impl.modifiers.Parameter;
+import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
+import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
 public class SoundModifierResponse extends AbstractResponse {
@@ -23,38 +28,108 @@ public class SoundModifierResponse extends AbstractResponse {
 
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
-		String channelName, modifierName;
 		IChannel channel;
 		Optional<ISoundModifier> soundModifier;
+		List<Object> informations = new ArrayList<Object>();
+
 		switch (event.getRequest().getHeader().getOid()) {
 		case GET:
-			channelName = (String) event.getRequest().getPayload()[0];
-			channel = getInternalServer().getChannels().get(channelName);
+			// channel's name
+			channel = getInternalServer().getChannels().get((String) event.getRequest().getPayload()[0]);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
-			return event.getRequest().answer(channelName, channel.getSoundModifier().getName());
+			// channel's name
+			informations.add(channel.getName());
+
+			// Modifier's name
+			informations.add(channel.getSoundModifier().getName());
+
+			// Number of parameters
+			informations.add(channel.getSoundModifier().getParameters().size());
+
+			for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+				// Parameter's name
+				informations.add(parameter.getName());
+
+				// Parameter's type
+				informations.add(parameter.getType());
+
+				// Parameter's value
+				informations.add(parameter.getValue());
+			}
+			return event.getRequest().answer(informations.toArray());
 		case SET:
-			channelName = (String) event.getRequest().getPayload()[0];
-			channel = getInternalServer().getChannels().get(channelName);
+			int currentIndex = 0;
+
+			// Channel's name
+			channel = getInternalServer().getChannels().get((String) event.getRequest().getPayload()[currentIndex++]);
 			if (channel == null)
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
-			modifierName = (String) event.getRequest().getPayload()[1];
-			soundModifier = SoundManager.getByName(modifierName);
+			// Modifier's name
+			soundModifier = SoundManager.getByName((String) event.getRequest().getPayload()[currentIndex++]);
 			if (!soundModifier.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
+			// Number of parameters
+			int numberOfParameters = (int) event.getRequest().getPayload()[currentIndex++];
+			ParameterList parameterList = new ParameterList();
+
+			for (int i = 0; i < numberOfParameters; i++) {
+				// Parameter's name
+				String parameterName = (String) event.getRequest().getPayload()[currentIndex++];
+
+				// Parameter's type
+				ParameterType<?> type = (ParameterType<?>) event.getRequest().getPayload()[currentIndex++];
+
+				// Parameter's value
+				Object value = event.getRequest().getPayload()[currentIndex++];
+
+				parameterList.add(Parameter.fromType(type, parameterName, value, value));
+			}
+
+			soundModifier.get().getParameters().update(parameterList);
 			channel.setSoundModifier(soundModifier.get());
-			return event.getRequest().answer(channelName, soundModifier.get().getName());
+			return event.getRequest().answer(event.getRequest().getPayload());
 		case INFO:
-			List<Object> informations = new ArrayList<Object>();
+			// Number of modifiers
 			Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
 			informations.add(modifiers.size());
 
 			// Modifier informations
-			for (ISoundModifier modifier : modifiers.values())
+			for (ISoundModifier modifier : modifiers.values()) {
+				// Modifier's name
 				informations.add(modifier.getName());
+
+				// Number of parameter
+				informations.add(modifier.getParameters().size());
+
+				// Modifier's parameter
+				for (IParameter<?> parameter : modifier.getParameters()) {
+					// Parameter's name
+					informations.add(parameter.getName());
+
+					// Parameter's type
+					informations.add(parameter.getType());
+
+					// isRangeParameter
+					informations.add(parameter instanceof RangeParameter);
+
+					// Parameter's default value
+					informations.add(parameter.getDefaultValue());
+
+					// Parameter's value
+					informations.add(parameter.getValue());
+
+					// Parameter's range value
+					if (parameter instanceof RangeParameter) {
+						RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
+						informations.add(rangeParameter.getMin());
+						informations.add(rangeParameter.getMax());
+					}
+				}
+			}
 
 			return event.getRequest().answer(informations.toArray());
 		default:

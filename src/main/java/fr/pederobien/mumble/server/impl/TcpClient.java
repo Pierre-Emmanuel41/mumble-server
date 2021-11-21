@@ -160,8 +160,18 @@ public class TcpClient implements IEventListener {
 
 	@EventHandler
 	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		doIfPlayerJoined(
-				() -> send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName())));
+		doIfPlayerJoined(() -> {
+			List<Object> informations = new ArrayList<Object>();
+			informations.add(event.getChannel().getName());
+			informations.add(event.getChannel().getSoundModifier().getName());
+			informations.add(event.getChannel().getSoundModifier().getParameters().size());
+			for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+				informations.add(parameter.getName());
+				informations.add(parameter.getType());
+				informations.add(parameter.getValue());
+			}
+			send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()));
+		});
 	}
 
 	@EventHandler
