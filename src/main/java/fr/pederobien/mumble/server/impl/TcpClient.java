@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.pederobien.communication.event.ConnectionLostEvent;
@@ -116,15 +117,15 @@ public class TcpClient implements IEventListener {
 			// Number of parameters
 			informations.add(event.getChannel().getSoundModifier().getParameters().size());
 
-			for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+			for (Map.Entry<String, IParameter<?>> parameterEntry : event.getChannel().getSoundModifier().getParameters()) {
 				// Parameter's name
-				informations.add(parameter.getName());
+				informations.add(parameterEntry.getValue().getName());
 
 				// Parameter's type
-				informations.add(parameter.getType());
+				informations.add(parameterEntry.getValue().getType());
 
 				// Parameter's value
-				informations.add(parameter.getValue());
+				informations.add(parameterEntry.getValue().getValue());
 			}
 			send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, informations.toArray()));
 		});
@@ -172,15 +173,15 @@ public class TcpClient implements IEventListener {
 
 			// Number of parameters
 			informations.add(event.getChannel().getSoundModifier().getParameters().size());
-			for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+			for (Map.Entry<String, IParameter<?>> parameterEntry : event.getChannel().getSoundModifier().getParameters()) {
 				// Parmaeter's name
-				informations.add(parameter.getName());
+				informations.add(parameterEntry.getValue().getName());
 
 				// Parameter's type
-				informations.add(parameter.getType());
+				informations.add(parameterEntry.getValue().getType());
 
 				// Parameter's value
-				informations.add(parameter.getValue());
+				informations.add(parameterEntry.getValue().getValue());
 			}
 			send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()));
 		});

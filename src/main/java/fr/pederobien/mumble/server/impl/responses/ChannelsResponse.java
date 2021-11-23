@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.impl.responses;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -45,15 +46,15 @@ public class ChannelsResponse extends AbstractResponse {
 				// Number of parameters
 				informations.add(channel.getSoundModifier().getParameters().size());
 
-				for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+				for (Map.Entry<String, IParameter<?>> parameterEntry : channel.getSoundModifier().getParameters()) {
 					// Parameter's name
-					informations.add(parameter.getName());
+					informations.add(parameterEntry.getValue().getName());
 
 					// Parameter's type
-					informations.add(parameter.getType());
+					informations.add(parameterEntry.getValue().getType());
 
 					// Parameter's value
-					informations.add(parameter.getValue());
+					informations.add(parameterEntry.getValue().getValue());
 				}
 
 				// Number of players

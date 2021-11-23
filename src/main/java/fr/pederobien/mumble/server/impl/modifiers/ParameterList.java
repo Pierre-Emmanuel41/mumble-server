@@ -1,9 +1,7 @@
 package fr.pederobien.mumble.server.impl.modifiers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import fr.pederobien.mumble.server.interfaces.IParameter;
@@ -13,12 +11,12 @@ public class ParameterList implements IParameterList {
 	private Map<String, IParameter<?>> parameters;
 
 	public ParameterList() {
-		parameters = new HashMap<String, IParameter<?>>();
+		parameters = new LinkedHashMap<String, IParameter<?>>();
 	}
 
 	@Override
-	public Iterator<IParameter<?>> iterator() {
-		return parameters.values().iterator();
+	public Iterator<Map.Entry<String, IParameter<?>>> iterator() {
+		return parameters.entrySet().iterator();
 	}
 
 	@Override
@@ -37,8 +35,8 @@ public class ParameterList implements IParameterList {
 	}
 
 	@Override
-	public List<IParameter<?>> getParameters() {
-		return new ArrayList<IParameter<?>>(parameters.values());
+	public Map<String, IParameter<?>> getParameters() {
+		return parameters;
 	}
 
 	@Override
@@ -48,19 +46,19 @@ public class ParameterList implements IParameterList {
 
 	@Override
 	public void update(IParameterList parameterList) {
-		for (IParameter<?> parameter : parameterList) {
-			IParameter<?> param = parameters.get(parameter.getName());
+		for (Map.Entry<String, IParameter<?>> entry : parameterList) {
+			IParameter<?> param = parameters.get(entry.getValue().getName());
 			if (param == null)
 				continue;
-			param.setValue(parameter.getValue());
+			param.setValue(entry.getValue().getValue());
 		}
 	}
 
 	@Override
 	public ParameterList clone() {
 		ParameterList list = new ParameterList();
-		for (IParameter<?> parameter : this)
-			list.add(parameter.clone());
+		for (Map.Entry<String, IParameter<?>> entry : this)
+			list.add(entry.getValue().clone());
 		return list;
 	}
 

@@ -1,8 +1,8 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import java.util.List;
+import java.util.Map;
 
-public interface IParameterList extends Iterable<IParameter<?>> {
+public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>>> {
 
 	/**
 	 * Get the parameter associated to the given name.
@@ -26,7 +26,7 @@ public interface IParameterList extends Iterable<IParameter<?>> {
 	/**
 	 * @return The underlying list of the registered parameters.
 	 */
-	public List<IParameter<?>> getParameters();
+	public Map<String, IParameter<?>> getParameters();
 
 	/**
 	 * @return The number of registered parameters.

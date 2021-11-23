@@ -87,8 +87,10 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void setSoundModifier(ISoundModifier soundModifier) {
-		if (this.soundModifier.equals(soundModifier))
+		if (this.soundModifier.equals(soundModifier)) {
+			this.soundModifier.getParameters().update(soundModifier.getParameters());
 			return;
+		}
 
 		ISoundModifier futur = soundModifier == null ? SoundManager.getDefaultSoundModifier() : soundModifier;
 		AbstractSoundModifier oldSoundModifier = (AbstractSoundModifier) this.soundModifier;

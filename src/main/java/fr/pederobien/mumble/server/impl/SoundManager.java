@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,7 +18,7 @@ public class SoundManager {
 	private static Map<String, ISoundModifier> sounds;
 
 	static {
-		sounds = new HashMap<String, ISoundModifier>();
+		sounds = new LinkedHashMap<String, ISoundModifier>();
 		sounds.put(DEFAULT_SOUND_MODIFIER_NAME, new DefaultSoundModifier());
 	}
 
@@ -94,6 +94,9 @@ public class SoundManager {
 
 		@Override
 		public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
+			if (transmitter.equals(receiver))
+				return new VolumeResult(0);
+
 			return VolumeResult.DEFAULT;
 		}
 	}

@@ -1,7 +1,7 @@
 package fr.pederobien.mumble.server.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +52,7 @@ public class InternalServer implements IEventListener {
 		udpServer = new UdpServer(port, () -> new MessageExtractor());
 
 		clients = new ClientList(this);
-		channels = new HashMap<String, Channel>();
+		channels = new LinkedHashMap<String, Channel>();
 		requestManagement = new RequestManagement(this);
 
 		lockChannels = new Object();
@@ -173,7 +173,7 @@ public class InternalServer implements IEventListener {
 	 */
 	public Map<String, IChannel> getChannels() {
 		synchronized (lockChannels) {
-			return new HashMap<>(channels);
+			return new LinkedHashMap<String, IChannel>(channels);
 		}
 	}
 

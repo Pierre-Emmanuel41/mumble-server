@@ -37,33 +37,33 @@ public class ServerJoinResponse extends AbstractResponse {
 			informations.add(modifiers.size());
 
 			// Modifier informations
-			for (ISoundModifier modifier : modifiers.values()) {
+			for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
 				// Modifier's name
-				informations.add(modifier.getName());
+				informations.add(modifierEntry.getValue().getName());
 
 				// Number of parameter
-				informations.add(modifier.getParameters().size());
+				informations.add(modifierEntry.getValue().getParameters().size());
 
 				// Modifier's parameter
-				for (IParameter<?> parameter : modifier.getParameters()) {
+				for (Map.Entry<String, IParameter<?>> parameterEntry : modifierEntry.getValue().getParameters()) {
 					// Parameter's name
-					informations.add(parameter.getName());
+					informations.add(parameterEntry.getValue().getName());
 
 					// Parameter's type
-					informations.add(parameter.getType());
+					informations.add(parameterEntry.getValue().getType());
 
 					// isRangeParameter
-					informations.add(parameter instanceof RangeParameter);
+					informations.add(parameterEntry.getValue() instanceof RangeParameter);
 
 					// Parameter's default value
-					informations.add(parameter.getDefaultValue());
+					informations.add(parameterEntry.getValue().getDefaultValue());
 
 					// Parameter's value
-					informations.add(parameter.getValue());
+					informations.add(parameterEntry.getValue().getValue());
 
 					// Parameter's range value
-					if (parameter instanceof RangeParameter) {
-						RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
+					if (parameterEntry.getValue() instanceof RangeParameter) {
+						RangeParameter<?> rangeParameter = (RangeParameter<?>) parameterEntry.getValue();
 						informations.add(rangeParameter.getMin());
 						informations.add(rangeParameter.getMax());
 					}
@@ -72,31 +72,31 @@ public class ServerJoinResponse extends AbstractResponse {
 
 			// Number of channels
 			informations.add(getInternalServer().getChannels().size());
-			for (IChannel channel : getInternalServer().getChannels().values()) {
+			for (Map.Entry<String, IChannel> channelEntry : getInternalServer().getChannels().entrySet()) {
 				// Channel name
-				informations.add(channel.getName());
+				informations.add(channelEntry.getValue().getName());
 
 				// Channel's sound modifier name
-				informations.add(channel.getSoundModifier().getName());
+				informations.add(channelEntry.getValue().getSoundModifier().getName());
 
 				// Number of parameters
-				informations.add(channel.getSoundModifier().getParameters().size());
+				informations.add(channelEntry.getValue().getSoundModifier().getParameters().size());
 
-				for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+				for (Map.Entry<String, IParameter<?>> parameterEntry : channelEntry.getValue().getSoundModifier().getParameters()) {
 					// Parameter's name
-					informations.add(parameter.getName());
+					informations.add(parameterEntry.getValue().getName());
 
 					// Parameter's type
-					informations.add(parameter.getType());
+					informations.add(parameterEntry.getValue().getType());
 
 					// Parameter's value
-					informations.add(parameter.getValue());
+					informations.add(parameterEntry.getValue().getValue());
 				}
 
 				// Number of players
-				informations.add(channel.getPlayers().size());
+				informations.add(channelEntry.getValue().getPlayers().size());
 
-				for (IPlayer player : channel.getPlayers()) {
+				for (IPlayer player : channelEntry.getValue().getPlayers()) {
 					// Player name
 					informations.add(player.getName());
 

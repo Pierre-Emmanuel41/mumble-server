@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.impl.modifiers;
 
+import java.util.Map;
+
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -51,8 +53,8 @@ public abstract class AbstractSoundModifier implements ISoundModifier {
 			}
 		};
 		modifier.parameters = parameters.clone();
-		for (IParameter<?> parameter : modifier.parameters)
-			((Parameter<?>) parameter).setSoundModifier(modifier);
+		for (Map.Entry<String, IParameter<?>> entry : modifier.parameters)
+			((Parameter<?>) entry.getValue()).setSoundModifier(modifier);
 		return modifier;
 	}
 
