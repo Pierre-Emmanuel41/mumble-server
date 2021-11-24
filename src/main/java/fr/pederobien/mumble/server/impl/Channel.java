@@ -32,10 +32,10 @@ public class Channel implements IChannel, IEventListener {
 	private List<Player> players;
 	private ISoundModifier soundModifier;
 
-	public Channel(IMumbleServer mumbleServer, String name) {
+	public Channel(IMumbleServer mumbleServer, String name, ISoundModifier soundModifier) {
 		this.mumbleServer = mumbleServer;
 		this.name = name;
-		soundModifier = SoundManager.getDefaultSoundModifier();
+		this.soundModifier = soundModifier;
 		players = new ArrayList<Player>();
 		EventManager.registerListener(this);
 	}
@@ -87,10 +87,8 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void setSoundModifier(ISoundModifier soundModifier) {
-		if (this.soundModifier.equals(soundModifier)) {
-			this.soundModifier.getParameters().update(soundModifier.getParameters());
+		if (this.soundModifier.equals(soundModifier))
 			return;
-		}
 
 		ISoundModifier futur = soundModifier == null ? SoundManager.getDefaultSoundModifier() : soundModifier;
 		AbstractSoundModifier oldSoundModifier = (AbstractSoundModifier) this.soundModifier;

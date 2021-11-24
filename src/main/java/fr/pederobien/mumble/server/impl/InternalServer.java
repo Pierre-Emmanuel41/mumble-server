@@ -119,8 +119,7 @@ public class InternalServer implements IEventListener {
 
 			ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(mumbleServer, name, soundModifierName);
 			Supplier<IChannel> add = () -> {
-				Channel channel = new Channel(mumbleServer, name);
-				channel.setSoundModifier(optSoundModifier.get());
+				Channel channel = new Channel(mumbleServer, name, optSoundModifier.get());
 				channels.put(channel.getName(), channel);
 				return channel;
 			};
