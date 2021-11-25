@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.impl.modifiers;
 
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class LinearEllipseModifier extends AbstractSoundModifier {
+public class LinearEllipseModifier extends SoundModifier {
 	// Major axis
 	private double a;
 

@@ -3,7 +3,6 @@ package fr.pederobien.mumble.server.impl.modifiers;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.common.impl.ParameterType;
-import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
 public class RangeParameter<T> extends Parameter<T> {
@@ -94,6 +93,17 @@ public class RangeParameter<T> extends Parameter<T> {
 		checkRange(value);
 	}
 
+	/**
+	 * Private constructor for clone method.
+	 * 
+	 * @param original The original parameter to clone.
+	 */
+	private RangeParameter(RangeParameter<T> original) {
+		super(original);
+		min = original.getMin();
+		max = original.getMax();
+	}
+
 	@Override
 	public void setValue(Object value) {
 		checkRange(getType().cast(value));
@@ -112,8 +122,8 @@ public class RangeParameter<T> extends Parameter<T> {
 	}
 
 	@Override
-	public IParameter<T> clone() {
-		return new RangeParameter<T>(getSoundModifier(), getName(), getDefaultValue(), getValue(), min, max);
+	public RangeParameter<T> clone() {
+		return new RangeParameter<T>(this);
 	}
 
 	/**

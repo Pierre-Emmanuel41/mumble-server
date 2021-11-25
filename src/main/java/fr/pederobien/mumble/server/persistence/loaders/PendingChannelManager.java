@@ -52,10 +52,10 @@ public class PendingChannelManager implements IEventListener {
 		if (channels == null)
 			return;
 
-		for (SetupChannel channel : channels) {
+		for (SetupChannel setup : channels) {
 			ISoundModifier soundModifier = event.getSoundModifier().clone();
-			channel.getChannel().setSoundModifier(soundModifier);
-			soundModifier.getParameters().update(channel.getParameterList());
+			soundModifier.getParameters().update(setup.getParameterList());
+			setup.getChannel().setSoundModifier(soundModifier);
 		}
 	}
 

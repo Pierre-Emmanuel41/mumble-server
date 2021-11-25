@@ -4,7 +4,7 @@ import fr.pederobien.mumble.server.impl.MathHelper;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class LinearCircularSoundModifier extends AbstractSoundModifier {
+public class LinearCircularSoundModifier extends SoundModifier {
 	public static final String RADIUS_PARAMETER_NAME = "Radius";
 	private IParameter<Double> radiusParameter;
 
@@ -22,6 +22,16 @@ public class LinearCircularSoundModifier extends AbstractSoundModifier {
 		getParameters().add(radiusParameter = RangeParameter.of(this, RADIUS_PARAMETER_NAME, 50.0, 1.0, Double.MAX_VALUE));
 	}
 
+	/**
+	 * Private constructor for method clone.
+	 * 
+	 * @param original The original sound modifier to clone.
+	 */
+	private LinearCircularSoundModifier(LinearCircularSoundModifier original) {
+		super(original);
+		this.radiusParameter = getParameters().getParameter(RADIUS_PARAMETER_NAME);
+	}
+
 	@Override
 	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
 		if (transmitter.equals(receiver))
@@ -30,6 +40,11 @@ public class LinearCircularSoundModifier extends AbstractSoundModifier {
 		double distance = MathHelper.getDistance3D(transmitter.getPosition(), receiver.getPosition());
 		double[] volumes = MathHelper.getDefaultLeftAndRightVolume(transmitter.getPosition(), receiver.getPosition());
 		return new VolumeResult((-1.0 / radiusParameter.getValue()) * distance + 1, volumes[0], volumes[1]);
+	}
+
+	@Override
+	public LinearCircularSoundModifier clone() {
+		return new LinearCircularSoundModifier(this);
 	}
 
 	/**

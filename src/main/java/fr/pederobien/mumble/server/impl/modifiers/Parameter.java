@@ -112,6 +112,19 @@ public class Parameter<T> implements IParameter<T> {
 		this.value = value;
 	}
 
+	/**
+	 * Protected constructor for clone method.
+	 * 
+	 * @param original The original parameter to clone.
+	 */
+	protected Parameter(Parameter<T> original) {
+		this.soundModifier = original.getSoundModifier();
+		this.name = original.getName();
+		this.type = original.getType();
+		this.value = original.getValue();
+		this.defaultValue = original.getDefaultValue();
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -172,7 +185,7 @@ public class Parameter<T> implements IParameter<T> {
 	}
 
 	@Override
-	public IParameter<T> clone() {
-		return new Parameter<T>(getSoundModifier(), getName(), getDefaultValue(), getValue());
+	public Parameter<T> clone() {
+		return new Parameter<T>(this);
 	}
 }

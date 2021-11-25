@@ -8,8 +8,7 @@ import fr.pederobien.mumble.server.event.SoundModifierRegisterPostEvent;
 import fr.pederobien.mumble.server.event.SoundModifierRegisterPreEvent;
 import fr.pederobien.mumble.server.event.SoundModifierUnregisterPostEvent;
 import fr.pederobien.mumble.server.event.SoundModifierUnregisterPreEvent;
-import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.impl.modifiers.SoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
 
@@ -86,18 +85,15 @@ public class SoundManager {
 		return sounds;
 	}
 
-	private static class DefaultSoundModifier extends AbstractSoundModifier {
+	private static class DefaultSoundModifier extends SoundModifier {
 
 		public DefaultSoundModifier() {
 			super(DEFAULT_SOUND_MODIFIER_NAME);
 		}
 
 		@Override
-		public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-			if (transmitter.equals(receiver))
-				return new VolumeResult(0);
-
-			return VolumeResult.DEFAULT;
+		public ISoundModifier clone() {
+			return new DefaultSoundModifier();
 		}
 	}
 }

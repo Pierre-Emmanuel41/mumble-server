@@ -15,7 +15,7 @@ import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerSpeakPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.impl.modifiers.AbstractSoundModifier;
+import fr.pederobien.mumble.server.impl.modifiers.SoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -91,11 +91,11 @@ public class Channel implements IChannel, IEventListener {
 			return;
 
 		ISoundModifier futur = soundModifier == null ? SoundManager.getDefaultSoundModifier() : soundModifier;
-		AbstractSoundModifier oldSoundModifier = (AbstractSoundModifier) this.soundModifier;
+		SoundModifier oldSoundModifier = (SoundModifier) this.soundModifier;
 		Runnable set = () -> {
 			oldSoundModifier.setChannel(null);
 			this.soundModifier = futur;
-			((AbstractSoundModifier) this.soundModifier).setChannel(this);
+			((SoundModifier) this.soundModifier).setChannel(this);
 		};
 		ChannelSoundModifierChangePreEvent preEvent = new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), futur);
 		ChannelSoundModifierChangePostEvent postEvent = new ChannelSoundModifierChangePostEvent(this, oldSoundModifier);

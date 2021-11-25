@@ -35,6 +35,7 @@ public interface ISoundModifier extends Cloneable {
 	ISoundModifier clone();
 
 	public class VolumeResult {
+		public static final VolumeResult NONE = new VolumeResult(0);
 		public static final VolumeResult DEFAULT = new VolumeResult(1.0, 1.0, 1.0);
 		private double global, left, right;
 
