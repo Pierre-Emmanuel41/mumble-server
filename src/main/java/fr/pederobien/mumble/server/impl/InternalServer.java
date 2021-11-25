@@ -27,6 +27,7 @@ import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
+import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
@@ -56,6 +57,8 @@ public class InternalServer implements IEventListener {
 		requestManagement = new RequestManagement(this);
 
 		lockChannels = new Object();
+
+		registerModifiers();
 		EventManager.registerListener(this);
 	}
 
@@ -240,7 +243,7 @@ public class InternalServer implements IEventListener {
 	}
 
 	@EventHandler
-	public void onDataReceived(DataReceivedEvent event) {
+	private void onDataReceived(DataReceivedEvent event) {
 		if (!event.getConnection().equals(udpServer.getConnection()))
 			return;
 
@@ -252,5 +255,9 @@ public class InternalServer implements IEventListener {
 		Optional<Client> optClient = getClients().getClient(playerName);
 		if (optClient.isPresent())
 			optClient.get().createUdpClient(udpServer.getConnection(), event.getAddress()).onPlayerSpeak(playerName, (byte[]) response.getPayload()[1]);
+	}
+
+	private void registerModifiers() {
+		SoundManager.add(new LinearCircularSoundModifier());
 	}
 }
