@@ -7,17 +7,17 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.persistence.loaders.MumbleLoaderV10;
 import fr.pederobien.persistence.impl.xml.AbstractXmlPersistence;
 
-public class MumblePersistence extends AbstractXmlPersistence<IMumbleServer> {
+public class MumblePersistence extends AbstractXmlPersistence<InternalServer> {
 	private static final String ROOT_XML_DOCUMENT = "mumble";
 
-	public MumblePersistence(Path path, IMumbleServer mumbleServer) {
+	public MumblePersistence(Path path, InternalServer mumbleServer) {
 		super(path);
 		set(mumbleServer);
 		register(new MumbleLoaderV10(mumbleServer));
@@ -36,6 +36,10 @@ public class MumblePersistence extends AbstractXmlPersistence<IMumbleServer> {
 		Element version = createElement(doc, VERSION);
 		version.appendChild(doc.createTextNode(getVersion().toString()));
 		root.appendChild(version);
+
+		Element port = createElement(doc, EMumbleXmlTag.PORT);
+		port.appendChild(doc.createTextNode("" + get().getPort()));
+		root.appendChild(port);
 
 		Element channels = createElement(doc, EMumbleXmlTag.CHANNELS);
 		for (Map.Entry<String, IChannel> channelEntry : get().getChannels().entrySet()) {

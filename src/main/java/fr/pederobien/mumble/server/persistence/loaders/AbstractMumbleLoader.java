@@ -1,28 +1,40 @@
 package fr.pederobien.mumble.server.persistence.loaders;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.persistence.EMumbleXmlTag;
 import fr.pederobien.persistence.impl.xml.AbstractXmlPersistenceLoader;
 
-public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<IMumbleServer> {
-	private IMumbleServer mumbleServer;
+public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<InternalServer> {
+	private InternalServer mumbleServer;
 
-	protected AbstractMumbleLoader(Double version, IMumbleServer mumbleServer) {
+	protected AbstractMumbleLoader(Double version, InternalServer mumbleServer) {
 		super(version);
 		this.mumbleServer = mumbleServer;
 	}
 
 	@Override
-	protected IMumbleServer create() {
+	protected InternalServer create() {
 		return mumbleServer;
+	}
+
+	/**
+	 * Set the port used for TCP and UDP communication protocol.
+	 * 
+	 * @param root The xml root that contains server's port number.
+	 */
+	protected void setPort(Element root) {
+		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
+		get().setPort(getIntNodeValue(port.getChildNodes().item(0)));
 	}
 
 	/**
@@ -66,7 +78,7 @@ public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<
 				}
 			}
 
-			IChannel ch = mumbleServer.addChannel(channelName, null);
+			IChannel ch = mumbleServer.addChannel(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			pendingChannelManager.register(ch, soundModifierName, parameterList);
 		}
 	}

@@ -37,7 +37,6 @@ import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
-import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -56,42 +55,40 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	private String name;
 	private int port;
 	private Path path;
-	private IPersistence<IMumbleServer> persistence;
+	private IPersistence<InternalServer> persistence;
 	private TcpServer tcpServer;
 	private UdpServer udpServer;
 	private ClientList clients;
 	private Map<String, Channel> channels;
 	private RequestManagement requestManagement;
 	private Object lockChannels;
-	private boolean isOpened;
+	private boolean isOpened, loadingSucceed;
 
 	/**
-	 * Create a mumble server.
+	 * Create a mumble server. The default communication port is 28000. In order to change the port, please turn off the server and
+	 * change manually the port value in the created configuration file.
 	 * 
 	 * @param name The server name.
-	 * @param port The port for TCP and UDP communication with clients.
 	 * @param path The folder that contains the server configuration file.
 	 */
-	public InternalServer(String name, int port, Path path) {
+	public InternalServer(String name, Path path) {
 		this.name = name;
-		this.port = port;
 		this.path = path;
-
-		persistence = new MumblePersistence(path, this);
-		try {
-			persistence.load(name);
-		} catch (FileNotFoundException e) {
-			addChannel("General", null);
-		}
-
-		tcpServer = new TcpServer(port, () -> new MessageExtractor());
-		udpServer = new UdpServer(port, () -> new MessageExtractor());
 
 		clients = new ClientList(this);
 		channels = new LinkedHashMap<String, Channel>();
 		requestManagement = new RequestManagement(this);
-
 		lockChannels = new Object();
+
+		persistence = new MumblePersistence(path, this);
+		try {
+			persistence.load(name);
+			loadingSucceed = true;
+		} catch (Exception e) {
+			loadingSucceed = e instanceof FileNotFoundException;
+			addChannel("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
+			setPort(28000);
+		}
 
 		registerModifiers();
 		EventManager.registerListener(this);
@@ -117,11 +114,14 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public void close() {
-		checkIsOpened();
 		Runnable close = () -> {
 			tcpServer.disconnect();
 			udpServer.disconnect();
-			persistence.save();
+
+			// When problems occurs while loading, do no erase previous data.
+			if (loadingSucceed)
+				persistence.save();
+
 			saveLog();
 			isOpened = false;
 		};
@@ -140,19 +140,16 @@ public class InternalServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		checkIsOpened();
 		return getClients().addPlayer(address, playerName, isAdmin);
 	}
 
 	@Override
 	public void removePlayer(String playerName) {
-		checkIsOpened();
 		getClients().removePlayer(playerName);
 	}
 
 	@Override
 	public List<IPlayer> getPlayers() {
-		checkIsOpened();
 		return getClients().getPlayers();
 	}
 
@@ -169,7 +166,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public IChannel addChannel(String name, String soundModifierName) {
-		checkIsOpened();
 		synchronized (lockChannels) {
 			IChannel existingChannel = channels.get(name);
 			if (existingChannel != null)
@@ -198,7 +194,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public IChannel removeChannel(String name) {
-		checkIsOpened();
 		synchronized (lockChannels) {
 			return unsynchronizedRemove(name);
 		}
@@ -215,7 +210,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public void renameChannel(String oldName, String newName) {
-		checkIsOpened();
 		Map<String, IChannel> channels = getChannels();
 		Channel channel = (Channel) channels.get(oldName);
 		if (channel == null)
@@ -238,7 +232,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public Map<String, IChannel> getChannels() {
-		checkIsOpened();
 		synchronized (lockChannels) {
 			return new LinkedHashMap<String, IChannel>(channels);
 		}
@@ -251,7 +244,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	@Override
 	public List<IChannel> clearChannels() {
-		checkIsOpened();
 		List<IChannel> channelsList = new ArrayList<IChannel>();
 		synchronized (lockChannels) {
 			List<String> names = new ArrayList<>(channels.keySet());
@@ -287,6 +279,17 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	public int getPort() {
 		return port;
+	}
+
+	/**
+	 * Set the port used for TCP and UDP communication.
+	 * 
+	 * @param port The port used for communication.
+	 */
+	public void setPort(int port) {
+		this.port = port;
+		tcpServer = new TcpServer(name, port, () -> new MessageExtractor());
+		udpServer = new UdpServer(name, port, () -> new MessageExtractor());
 	}
 
 	/**
@@ -346,11 +349,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 
 	private void registerModifiers() {
 		SoundManager.add(new LinearCircularSoundModifier());
-	}
-
-	private void checkIsOpened() {
-		if (!isOpened)
-			throw new ServerNotOpenedException();
 	}
 
 	private void saveLog() {
