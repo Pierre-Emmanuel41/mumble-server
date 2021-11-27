@@ -16,7 +16,7 @@ public class LinearEllipseModifier extends SoundModifier {
 	}
 
 	@Override
-	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-		return null;
+	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
+		return VolumeResult.DEFAULT;
 	}
 }
