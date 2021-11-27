@@ -120,7 +120,7 @@ public class ServerJoinResponse extends AbstractResponse {
 				informations.add(event.getClient().getPlayer().getName());
 
 				// Player admin status
-				informations.add(event.getClient().getPlayer().isOnline());
+				informations.add(event.getClient().getPlayer().isAdmin());
 			} else
 				informations.add(false);
 			return event.getRequest().answer(informations.toArray());
