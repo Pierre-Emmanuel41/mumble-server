@@ -102,7 +102,7 @@ public class TcpClient implements IEventListener {
 
 	@EventHandler
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
-		if (!event.getServer().equals(internalServer.getMumbleServer()))
+		if (!event.getServer().equals(internalServer))
 			return;
 
 		doIfPlayerJoined(() -> {
@@ -133,7 +133,7 @@ public class TcpClient implements IEventListener {
 
 	@EventHandler
 	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
-		if (!event.getServer().equals(internalServer.getMumbleServer()))
+		if (!event.getServer().equals(internalServer))
 			return;
 
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName())));

@@ -135,8 +135,8 @@ public class ClientList implements IEventListener {
 				players.remove(name);
 			};
 
-			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer.getMumbleServer(), player);
-			ServerPlayerRemovePostEvent postEvent = new ServerPlayerRemovePostEvent(internalServer.getMumbleServer(), player);
+			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer, player);
+			ServerPlayerRemovePostEvent postEvent = new ServerPlayerRemovePostEvent(internalServer, player);
 			EventManager.callEvent(preEvent, remove, postEvent);
 		}
 	}
@@ -331,8 +331,8 @@ public class ClientList implements IEventListener {
 	private Optional<Player> createPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
 		Player player = new Player(address, playerName, isAdmin);
 
-		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(internalServer.getMumbleServer(), player);
-		ServerPlayerAddPostEvent postEvent = new ServerPlayerAddPostEvent(internalServer.getMumbleServer(), player);
+		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(internalServer, player);
+		ServerPlayerAddPostEvent postEvent = new ServerPlayerAddPostEvent(internalServer, player);
 		return Optional.ofNullable(EventManager.callEvent(preEvent, () -> player, ignored -> postEvent));
 	}
 
@@ -364,7 +364,7 @@ public class ClientList implements IEventListener {
 
 	private Client createClient(Origin origin, InetSocketAddress address) {
 		Client client = new Client(internalServer, createUUID());
-		EventManager.callEvent(new ServerClientAddPostEvent(internalServer.getMumbleServer(), client, origin, address));
+		EventManager.callEvent(new ServerClientAddPostEvent(internalServer, client, origin, address));
 		return client;
 	}
 
@@ -425,7 +425,7 @@ public class ClientList implements IEventListener {
 			if (clientsList.contains(client))
 				clientsList.remove(client);
 		}
-		EventManager.callEvent(new ServerClientRemovePostEvent(internalServer.getMumbleServer(), client));
+		EventManager.callEvent(new ServerClientRemovePostEvent(internalServer, client));
 	}
 
 	/**

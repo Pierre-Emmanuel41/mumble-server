@@ -34,7 +34,7 @@ public class MumbleGameServerClient implements IEventListener {
 
 	@EventHandler
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
-		if (!event.getServer().equals(internalServer.getMumbleServer()))
+		if (!event.getServer().equals(internalServer))
 			return;
 
 		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
@@ -42,7 +42,7 @@ public class MumbleGameServerClient implements IEventListener {
 
 	@EventHandler
 	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
-		if (!event.getServer().equals(internalServer.getMumbleServer()))
+		if (!event.getServer().equals(internalServer))
 			return;
 
 		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName()));
