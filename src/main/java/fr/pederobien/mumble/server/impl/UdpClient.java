@@ -10,10 +10,15 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.PlayerSpeakPostEvent;
 import fr.pederobien.mumble.server.event.PlayerSpeakPreEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.utils.BlockingQueueTask;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class UdpClient {
+public class UdpClient implements IEventListener {
+	private BlockingQueueTask<PlayerSpeakPreEvent> dispatch;
 	private InternalServer internalServer;
 	private IUdpConnection connection;
 	private InetSocketAddress address;
@@ -22,6 +27,11 @@ public class UdpClient {
 		this.internalServer = internalServer;
 		this.connection = connection;
 		this.address = address;
+
+		dispatch = new BlockingQueueTask<PlayerSpeakPreEvent>("UdpClientDispatcher", event -> dispatch(event));
+		dispatch.start();
+
+		EventManager.registerListener(this);
 	}
 
 	/**
@@ -64,6 +74,19 @@ public class UdpClient {
 		if (!optClient.isPresent() || optClient.get().getPlayer() == null || optClient.get().getPlayer().getChannel() == null)
 			return;
 
-		EventManager.callEvent(new PlayerSpeakPreEvent(optClient.get().getPlayer(), data), new PlayerSpeakPostEvent(optClient.get().getPlayer(), data));
+		dispatch.add(new PlayerSpeakPreEvent(optClient.get().getPlayer(), data));
+	}
+
+	@EventHandler
+	private void OnServerCLosing(ServerClosePostEvent event) {
+		if (!event.getServer().equals(internalServer))
+			return;
+
+		dispatch.dispose();
+		EventManager.unregisterListener(this);
+	}
+
+	private void dispatch(PlayerSpeakPreEvent event) {
+		EventManager.callEvent(event, new PlayerSpeakPostEvent(event.getPlayer(), event.getData()));
 	}
 }
