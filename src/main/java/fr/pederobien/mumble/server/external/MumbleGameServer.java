@@ -111,6 +111,16 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 		return server.clearChannels();
 	}
 
+	@Override
+	public String toString() {
+		return server.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return server.equals(obj);
+	}
+
 	@EventHandler
 	private void onNewClientConnect(NewTcpClientEvent event) {
 		if (!event.getServer().equals(tcpServer))
