@@ -2,7 +2,10 @@ package fr.pederobien.mumble.server.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
@@ -29,14 +32,18 @@ public class Channel implements IChannel, IEventListener {
 	private static final double EPSILON = 1E-5;
 	private IMumbleServer mumbleServer;
 	private String name;
-	private List<Player> players;
+	private List<IPlayer> players;
 	private ISoundModifier soundModifier;
+	private Lock lock;
 
 	public Channel(IMumbleServer mumbleServer, String name, ISoundModifier soundModifier) {
 		this.mumbleServer = mumbleServer;
 		this.name = name;
 		this.soundModifier = soundModifier;
-		players = new ArrayList<Player>();
+		((SoundModifier) soundModifier).setChannel(this);
+		players = new ArrayList<IPlayer>();
+		lock = new ReentrantLock(true);
+
 		EventManager.registerListener(this);
 	}
 
@@ -47,12 +54,7 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void addPlayer(IPlayer player) {
-		Runnable add = () -> {
-			Player playerImpl = (Player) player;
-			players.add(playerImpl);
-			playerImpl.setChannel(this);
-		};
-		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), add, new ChannelPlayerAddPostEvent(this, player));
+		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), () -> addPlayer((Player) player), new ChannelPlayerAddPostEvent(this, player));
 	}
 
 	@Override
@@ -60,12 +62,7 @@ public class Channel implements IChannel, IEventListener {
 		if (!players.contains(player))
 			return;
 
-		Runnable remove = () -> {
-			Player playerImpl = (Player) player;
-			playerImpl.setChannel(null);
-			players.remove(player);
-		};
-		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), remove, new ChannelPlayerRemovePostEvent(this, player));
+		EventManager.callEvent(new ChannelPlayerRemovePreEvent(this, player), () -> removePlayer((Player) player), new ChannelPlayerRemovePostEvent(this, player));
 	}
 
 	@Override
@@ -76,8 +73,13 @@ public class Channel implements IChannel, IEventListener {
 	@Override
 	public void clear() {
 		int size = players.size();
-		for (int i = 0; i < size; i++)
-			removePlayer(players.get(0));
+		lock.lock();
+		try {
+			for (int i = 0; i < size; i++)
+				EventManager.callEvent(new ChannelPlayerRemovePostEvent(this, players.remove(0)));
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
@@ -136,7 +138,17 @@ public class Channel implements IChannel, IEventListener {
 		if (!players.contains(event.getPlayer()))
 			return;
 
-		for (Player receiver : players) {
+		Iterator<IPlayer> iterator;
+		lock.lock();
+		try {
+			iterator = new ArrayList<IPlayer>(players).iterator();
+		} finally {
+			lock.unlock();
+		}
+
+		while (iterator.hasNext()) {
+			IPlayer receiver = iterator.next();
+
 			// No need to send data to the player if he is deafen.
 			// No need to send data to the player if the player is muted by the receiver
 			if (receiver.isDeafen() || ((Player) event.getPlayer()).isMuteBy(receiver))
@@ -146,7 +158,37 @@ public class Channel implements IChannel, IEventListener {
 			if (Math.abs(result.getGlobal()) < EPSILON)
 				return;
 
-			receiver.onOtherPlayerSpeaker(event.getPlayer(), event.getData(), result.getGlobal(), result.getLeft(), result.getRight());
+			((Player) receiver).onOtherPlayerSpeaker(event.getPlayer(), event.getData(), result.getGlobal(), result.getLeft(), result.getRight());
+		}
+	}
+
+	/**
+	 * Thread safe operation in order to add the given in the list of players.
+	 * 
+	 * @param player The player to add.
+	 */
+	private void addPlayer(Player player) {
+		player.setChannel(this);
+		lock.lock();
+		try {
+			players.add(player);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Thread safe operation in order to remove the given player from the list of players.
+	 * 
+	 * @param player The player to remove.
+	 */
+	private void removePlayer(Player player) {
+		player.setChannel(null);
+		lock.lock();
+		try {
+			players.remove(player);
+		} finally {
+			lock.unlock();
 		}
 	}
 }
