@@ -263,6 +263,10 @@ public class TcpClient implements IEventListener {
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
+		// Always allow this request whatever the client state.
+		if (request.getHeader().getIdc() == Idc.SERVER_LEAVE)
+			return true;
+
 		if (!isJoined.get())
 			return request.getHeader().getIdc() == Idc.SERVER_JOIN;
 
@@ -270,8 +274,6 @@ public class TcpClient implements IEventListener {
 		case PLAYER_INFO:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
-		case SERVER_LEAVE:
-			return true;
 		case CHANNELS:
 			switch (request.getHeader().getOid()) {
 			case GET:
