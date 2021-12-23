@@ -1,10 +1,10 @@
 [submodule "mumble-common"]
 	path = mumble-common
 	url = https://github.com/Pierre-Emmanuel41/mumble-common.git
-	branch = 1.0-SNAPSHOT
 	update = rebase
+	branch = 1.0-SNAPSHOT
 [submodule "persistence"]
 	path = persistence
 	url = https://github.com/Pierre-Emmanuel41/persistence.git
 	update = rebase
-	branch = 1.0
+	branch = 2.0-SNAPSHOT

@@ -12,37 +12,32 @@ import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.persistence.EMumbleXmlTag;
-import fr.pederobien.persistence.impl.xml.AbstractXmlPersistenceLoader;
+import fr.pederobien.persistence.impl.xml.AbstractXmlSerializer;
 
-public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<InternalServer> {
-	private InternalServer mumbleServer;
+public abstract class AbstractXmlMumbleSerializer extends AbstractXmlSerializer<InternalServer> {
 
-	protected AbstractMumbleLoader(Double version, InternalServer mumbleServer) {
+	protected AbstractXmlMumbleSerializer(Double version) {
 		super(version);
-		this.mumbleServer = mumbleServer;
-	}
-
-	@Override
-	protected InternalServer create() {
-		return mumbleServer;
 	}
 
 	/**
 	 * Set the port used for TCP and UDP communication protocol.
 	 * 
-	 * @param root The xml root that contains server's port number.
+	 * @param element The element to update.
+	 * @param root    The xml root that contains server's port number.
 	 */
-	protected void setPort(Element root) {
+	protected void setPort(InternalServer element, Element root) {
 		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
-		get().setPort(getIntNodeValue(port.getChildNodes().item(0)));
+		element.setPort(getIntNodeValue(port.getChildNodes().item(0)));
 	}
 
 	/**
 	 * Update the list of channels of the mumble server.
 	 * 
-	 * @param root The xml root that contains all server's channel.
+	 * @param element The element to update.
+	 * @param root    The xml root that contains all server's channel.
 	 */
-	protected void setChannels(Element root) {
+	protected void setChannels(InternalServer element, Element root) {
 		PendingChannelManager pendingChannelManager = new PendingChannelManager();
 
 		NodeList channels = getElementsByTagName(root, EMumbleXmlTag.CHANNEL);
@@ -78,7 +73,7 @@ public abstract class AbstractMumbleLoader extends AbstractXmlPersistenceLoader<
 				}
 			}
 
-			IChannel ch = mumbleServer.addChannel(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
+			IChannel ch = element.addChannel(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			pendingChannelManager.register(ch, soundModifierName, parameterList);
 		}
 	}

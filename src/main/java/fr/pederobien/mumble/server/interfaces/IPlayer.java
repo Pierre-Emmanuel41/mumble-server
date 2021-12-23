@@ -4,9 +4,13 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
-import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 
-public interface IPlayer extends IUnmodifiableNominable {
+public interface IPlayer {
+
+	/**
+	 * @return The player name.
+	 */
+	String getName();
 
 	/**
 	 * @return The address used by the player to play to the game.

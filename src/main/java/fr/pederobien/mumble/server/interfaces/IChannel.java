@@ -2,9 +2,12 @@ package fr.pederobien.mumble.server.interfaces;
 
 import java.util.List;
 
-import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
+public interface IChannel {
 
-public interface IChannel extends IUnmodifiableNominable {
+	/**
+	 * @return The channel name.
+	 */
+	String getName();
 
 	/**
 	 * Appends the given player to this channel. Once registered, the player can speak to players currently registered to this

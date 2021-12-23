@@ -1,93 +1,50 @@
 package fr.pederobien.mumble.server.persistence;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import fr.pederobien.mumble.server.impl.InternalServer;
-import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
-import fr.pederobien.mumble.server.interfaces.IChannel;
-import fr.pederobien.mumble.server.interfaces.IParameter;
-import fr.pederobien.mumble.server.persistence.loaders.MumbleLoaderV10;
-import fr.pederobien.persistence.impl.xml.AbstractXmlPersistence;
+import fr.pederobien.mumble.server.persistence.loaders.MumbleSerializerV10;
+import fr.pederobien.persistence.exceptions.ExtensionException;
+import fr.pederobien.persistence.impl.Persistences;
+import fr.pederobien.persistence.impl.xml.XmlPersistence;
+import fr.pederobien.persistence.interfaces.IPersistence;
 
-public class MumblePersistence extends AbstractXmlPersistence<InternalServer> {
-	private static final String ROOT_XML_DOCUMENT = "mumble";
+public class MumblePersistence {
+	private XmlPersistence<InternalServer> persistence;
 
-	public MumblePersistence(Path path, InternalServer mumbleServer) {
-		super(path);
-		set(mumbleServer);
-		register(new MumbleLoaderV10(mumbleServer));
+	/**
+	 * Creates a new persistence for the mumble server configuration.
+	 */
+	public MumblePersistence() {
+		persistence = Persistences.xmlPersistence();
+		persistence.register(persistence.adapt(new MumbleSerializerV10()));
 	}
 
-	@Override
-	public boolean save() {
-		if (get() == null)
-			return false;
-		Document doc = newDocument();
-		doc.setXmlStandalone(true);
-
-		Element root = createElement(doc, ROOT_XML_DOCUMENT);
-		doc.appendChild(root);
-
-		Element version = createElement(doc, VERSION);
-		version.appendChild(doc.createTextNode(getVersion().toString()));
-		root.appendChild(version);
-
-		Element port = createElement(doc, EMumbleXmlTag.PORT);
-		port.appendChild(doc.createTextNode("" + get().getPort()));
-		root.appendChild(port);
-
-		Element channels = createElement(doc, EMumbleXmlTag.CHANNELS);
-		for (Map.Entry<String, IChannel> channelEntry : get().getChannels().entrySet()) {
-			Element channel = createElement(doc, EMumbleXmlTag.CHANNEL);
-			setAttribute(channel, EMumbleXmlTag.NAME, channelEntry.getValue().getName());
-
-			Element soundModifier = createElement(doc, EMumbleXmlTag.SOUND_MODIFIER);
-			setAttribute(soundModifier, EMumbleXmlTag.NAME, channelEntry.getValue().getSoundModifier().getName());
-			channel.appendChild(soundModifier);
-
-			Element parameters = createElement(doc, EMumbleXmlTag.PARAMETERS);
-			for (Map.Entry<String, IParameter<?>> parameterEntry : channelEntry.getValue().getSoundModifier().getParameters()) {
-				Element parameter = createElement(doc, EMumbleXmlTag.PARAMETER);
-				setAttribute(parameter, EMumbleXmlTag.NAME, parameterEntry.getValue().getName());
-
-				Element type = createElement(doc, EMumbleXmlTag.TYPE);
-				setAttribute(type, EMumbleXmlTag.NAME, parameterEntry.getValue().getType().toString());
-				type.appendChild(doc.createTextNode("" + parameterEntry.getValue().getType().getCode()));
-				parameter.appendChild(type);
-
-				Element defaultValue = createElement(doc, EMumbleXmlTag.DEFAULT_VALUE);
-				defaultValue.appendChild(doc.createTextNode("" + parameterEntry.getValue().getDefaultValue()));
-				parameter.appendChild(defaultValue);
-
-				Element value = createElement(doc, EMumbleXmlTag.VALUE);
-				value.appendChild(doc.createTextNode("" + parameterEntry.getValue().getValue()));
-				parameter.appendChild(value);
-
-				if (parameterEntry.getValue() instanceof RangeParameter) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameterEntry.getValue();
-					Element range = createElement(doc, EMumbleXmlTag.RANGE);
-					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getMin());
-					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getMax());
-					parameter.appendChild(range);
-				}
-				parameters.appendChild(parameter);
-			}
-			soundModifier.appendChild(parameters);
-			channels.appendChild(channel);
-		}
-		root.appendChild(channels);
-
-		saveDocument(doc, get().getName());
-		return true;
+	/**
+	 * Load the file associated to the given path, and update the element properties.
+	 * 
+	 * @param element The element that contains data registered in the configuration file.
+	 * @param path    The path leading to the configuration file. It should contains the file name and the extension.
+	 * 
+	 * @return True if the element has been successfully updated, false otherwise.
+	 * 
+	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
+	 *                            persistence.
+	 */
+	public boolean deserialize(InternalServer element, Path path) {
+		return persistence.deserialize(element, path.toString());
 	}
 
-	@Override
-	protected Document createDoc(Object... objects) throws IOException {
-		return parseFromFileName((String) objects[0]);
+	/**
+	 * Save the element properties in a file associated to the specified path. If the path does not end with the extension associated
+	 * to this persistence it is automatically added. If some intermediate directories are missing they are automatically created.
+	 * 
+	 * @param element the element that contains informations to save.
+	 * @param path    The path leading to the configuration file. It should contains the file name.
+	 * 
+	 * @return True if the save went well.
+	 */
+	public boolean serialize(InternalServer element, Path path) {
+		return persistence.serialize(element, IPersistence.LATEST, path.toString());
 	}
 }

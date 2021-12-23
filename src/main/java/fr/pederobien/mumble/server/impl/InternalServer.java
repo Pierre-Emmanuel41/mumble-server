@@ -44,7 +44,6 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
-import fr.pederobien.persistence.interfaces.IPersistence;
 import fr.pederobien.utils.event.EventCalledEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventLogger;
@@ -55,7 +54,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	private String name;
 	private int port;
 	private Path path;
-	private IPersistence<InternalServer> persistence;
+	private MumblePersistence persistence;
 	private TcpServer tcpServer;
 	private UdpServer udpServer;
 	private ClientList clients;
@@ -80,9 +79,9 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		requestManagement = new RequestManagement(this);
 		lockChannels = new Object();
 
-		persistence = new MumblePersistence(path, this);
+		persistence = new MumblePersistence();
 		try {
-			persistence.load(name);
+			persistence.deserialize(this, path);
 			loadingSucceed = true;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
@@ -100,7 +99,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	}
 
 	/**
-	 * Starts the tcp thread and the udp thread.
+	 * Starts the TCP thread and the UDP thread.
 	 */
 	@Override
 	public void open() {
@@ -110,7 +109,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	}
 
 	/**
-	 * Interrupts the tcp thread and the udp thread.
+	 * Interrupts the TCP thread and the UDP thread.
 	 */
 	@Override
 	public void close() {
@@ -120,7 +119,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 
 			// When problems occurs while loading, do no erase previous data.
 			if (loadingSucceed)
-				persistence.save();
+				persistence.serialize(this, path);
 
 			saveLog();
 			isOpened = false;

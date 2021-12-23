@@ -6,9 +6,13 @@ import java.util.Map;
 
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
-import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 
-public interface IMumbleServer extends IUnmodifiableNominable {
+public interface IMumbleServer {
+
+	/**
+	 * @return The server name.
+	 */
+	String getName();
 
 	/**
 	 * Open this server.
