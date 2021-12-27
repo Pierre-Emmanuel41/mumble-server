@@ -28,7 +28,7 @@ public class PlayerList implements IPlayerList {
 	}
 
 	@Override
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
+	public IPlayer add(InetSocketAddress address, String playerName, boolean isAdmin) {
 		return server.getClients().addPlayer(address, playerName, isAdmin);
 	}
 
