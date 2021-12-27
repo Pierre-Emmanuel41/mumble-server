@@ -11,7 +11,7 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.mumble.server.event.RequestEvent;
-import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
+import fr.pederobien.mumble.server.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
@@ -34,9 +34,9 @@ public class ChannelsResponse extends AbstractResponse {
 		switch (event.getRequest().getHeader().getOid()) {
 		case GET:
 			// Number of channels
-			informations.add(getInternalServer().getChannels().size());
+			informations.add(getInternalServer().getChannels().toList().size());
 
-			for (IChannel channel : getInternalServer().getChannels().values()) {
+			for (IChannel channel : getInternalServer().getChannels()) {
 				// Channel's name
 				informations.add(channel.getName());
 
@@ -78,7 +78,7 @@ public class ChannelsResponse extends AbstractResponse {
 			// Channel's name
 			String addChannelName = (String) event.getRequest().getPayload()[currentIndex++];
 
-			if (getInternalServer().getChannels().get(addChannelName) != null)
+			if (getInternalServer().getChannels().getChannel(addChannelName).isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
 
 			// Modifier's name
@@ -105,15 +105,15 @@ public class ChannelsResponse extends AbstractResponse {
 				parameterList.add(Parameter.fromType(type, parameterName, value, value));
 			}
 
-			IChannel addedChannel = getInternalServer().addChannel(addChannelName, soundModifierName);
+			IChannel addedChannel = getInternalServer().getChannels().add(addChannelName, soundModifierName);
 			addedChannel.getSoundModifier().getParameters().update(parameterList);
 
 			return event.getRequest().answer(event.getRequest().getPayload());
 		case REMOVE:
 			String removeChannelName = (String) event.getRequest().getPayload()[0];
-			boolean canRemoveChannel = getInternalServer().getChannels().get(removeChannelName) != null;
+			boolean canRemoveChannel = getInternalServer().getChannels().getChannel(removeChannelName).isPresent();
 			if (canRemoveChannel) {
-				getInternalServer().removeChannel(removeChannelName);
+				getInternalServer().getChannels().remove(removeChannelName);
 				return event.getRequest().answer(removeChannelName);
 			} else
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
@@ -121,9 +121,9 @@ public class ChannelsResponse extends AbstractResponse {
 			String oldName = (String) event.getRequest().getPayload()[0];
 			String newName = (String) event.getRequest().getPayload()[1];
 			try {
-				getInternalServer().renameChannel(oldName, newName);
+				getInternalServer().getChannels().renameChannel(oldName, newName);
 				return event.getRequest().answer(oldName, newName);
-			} catch (ChannelAlreadyExistException e) {
+			} catch (ChannelAlreadyRegisteredException e) {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_ALREADY_EXISTS);
 			} catch (ChannelNotRegisteredException e) {
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);

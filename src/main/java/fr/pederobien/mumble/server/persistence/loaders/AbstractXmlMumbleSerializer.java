@@ -73,7 +73,7 @@ public abstract class AbstractXmlMumbleSerializer extends AbstractXmlSerializer<
 				}
 			}
 
-			IChannel ch = element.addChannel(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
+			IChannel ch = element.getChannels().add(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			pendingChannelManager.register(ch, soundModifierName, parameterList);
 		}
 	}

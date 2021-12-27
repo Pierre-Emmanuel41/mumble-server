@@ -8,13 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -29,20 +25,12 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.server.event.RequestEvent;
-import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
-import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
-import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
-import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
-import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.utils.event.EventCalledEvent;
 import fr.pederobien.utils.event.EventHandler;
@@ -58,9 +46,8 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	private TcpServer tcpServer;
 	private UdpServer udpServer;
 	private ClientList clients;
-	private Map<String, Channel> channels;
+	private IChannelList channels;
 	private RequestManagement requestManagement;
-	private Object lockChannels;
 	private boolean isOpened, loadingSucceed;
 
 	/**
@@ -75,9 +62,8 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		this.path = path;
 
 		clients = new ClientList(this);
-		channels = new LinkedHashMap<String, Channel>();
+		channels = new ChannelList(this);
 		requestManagement = new RequestManagement(this);
-		lockChannels = new Object();
 
 		persistence = new MumblePersistence();
 		try {
@@ -85,7 +71,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 			loadingSucceed = true;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
-			addChannel("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
+			getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			setPort(28000);
 		}
 
@@ -152,105 +138,9 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		return getClients().getPlayers();
 	}
 
-	/**
-	 * Creates a channel associated to the given name.
-	 * 
-	 * @param name              The name of the channel to add.
-	 * @param soundModifierName The sound modifier name attached to the channel to add.
-	 * 
-	 * @return The created channel.
-	 * 
-	 * @throws ChannelAlreadyExistException       If there is already a channel registered for the given name.
-	 * @throws SoundModifierDoesNotExistException If the sound modifier name refers to no registered modifier.
-	 */
 	@Override
-	public IChannel addChannel(String name, String soundModifierName) {
-		synchronized (lockChannels) {
-			IChannel existingChannel = channels.get(name);
-			if (existingChannel != null)
-				throw new ChannelAlreadyExistException(name);
-
-			Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
-			if (!optSoundModifier.isPresent())
-				throw new SoundModifierDoesNotExistException(soundModifierName);
-
-			ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(this, name, soundModifierName);
-			Supplier<IChannel> add = () -> {
-				Channel channel = new Channel(this, name, optSoundModifier.get());
-				channels.put(channel.getName(), channel);
-				return channel;
-			};
-			return EventManager.callEvent(preEvent, add, channel -> new ServerChannelAddPostEvent(this, channel));
-		}
-	}
-
-	/**
-	 * Remove the channel associated to the given name.
-	 * 
-	 * @param name The name of the channel to remove.
-	 * 
-	 * @return The removed channel if registered, null otherwise.
-	 */
-	@Override
-	public IChannel removeChannel(String name) {
-		synchronized (lockChannels) {
-			return unsynchronizedRemove(name);
-		}
-	}
-
-	/**
-	 * Set the name of the channel associated to the specified oldName.
-	 * 
-	 * @param oldName The old channel name.
-	 * @param newName The new channel name.
-	 * 
-	 * @throws ChannelNotRegisteredException If there is no channels associated to the oldName.
-	 * @throws ChannelAlreadyExistException  If there is already a channel registered for the given newName.
-	 */
-	@Override
-	public void renameChannel(String oldName, String newName) {
-		Map<String, IChannel> channels = getChannels();
-		Channel channel = (Channel) channels.get(oldName);
-		if (channel == null)
-			throw new ChannelNotRegisteredException(oldName);
-
-		if (channels.get(newName) != null)
-			throw new ChannelAlreadyExistException(newName);
-
-		channel.setName(newName);
-		synchronized (lockChannels) {
-			channels.remove(oldName);
-			channels.put(newName, channel);
-		}
-	}
-
-	/**
-	 * Creates a copy of the current channels map.
-	 * 
-	 * @return The created copy.
-	 */
-	@Override
-	public Map<String, IChannel> getChannels() {
-		synchronized (lockChannels) {
-			return new LinkedHashMap<String, IChannel>(channels);
-		}
-	}
-
-	/**
-	 * Removes each players from each channels registered for this server.
-	 * 
-	 * @return The list of removed channels.
-	 */
-	@Override
-	public List<IChannel> clearChannels() {
-		List<IChannel> channelsList = new ArrayList<IChannel>();
-		synchronized (lockChannels) {
-			List<String> names = new ArrayList<>(channels.keySet());
-			int size = channels.size();
-			for (int i = 0; i < size; i++)
-				channelsList.add(unsynchronizedRemove(names.get(i)));
-		}
-		return channelsList;
+	public IChannelList getChannels() {
+		return channels;
 	}
 
 	@Override
@@ -307,20 +197,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	public ClientList getClients() {
 		return clients;
-	}
-
-	private IChannel unsynchronizedRemove(String name) {
-		IChannel channel = channels.get(name);
-		if (channel == null)
-			return null;
-
-		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(this, channel);
-		Supplier<IChannel> remove = () -> {
-			IChannel c = channels.remove(name);
-			c.clear();
-			return c;
-		};
-		return EventManager.callEvent(preEvent, remove, c -> new ServerChannelRemovePostEvent(this, c));
 	}
 
 	@EventHandler

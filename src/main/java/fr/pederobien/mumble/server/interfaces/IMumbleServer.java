@@ -2,10 +2,6 @@ package fr.pederobien.mumble.server.interfaces;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.Map;
-
-import fr.pederobien.mumble.server.exceptions.ChannelAlreadyExistException;
-import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 
 public interface IMumbleServer {
 
@@ -55,44 +51,7 @@ public interface IMumbleServer {
 	List<IPlayer> getPlayers();
 
 	/**
-	 * Registered a channel to this server.
-	 * 
-	 * @param name              The channel's name.
-	 * @param soundModifierName the sound modifier name attached to the channel to add.
-	 * 
-	 * @return The created channel.
-	 * 
-	 * @throws ChannelAlreadyExistException If there is already a channel registered for the given name.
+	 * @return The list of channels associated to this server.
 	 */
-	IChannel addChannel(String name, String soundModifierName);
-
-	/**
-	 * Unregistered a channel from this server.
-	 * 
-	 * @param name The channel's name.
-	 * 
-	 * @return The removed channel.
-	 */
-	IChannel removeChannel(String name);
-
-	/**
-	 * Rename the channel associated to the oldName.
-	 * 
-	 * @param oldName The old channel name.
-	 * @param newName The new channel name.
-	 * 
-	 * @throws ChannelAlreadyExistException  If the channel associated to the new name already exists.
-	 * @throws ChannelNotRegisteredException If the channel associated to the old name does not exists.
-	 */
-	void renameChannel(String oldName, String newName);
-
-	/**
-	 * @return An unmodifiable map that contains all registered channels for this mumble server.
-	 */
-	Map<String, IChannel> getChannels();
-
-	/**
-	 * Remove all registered channels from this server.
-	 */
-	List<IChannel> clearChannels();
+	IChannelList getChannels();
 }

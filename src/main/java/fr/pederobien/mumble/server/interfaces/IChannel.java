@@ -10,6 +10,13 @@ public interface IChannel {
 	String getName();
 
 	/**
+	 * Set the name of this channel.
+	 * 
+	 * @param name The new channel name.
+	 */
+	void setName(String name);
+
+	/**
 	 * Appends the given player to this channel. Once registered, the player can speak to players currently registered to this
 	 * channel.
 	 * 

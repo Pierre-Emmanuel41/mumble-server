@@ -3,14 +3,13 @@ package fr.pederobien.mumble.server.external;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.impl.InternalServer;
-import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
@@ -82,33 +81,9 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public IChannel addChannel(String name, String soundModifierName) {
-		checkIsOpened();
-		return server.addChannel(name, soundModifierName);
-	}
-
-	@Override
-	public IChannel removeChannel(String name) {
-		checkIsOpened();
-		return server.removeChannel(name);
-	}
-
-	@Override
-	public void renameChannel(String oldName, String newName) {
-		checkIsOpened();
-		server.renameChannel(oldName, newName);
-	}
-
-	@Override
-	public Map<String, IChannel> getChannels() {
+	public IChannelList getChannels() {
 		checkIsOpened();
 		return server.getChannels();
-	}
-
-	@Override
-	public List<IChannel> clearChannels() {
-		checkIsOpened();
-		return server.clearChannels();
 	}
 
 	@Override

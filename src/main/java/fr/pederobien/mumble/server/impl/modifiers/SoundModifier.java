@@ -62,9 +62,9 @@ public class SoundModifier implements ISoundModifier {
 	}
 
 	@Override
-	public final VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
+	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
 		if (transmitter.equals(receiver))
-			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
+			return sendFeedback() ? dispatch(transmitter, receiver) : VolumeResult.NONE;
 		return dispatch(transmitter, receiver);
 	}
 

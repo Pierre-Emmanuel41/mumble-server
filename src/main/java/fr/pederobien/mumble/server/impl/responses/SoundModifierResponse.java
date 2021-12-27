@@ -28,27 +28,27 @@ public class SoundModifierResponse extends AbstractResponse {
 
 	@Override
 	public IMessage<Header> apply(RequestEvent event) {
-		IChannel channel;
+		Optional<IChannel> optChannel;
 		Optional<ISoundModifier> soundModifier;
 		List<Object> informations = new ArrayList<Object>();
 
 		switch (event.getRequest().getHeader().getOid()) {
 		case GET:
 			// channel's name
-			channel = getInternalServer().getChannels().get((String) event.getRequest().getPayload()[0]);
-			if (channel == null)
+			optChannel = getInternalServer().getChannels().getChannel((String) event.getRequest().getPayload()[0]);
+			if (!optChannel.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
 			// channel's name
-			informations.add(channel.getName());
+			informations.add(optChannel.get().getName());
 
 			// Modifier's name
-			informations.add(channel.getSoundModifier().getName());
+			informations.add(optChannel.get().getSoundModifier().getName());
 
 			// Number of parameters
-			informations.add(channel.getSoundModifier().getParameters().size());
+			informations.add(optChannel.get().getSoundModifier().getParameters().size());
 
-			for (Map.Entry<String, IParameter<?>> parameterEntry : channel.getSoundModifier().getParameters()) {
+			for (Map.Entry<String, IParameter<?>> parameterEntry : optChannel.get().getSoundModifier().getParameters()) {
 				// Parameter's name
 				informations.add(parameterEntry.getValue().getName());
 
@@ -63,8 +63,8 @@ public class SoundModifierResponse extends AbstractResponse {
 			int currentIndex = 0;
 
 			// Channel's name
-			channel = getInternalServer().getChannels().get((String) event.getRequest().getPayload()[currentIndex++]);
-			if (channel == null)
+			optChannel = getInternalServer().getChannels().getChannel((String) event.getRequest().getPayload()[currentIndex++]);
+			if (!optChannel.isPresent())
 				return MumbleMessageFactory.answer(event.getRequest(), ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
 			// Modifier's name
@@ -89,11 +89,11 @@ public class SoundModifierResponse extends AbstractResponse {
 				parameterList.add(Parameter.fromType(type, parameterName, value, value));
 			}
 
-			if (channel.getSoundModifier().equals(soundModifier.get()))
-				channel.getSoundModifier().getParameters().update(parameterList);
+			if (optChannel.get().getSoundModifier().equals(soundModifier.get()))
+				optChannel.get().getSoundModifier().getParameters().update(parameterList);
 			else {
 				soundModifier.get().getParameters().update(parameterList);
-				channel.setSoundModifier(soundModifier.get());
+				optChannel.get().setSoundModifier(soundModifier.get());
 			}
 
 			return event.getRequest().answer(event.getRequest().getPayload());

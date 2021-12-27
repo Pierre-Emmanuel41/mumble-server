@@ -53,6 +53,15 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	@Override
+	public void setName(String name) {
+		if (this.name == name)
+			return;
+
+		String oldName = this.name;
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> this.name = name, new ChannelNameChangePostEvent(this, oldName));
+	}
+
+	@Override
 	public void addPlayer(IPlayer player) {
 		EventManager.callEvent(new ChannelPlayerAddPreEvent(this, player), () -> addPlayer((Player) player), new ChannelPlayerAddPostEvent(this, player));
 	}
@@ -107,14 +116,6 @@ public class Channel implements IChannel, IEventListener {
 	@Override
 	public String toString() {
 		return "Channel={" + name + "}";
-	}
-
-	public void setName(String name) {
-		if (this.name == name)
-			return;
-
-		String oldName = this.name;
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> this.name = name, new ChannelNameChangePostEvent(this, oldName));
 	}
 
 	@EventHandler

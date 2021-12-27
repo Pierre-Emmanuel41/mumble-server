@@ -34,16 +34,16 @@ public class MumbleSerializerV10 extends AbstractXmlMumbleSerializer {
 		root.appendChild(port);
 
 		Element channels = createElement(EMumbleXmlTag.CHANNELS);
-		for (Map.Entry<String, IChannel> channelEntry : element.getChannels().entrySet()) {
+		for (IChannel c : element.getChannels()) {
 			Element channel = createElement(EMumbleXmlTag.CHANNEL);
-			setAttribute(channel, EMumbleXmlTag.NAME, channelEntry.getValue().getName());
+			setAttribute(channel, EMumbleXmlTag.NAME, c.getName());
 
 			Element soundModifier = createElement(EMumbleXmlTag.SOUND_MODIFIER);
-			setAttribute(soundModifier, EMumbleXmlTag.NAME, channelEntry.getValue().getSoundModifier().getName());
+			setAttribute(soundModifier, EMumbleXmlTag.NAME, c.getSoundModifier().getName());
 			channel.appendChild(soundModifier);
 
 			Element parameters = createElement(EMumbleXmlTag.PARAMETERS);
-			for (Map.Entry<String, IParameter<?>> parameterEntry : channelEntry.getValue().getSoundModifier().getParameters()) {
+			for (Map.Entry<String, IParameter<?>> parameterEntry : c.getSoundModifier().getParameters()) {
 				Element parameter = createElement(EMumbleXmlTag.PARAMETER);
 				setAttribute(parameter, EMumbleXmlTag.NAME, parameterEntry.getValue().getName());
 

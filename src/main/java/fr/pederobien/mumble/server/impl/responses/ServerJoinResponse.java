@@ -71,18 +71,18 @@ public class ServerJoinResponse extends AbstractResponse {
 			}
 
 			// Number of channels
-			informations.add(getInternalServer().getChannels().size());
-			for (Map.Entry<String, IChannel> channelEntry : getInternalServer().getChannels().entrySet()) {
+			informations.add(getInternalServer().getChannels().toList().size());
+			for (IChannel channel : getInternalServer().getChannels()) {
 				// Channel name
-				informations.add(channelEntry.getValue().getName());
+				informations.add(channel.getName());
 
 				// Channel's sound modifier name
-				informations.add(channelEntry.getValue().getSoundModifier().getName());
+				informations.add(channel.getSoundModifier().getName());
 
 				// Number of parameters
-				informations.add(channelEntry.getValue().getSoundModifier().getParameters().size());
+				informations.add(channel.getSoundModifier().getParameters().size());
 
-				for (Map.Entry<String, IParameter<?>> parameterEntry : channelEntry.getValue().getSoundModifier().getParameters()) {
+				for (Map.Entry<String, IParameter<?>> parameterEntry : channel.getSoundModifier().getParameters()) {
 					// Parameter's name
 					informations.add(parameterEntry.getValue().getName());
 
@@ -94,9 +94,9 @@ public class ServerJoinResponse extends AbstractResponse {
 				}
 
 				// Number of players
-				informations.add(channelEntry.getValue().getPlayers().size());
+				informations.add(channel.getPlayers().size());
 
-				for (IPlayer player : channelEntry.getValue().getPlayers()) {
+				for (IPlayer player : channel.getPlayers()) {
 					// Player name
 					informations.add(player.getName());
 
