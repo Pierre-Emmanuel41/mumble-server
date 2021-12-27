@@ -21,7 +21,7 @@ public interface IPlayerList extends Iterable<IPlayer> {
 	 * 
 	 * @return The registered player.
 	 */
-	IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin);
+	IPlayer add(InetSocketAddress address, String playerName, boolean isAdmin);
 
 	/**
 	 * Removes the player associated to the given name.
