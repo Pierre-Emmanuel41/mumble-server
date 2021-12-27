@@ -1,13 +1,11 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.net.InetSocketAddress;
 import java.nio.file.Path;
-import java.util.List;
 
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IPlayerList;
 
 public class MumbleServer implements IMumbleServer {
 	private InternalServer server;
@@ -46,19 +44,7 @@ public class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		checkIsOpened();
-		return server.addPlayer(address, playerName, isAdmin);
-	}
-
-	@Override
-	public void removePlayer(String playerName) {
-		checkIsOpened();
-		server.removePlayer(playerName);
-	}
-
-	@Override
-	public List<IPlayer> getPlayers() {
+	public IPlayerList getPlayers() {
 		checkIsOpened();
 		return server.getPlayers();
 	}

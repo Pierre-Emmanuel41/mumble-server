@@ -3,12 +3,10 @@ package fr.pederobien.mumble.server.impl;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.zip.ZipEntry;
@@ -30,7 +28,7 @@ import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IPlayerList;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.utils.event.EventCalledEvent;
 import fr.pederobien.utils.event.EventHandler;
@@ -47,6 +45,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	private UdpServer udpServer;
 	private ClientList clients;
 	private IChannelList channels;
+	private IPlayerList players;
 	private RequestManagement requestManagement;
 	private boolean isOpened, loadingSucceed;
 
@@ -63,6 +62,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 
 		clients = new ClientList(this);
 		channels = new ChannelList(this);
+		players = new PlayerList(this);
 		requestManagement = new RequestManagement(this);
 
 		persistence = new MumblePersistence();
@@ -124,18 +124,8 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		return getClients().addPlayer(address, playerName, isAdmin);
-	}
-
-	@Override
-	public void removePlayer(String playerName) {
-		getClients().removePlayer(playerName);
-	}
-
-	@Override
-	public List<IPlayer> getPlayers() {
-		return getClients().getPlayers();
+	public IPlayerList getPlayers() {
+		return players;
 	}
 
 	@Override

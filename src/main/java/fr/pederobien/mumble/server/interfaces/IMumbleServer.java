@@ -1,8 +1,5 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import java.net.InetSocketAddress;
-import java.util.List;
-
 public interface IMumbleServer {
 
 	/**
@@ -26,29 +23,11 @@ public interface IMumbleServer {
 	boolean isOpened();
 
 	/**
-	 * Register a player to this server.
-	 * 
-	 * @param address    The address associated to this player
-	 * @param playerName The name of the connected player.
-	 * @param isAdmin    True if the player is an admin in game.
-	 * 
-	 * @return The registered player.
-	 */
-	IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin);
-
-	/**
-	 * Unregister a player from this server.
-	 * 
-	 * @param playerName The name of the disconnected player.
-	 */
-	void removePlayer(String playerName);
-
-	/**
 	 * Get a list that contains all players connected to the game. It does not means their mumble client is also connected.
 	 * 
 	 * @return A list that contains all registered players. This list is unmodifiable.
 	 */
-	List<IPlayer> getPlayers();
+	IPlayerList getPlayers();
 
 	/**
 	 * @return The list of channels associated to this server.

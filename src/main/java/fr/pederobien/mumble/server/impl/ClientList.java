@@ -124,7 +124,7 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @param name The player name.
 	 */
-	public void removePlayer(String name) {
+	public IPlayer removePlayer(String name) {
 		Optional<Client> optClient = getClient(name);
 		if (optClient.isPresent() && optClient.get().getPlayer() != null) {
 			Player player = optClient.get().getPlayer();
@@ -138,7 +138,9 @@ public class ClientList implements IEventListener {
 			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer, player);
 			ServerPlayerRemovePostEvent postEvent = new ServerPlayerRemovePostEvent(internalServer, player);
 			EventManager.callEvent(preEvent, remove, postEvent);
+			return player;
 		}
+		return null;
 	}
 
 	/**

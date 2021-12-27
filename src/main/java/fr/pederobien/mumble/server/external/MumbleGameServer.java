@@ -1,8 +1,6 @@
 package fr.pederobien.mumble.server.external;
 
-import java.net.InetSocketAddress;
 import java.nio.file.Path;
-import java.util.List;
 
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
@@ -11,7 +9,7 @@ import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IPlayerList;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -63,19 +61,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		checkIsOpened();
-		return server.addPlayer(address, playerName, isAdmin);
-	}
-
-	@Override
-	public void removePlayer(String playerName) {
-		checkIsOpened();
-		server.removePlayer(playerName);
-	}
-
-	@Override
-	public List<IPlayer> getPlayers() {
+	public IPlayerList getPlayers() {
 		checkIsOpened();
 		return server.getPlayers();
 	}
