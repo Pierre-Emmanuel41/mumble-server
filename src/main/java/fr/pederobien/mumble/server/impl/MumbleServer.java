@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.nio.file.Path;
-
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
@@ -17,7 +15,7 @@ public class MumbleServer implements IMumbleServer {
 	 * @param name The server name.
 	 * @param path The folder that contains the server configuration file.
 	 */
-	public MumbleServer(String name, Path path) {
+	public MumbleServer(String name, String path) {
 		server = new InternalServer(name, path);
 	}
 

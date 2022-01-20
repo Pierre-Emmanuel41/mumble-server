@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.server.external;
 
-import java.nio.file.Path;
-
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
@@ -29,7 +27,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	 * @param gameServerPort The port number for the TCP communication between the game server and this server.
 	 * @param path           The folder that contains the server configuration file.
 	 */
-	public MumbleGameServer(String name, int gameServerPort, Path path) {
+	public MumbleGameServer(String name, int gameServerPort, String path) {
 		server = new InternalServer(name, path);
 		tcpServer = new TcpServer(name, gameServerPort, () -> new MessageExtractor());
 		EventManager.registerListener(this);

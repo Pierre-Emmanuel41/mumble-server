@@ -2,8 +2,10 @@ package fr.pederobien.mumble.server.impl;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -38,7 +40,7 @@ import fr.pederobien.utils.event.IEventListener;
 public class InternalServer implements IMumbleServer, IEventListener {
 	private String name;
 	private int port;
-	private Path path;
+	private String path;
 	private MumblePersistence persistence;
 	private TcpServer tcpServer;
 	private UdpServer udpServer;
@@ -55,7 +57,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 * @param name The server name.
 	 * @param path The folder that contains the server configuration file.
 	 */
-	public InternalServer(String name, Path path) {
+	public InternalServer(String name, String path) {
 		this.name = name;
 		this.path = path;
 
@@ -205,7 +207,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	}
 
 	private void saveLog() {
-		Path logPath = path.resolve("logs");
+		Path logPath = Paths.get(path.concat(FileSystems.getDefault().getSeparator()).concat("logs"));
 
 		// Creates intermediate folders if they don't exist.
 		if (!Files.exists(logPath))

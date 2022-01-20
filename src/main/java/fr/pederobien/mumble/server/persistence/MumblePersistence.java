@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.server.persistence;
 
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
 
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
@@ -32,9 +31,9 @@ public class MumblePersistence {
 	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
 	 *                            persistence.
 	 */
-	public void deserialize(InternalServer element, Path path) {
+	public void deserialize(InternalServer element, String path) {
 		try {
-			persistence.deserialize(element, path.toString());
+			persistence.deserialize(element, path);
 			loadingSucceed = true;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
@@ -50,12 +49,12 @@ public class MumblePersistence {
 	 * @param element the element that contains informations to save.
 	 * @param path    The path leading to the configuration file. It should contains the file name.
 	 */
-	public void serialize(InternalServer element, Path path) {
+	public void serialize(InternalServer element, String path) {
 		if (!loadingSucceed)
 			return;
 
 		try {
-			persistence.serialize(element, IPersistence.LATEST, path.toString());
+			persistence.serialize(element, IPersistence.LATEST, path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
