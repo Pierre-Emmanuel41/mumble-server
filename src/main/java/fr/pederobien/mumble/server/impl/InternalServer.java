@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,7 +46,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	private IChannelList channels;
 	private IPlayerList players;
 	private RequestManagement requestManagement;
-	private boolean isOpened, loadingSucceed;
+	private boolean isOpened;
 
 	/**
 	 * Create a mumble server. The default communication port is 28000. In order to change the port, please turn off the server and
@@ -66,14 +65,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		requestManagement = new RequestManagement(this);
 
 		persistence = new MumblePersistence();
-		try {
-			persistence.deserialize(this, path);
-			loadingSucceed = true;
-		} catch (Exception e) {
-			loadingSucceed = e instanceof FileNotFoundException;
-			getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
-			setPort(28000);
-		}
+		persistence.deserialize(this, path);
 
 		registerModifiers();
 		EventManager.registerListener(this);
@@ -102,11 +94,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		Runnable close = () -> {
 			tcpServer.disconnect();
 			udpServer.disconnect();
-
-			// When problems occurs while loading, do no erase previous data.
-			if (loadingSucceed)
-				persistence.serialize(this, path);
-
+			persistence.serialize(this, path);
 			saveLog();
 			isOpened = false;
 		};

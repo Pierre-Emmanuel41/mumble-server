@@ -1,8 +1,10 @@
 package fr.pederobien.mumble.server.persistence;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
 import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.persistence.loaders.MumbleSerializerV10;
 import fr.pederobien.persistence.exceptions.ExtensionException;
 import fr.pederobien.persistence.impl.Persistences;
@@ -11,6 +13,7 @@ import fr.pederobien.persistence.interfaces.IPersistence;
 
 public class MumblePersistence {
 	private XmlPersistence<InternalServer> persistence;
+	private boolean loadingSucceed;
 
 	/**
 	 * Creates a new persistence for the mumble server configuration.
@@ -26,13 +29,18 @@ public class MumblePersistence {
 	 * @param element The element that contains data registered in the configuration file.
 	 * @param path    The path leading to the configuration file. It should contains the file name and the extension.
 	 * 
-	 * @return True if the element has been successfully updated, false otherwise.
-	 * 
 	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
 	 *                            persistence.
 	 */
-	public boolean deserialize(InternalServer element, Path path) {
-		return persistence.deserialize(element, path.toString());
+	public void deserialize(InternalServer element, Path path) {
+		try {
+			persistence.deserialize(element, path.toString());
+			loadingSucceed = true;
+		} catch (Exception e) {
+			loadingSucceed = e instanceof FileNotFoundException;
+			element.getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
+			element.setPort(28000);
+		}
 	}
 
 	/**
@@ -41,10 +49,15 @@ public class MumblePersistence {
 	 * 
 	 * @param element the element that contains informations to save.
 	 * @param path    The path leading to the configuration file. It should contains the file name.
-	 * 
-	 * @return True if the save went well.
 	 */
-	public boolean serialize(InternalServer element, Path path) {
-		return persistence.serialize(element, IPersistence.LATEST, path.toString());
+	public void serialize(InternalServer element, Path path) {
+		if (!loadingSucceed)
+			return;
+
+		try {
+			persistence.serialize(element, IPersistence.LATEST, path.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
