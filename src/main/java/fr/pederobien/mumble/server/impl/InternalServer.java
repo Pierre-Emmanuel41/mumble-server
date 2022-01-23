@@ -67,7 +67,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		requestManagement = new RequestManagement(this);
 
 		persistence = new MumblePersistence();
-		persistence.deserialize(this, path);
+		persistence.deserialize(this, getPath(path, name.concat(persistence.getExtension())));
 
 		registerModifiers();
 		EventManager.registerListener(this);
@@ -96,7 +96,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		Runnable close = () -> {
 			tcpServer.disconnect();
 			udpServer.disconnect();
-			persistence.serialize(this, path);
+			persistence.serialize(this, getPath(path, name.concat(persistence.getExtension())));
 			saveLog();
 			isOpened = false;
 		};
@@ -207,7 +207,8 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	}
 
 	private void saveLog() {
-		Path logPath = Paths.get(path.concat(FileSystems.getDefault().getSeparator()).concat("logs"));
+		Path logPath = Paths.get(getPath(path, "logs"));
+		System.out.println("logPath=" + logPath);
 
 		// Creates intermediate folders if they don't exist.
 		if (!Files.exists(logPath))
@@ -231,6 +232,13 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
 
+	private String getPath(String first, String... others) {
+		StringJoiner joiner = new StringJoiner(FileSystems.getDefault().getSeparator());
+		joiner.add(first);
+		for (String other : others)
+			joiner.add(other);
+		return joiner.toString();
 	}
 }

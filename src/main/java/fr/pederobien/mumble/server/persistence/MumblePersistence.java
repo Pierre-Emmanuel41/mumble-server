@@ -59,4 +59,11 @@ public class MumblePersistence {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * @return The file extension associated to this persistence.
+	 */
+	public String getExtension() {
+		return persistence.getExtension();
+	}
 }
