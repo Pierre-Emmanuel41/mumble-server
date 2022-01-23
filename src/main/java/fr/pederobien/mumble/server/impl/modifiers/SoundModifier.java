@@ -64,8 +64,8 @@ public class SoundModifier implements ISoundModifier {
 	@Override
 	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
 		if (transmitter.equals(receiver))
-			return sendFeedback() ? dispatch(transmitter, receiver) : VolumeResult.NONE;
-		return dispatch(transmitter, receiver);
+			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
+		return VolumeResult.DEFAULT;
 	}
 
 	@Override
@@ -92,17 +92,5 @@ public class SoundModifier implements ISoundModifier {
 	 */
 	public void setChannel(IChannel channel) {
 		this.channel = channel;
-	}
-
-	/**
-	 * Calculate the left audio channel volume, the right audio channel volume and the signal global volume.
-	 * 
-	 * @param transmitter The player currently speaking.
-	 * @param receiver    The player currently hearing.
-	 * 
-	 * @return The result.
-	 */
-	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
-		return VolumeResult.DEFAULT;
 	}
 }

@@ -33,7 +33,10 @@ public class LinearCircularSoundModifier extends SoundModifier {
 	}
 
 	@Override
-	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
+	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
+		if (transmitter.equals(receiver))
+			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
+
 		double distance = MathHelper.getDistance3D(transmitter.getPosition(), receiver.getPosition());
 		double[] volumes = MathHelper.getDefaultLeftAndRightVolume(transmitter.getPosition(), receiver.getPosition());
 		return new VolumeResult((-1.0 / radiusParameter.getValue()) * distance + 1, volumes[0], volumes[1]);
