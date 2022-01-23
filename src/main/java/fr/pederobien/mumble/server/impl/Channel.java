@@ -48,6 +48,11 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	@Override
+	public IMumbleServer getServer() {
+		return mumbleServer;
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}

@@ -5,6 +5,11 @@ import java.util.List;
 public interface IChannel {
 
 	/**
+	 * @return The server to which this channel is associated.
+	 */
+	IMumbleServer getServer();
+
+	/**
 	 * @return The channel name.
 	 */
 	String getName();
