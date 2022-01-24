@@ -67,11 +67,4 @@ public class MumbleServer implements IMumbleServer {
 		if (!server.isOpened())
 			throw new ServerNotOpenedException();
 	}
-
-	/**
-	 * @return The implementation of this server.
-	 */
-	protected InternalServer getInternalServer() {
-		return server;
-	}
 }

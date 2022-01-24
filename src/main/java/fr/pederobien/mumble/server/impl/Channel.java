@@ -59,7 +59,7 @@ public class Channel implements IChannel, IEventListener {
 
 	@Override
 	public void setName(String name) {
-		if (this.name == name)
+		if (this.name.equals(name))
 			return;
 
 		String oldName = this.name;

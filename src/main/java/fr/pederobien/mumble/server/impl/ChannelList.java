@@ -64,7 +64,7 @@ public class ChannelList implements IChannelList {
 		ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(server, channelName, soundModifierName);
 		Supplier<IChannel> add = () -> {
 			Channel channel = new Channel(server, channelName, optSoundModifier.get());
-			channels.put(channel.getName(), channel);
+			addChannel(channel);
 			return channel;
 		};
 
@@ -78,12 +78,7 @@ public class ChannelList implements IChannelList {
 			return null;
 
 		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(server, optChannel.get());
-		EventManager.callEvent(preEvent);
-		if (preEvent.isCancelled())
-			return null;
-
-		removeChannel(name);
-		EventManager.callEvent(new ServerChannelRemovePostEvent(server, optChannel.get()));
+		EventManager.callEvent(preEvent, () -> removeChannel(name), new ServerChannelRemovePostEvent(server, optChannel.get()));
 		return optChannel.get();
 	}
 
@@ -137,7 +132,7 @@ public class ChannelList implements IChannelList {
 
 	@EventHandler(priority = EventPriority.LOW)
 	private void onChannelNameChangePre(ChannelNameChangePreEvent event) {
-		if (channels.get(event.getChannel().getName()) == null)
+		if (!getChannel(event.getChannel().getName()).isPresent() || !getChannel(event.getNewName()).isPresent())
 			return;
 
 		event.setCancelled(getChannel(event.getNewName()).isPresent());
@@ -145,11 +140,21 @@ public class ChannelList implements IChannelList {
 
 	@EventHandler
 	private void onChannelNameChangePost(ChannelNameChangePostEvent event) {
-		if (channels.get(event.getOldName()) == null)
+		Optional<IChannel> optOldChannel = getChannel(event.getOldName());
+		if (!optOldChannel.isPresent())
 			return;
 
-		removeChannel(event.getOldName());
-		addChannel(event.getChannel());
+		Optional<IChannel> optNewChannel = getChannel(event.getChannel().getName());
+		if (optNewChannel.isPresent())
+			throw new ChannelAlreadyRegisteredException(server, optNewChannel.get());
+
+		lock.lock();
+		try {
+			channels.remove(event.getOldName());
+			channels.put(event.getChannel().getName(), event.getChannel());
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
