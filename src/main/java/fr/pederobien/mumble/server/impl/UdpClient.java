@@ -70,7 +70,7 @@ public class UdpClient implements IEventListener {
 	 * @param data       The bytes array that contains the audio sample.
 	 */
 	public void onPlayerSpeak(String playerName, byte[] data) {
-		Optional<Client> optClient = internalServer.getClients().getClient(playerName);
+		Optional<MumblePlayerClient> optClient = internalServer.getClients().getClient(playerName);
 		if (!optClient.isPresent() || optClient.get().getPlayer() == null || optClient.get().getPlayer().getChannel() == null)
 			return;
 

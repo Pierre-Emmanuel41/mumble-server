@@ -17,19 +17,19 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 
 public class GamePortAnalyzer {
-	private List<Client> clients;
+	private List<MumblePlayerClient> mumblePlayerClients;
 	private ITcpConnection connection;
-	private Client client;
+	private MumblePlayerClient mumblePlayerClient;
 
 	/**
 	 * Creates a game port analyzer that is responsible to ask each client in the specified list if a specific port is used on client
 	 * side.
 	 * 
-	 * @param clients    The list of clients to check.
+	 * @param mumblePlayerClients    The list of clients to check.
 	 * @param connection The connection used to send the request to the client.
 	 */
-	public GamePortAnalyzer(List<Client> clients, ITcpConnection connection) {
-		this.clients = clients;
+	public GamePortAnalyzer(List<MumblePlayerClient> mumblePlayerClients, ITcpConnection connection) {
+		this.mumblePlayerClients = mumblePlayerClients;
 		this.connection = connection;
 	}
 
@@ -40,29 +40,29 @@ public class GamePortAnalyzer {
 	 * 
 	 * @return An optional that contains the client that use the port to play at the game if registered, an empty optional otherwise.
 	 */
-	public Optional<Client> check(InetSocketAddress address) {
-		CountDownLatch countDownLatch = new CountDownLatch(clients.size());
-		for (Client client : clients) {
+	public Optional<MumblePlayerClient> check(InetSocketAddress address) {
+		CountDownLatch countDownLatch = new CountDownLatch(mumblePlayerClients.size());
+		for (MumblePlayerClient mumblePlayerClient : mumblePlayerClients) {
 			// Sending simultaneously the request to each client
-			new Thread(() -> singleCheck(client, address, countDownLatch)).start();
+			new Thread(() -> singleCheck(mumblePlayerClient, address, countDownLatch)).start();
 		}
 		try {
 			countDownLatch.await(5000, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(client);
+		return Optional.ofNullable(mumblePlayerClient);
 	}
 
-	private void singleCheck(Client client, InetSocketAddress address, CountDownLatch countDownLatch) {
+	private void singleCheck(MumblePlayerClient mumblePlayerClient, InetSocketAddress address, CountDownLatch countDownLatch) {
 		// connection null means the client is created by the game.
 		if (connection == null) {
-			if (new GamePort(client.getTcpClient().getConnection()).check(address))
-				this.client = client;
+			if (new GamePort(mumblePlayerClient.getTcpClient().getConnection()).check(address))
+				this.mumblePlayerClient = mumblePlayerClient;
 		}
 		// connection not null means the client is created by mumble.
-		else if (new GamePort(connection).check(client.getGameAddress()))
-			this.client = client;
+		else if (new GamePort(connection).check(mumblePlayerClient.getGameAddress()))
+			this.mumblePlayerClient = mumblePlayerClient;
 
 		// Execution finished, notifying the waiting thread.
 		countDownLatch.countDown();

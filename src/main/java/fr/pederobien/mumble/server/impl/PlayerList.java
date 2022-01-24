@@ -44,16 +44,16 @@ public class PlayerList implements IPlayerList {
 
 	@Override
 	public Optional<IPlayer> getPlayer(String name) {
-		Optional<Client> optClient = server.getClients().getClient(name);
+		Optional<MumblePlayerClient> optClient = server.getClients().getClient(name);
 		return !optClient.isPresent() ? Optional.empty() : Optional.of(optClient.get().getPlayer());
 	}
 
 	@Override
 	public List<IPlayer> getPlayersInChannel() {
 		List<IPlayer> players = new ArrayList<IPlayer>();
-		for (Client client : server.getClients().getClients())
-			if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-				players.add(client.getPlayer());
+		for (MumblePlayerClient mumblePlayerClient : server.getClients().getClients())
+			if (mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().getChannel() != null)
+				players.add(mumblePlayerClient.getPlayer());
 		return players;
 	}
 

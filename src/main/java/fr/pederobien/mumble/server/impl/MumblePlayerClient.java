@@ -8,7 +8,7 @@ import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class Client {
+public class MumblePlayerClient {
 	private InternalServer internalServer;
 	private TcpClient tcpClient;
 	private UdpClient udpClient;
@@ -16,7 +16,7 @@ public class Client {
 	private UUID uuid;
 	private InetSocketAddress gameAddress;
 
-	protected Client(InternalServer internalServer, UUID uuid) {
+	protected MumblePlayerClient(InternalServer internalServer, UUID uuid) {
 		this.internalServer = internalServer;
 		this.uuid = uuid;
 	}
@@ -26,10 +26,10 @@ public class Client {
 		if (this == obj)
 			return true;
 
-		if (!(obj instanceof Client))
+		if (!(obj instanceof MumblePlayerClient))
 			return false;
 
-		Client other = (Client) obj;
+		MumblePlayerClient other = (MumblePlayerClient) obj;
 		return uuid.equals(other.getUUID());
 	}
 

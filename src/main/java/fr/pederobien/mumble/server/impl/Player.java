@@ -21,7 +21,7 @@ public class Player implements IPlayer {
 	private String name;
 	private IPosition position;
 	private IChannel channel;
-	private Client client;
+	private MumblePlayerClient mumblePlayerClient;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private Map<IPlayer, Boolean> muteBy;
 	private Object lockMuteBy;
@@ -73,7 +73,7 @@ public class Player implements IPlayer {
 
 	@Override
 	public UUID getUUID() {
-		return client.getUUID();
+		return mumblePlayerClient.getUUID();
 	}
 
 	@Override
@@ -136,16 +136,16 @@ public class Player implements IPlayer {
 	 * @param right  The right channel volume of the signal.
 	 */
 	public void onOtherPlayerSpeaker(IPlayer player, byte[] data, double global, double left, double right) {
-		client.onOtherPlayerSpeak(player, data, global, left, right);
+		mumblePlayerClient.onOtherPlayerSpeak(player, data, global, left, right);
 	}
 
 	/**
 	 * Set the client of this player. The client represent the client side associated to this player.
 	 * 
-	 * @param client The client of the player.
+	 * @param mumblePlayerClient The client of the player.
 	 */
-	public void setClient(Client client) {
-		this.client = client;
+	public void setClient(MumblePlayerClient mumblePlayerClient) {
+		this.mumblePlayerClient = mumblePlayerClient;
 	}
 
 	/**

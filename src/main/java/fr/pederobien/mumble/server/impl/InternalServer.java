@@ -197,7 +197,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 			return;
 
 		String playerName = (String) response.getPayload()[0];
-		Optional<Client> optClient = getClients().getClient(playerName);
+		Optional<MumblePlayerClient> optClient = getClients().getClient(playerName);
 		if (optClient.isPresent())
 			optClient.get().createUdpClient(udpServer.getConnection(), event.getAddress()).onPlayerSpeak(playerName, (byte[]) response.getPayload()[1]);
 	}

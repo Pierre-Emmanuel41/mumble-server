@@ -37,13 +37,13 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class TcpClient implements IEventListener {
 	private InternalServer internalServer;
-	private Client client;
+	private MumblePlayerClient mumblePlayerClient;
 	private ITcpConnection connection;
 	private AtomicBoolean isJoined;
 
-	public TcpClient(InternalServer internalServer, Client client, ITcpConnection connection) {
+	public TcpClient(InternalServer internalServer, MumblePlayerClient mumblePlayerClient, ITcpConnection connection) {
 		this.internalServer = internalServer;
-		this.client = client;
+		this.mumblePlayerClient = mumblePlayerClient;
 		this.connection = connection;
 
 		isJoined = new AtomicBoolean(false);
@@ -78,7 +78,7 @@ public class TcpClient implements IEventListener {
 
 	@EventHandler
 	private void onPlayerAdminChange(PlayerAdminStatusChangeEvent event) {
-		if (!event.getPlayer().equals(client.getPlayer()))
+		if (!event.getPlayer().equals(mumblePlayerClient.getPlayer()))
 			return;
 
 		doIfPlayerJoined(() -> send(MumbleMessageFactory.create(Idc.PLAYER_ADMIN, Oid.SET, event.getPlayer().getName(), event.getPlayer().isAdmin())));
@@ -86,7 +86,7 @@ public class TcpClient implements IEventListener {
 
 	@EventHandler
 	private void onPlayerOnlineChange(PlayerOnlineChangeEvent event) {
-		if (!event.getPlayer().equals(client.getPlayer()))
+		if (!event.getPlayer().equals(mumblePlayerClient.getPlayer()))
 			return;
 
 		doIfPlayerJoined(() -> {
@@ -94,7 +94,7 @@ public class TcpClient implements IEventListener {
 				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, true, event.getPlayer().getName(), event.getPlayer().isAdmin()));
 			else {
 				if (event.getPlayer().getChannel() != null)
-					event.getPlayer().getChannel().removePlayer(client.getPlayer());
+					event.getPlayer().getChannel().removePlayer(mumblePlayerClient.getPlayer());
 				send(MumbleMessageFactory.create(Idc.PLAYER_INFO, false));
 			}
 		});
@@ -221,7 +221,7 @@ public class TcpClient implements IEventListener {
 		removePlayerFromChannel();
 
 		connection.dispose();
-		EventManager.callEvent(new ClientDisconnectPostEvent(client));
+		EventManager.callEvent(new ClientDisconnectPostEvent(mumblePlayerClient));
 	}
 
 	@EventHandler
@@ -236,7 +236,7 @@ public class TcpClient implements IEventListener {
 			return;
 
 		if (checkPermission(request))
-			send(internalServer.answer(new RequestEvent(client, request)));
+			send(internalServer.answer(new RequestEvent(mumblePlayerClient, request)));
 		else
 			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
@@ -258,8 +258,8 @@ public class TcpClient implements IEventListener {
 	}
 
 	private void removePlayerFromChannel() {
-		if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
-			client.getPlayer().getChannel().removePlayer(client.getPlayer());
+		if (mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().getChannel() != null)
+			mumblePlayerClient.getPlayer().getChannel().removePlayer(mumblePlayerClient.getPlayer());
 	}
 
 	private boolean checkPermission(IMessage<Header> request) {
@@ -280,7 +280,7 @@ public class TcpClient implements IEventListener {
 				return true;
 			case ADD:
 			case REMOVE:
-				return client.getPlayer() != null && client.getPlayer().isAdmin();
+				return mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().isAdmin();
 			default:
 				return true;
 			}
@@ -288,7 +288,7 @@ public class TcpClient implements IEventListener {
 			switch (request.getHeader().getOid()) {
 			case ADD:
 			case REMOVE:
-				return client.getPlayer() != null && client.getPlayer().isOnline();
+				return mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().isOnline();
 			default:
 				return false;
 			}
@@ -298,12 +298,12 @@ public class TcpClient implements IEventListener {
 			case INFO:
 				return true;
 			case SET:
-				return client.getPlayer() != null && client.getPlayer().isAdmin();
+				return mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().isAdmin();
 			default:
 				return false;
 			}
 		default:
-			return client.getPlayer() != null && client.getPlayer().isAdmin();
+			return mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().isAdmin();
 		}
 	}
 

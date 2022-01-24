@@ -1,23 +1,23 @@
 package fr.pederobien.mumble.server.event;
 
-import fr.pederobien.mumble.server.impl.Client;
+import fr.pederobien.mumble.server.impl.MumblePlayerClient;
 
 public class ClientEvent extends MumbleEvent {
-	private Client client;
+	private MumblePlayerClient mumblePlayerClient;
 
 	/**
 	 * Creates a client event.
 	 * 
-	 * @param client The client source involved in this event.
+	 * @param mumblePlayerClient The client source involved in this event.
 	 */
-	public ClientEvent(Client client) {
-		this.client = client;
+	public ClientEvent(MumblePlayerClient mumblePlayerClient) {
+		this.mumblePlayerClient = mumblePlayerClient;
 	}
 
 	/**
 	 * @return The client involved in this event.
 	 */
-	public Client getClient() {
-		return client;
+	public MumblePlayerClient getClient() {
+		return mumblePlayerClient;
 	}
 }
