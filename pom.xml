@@ -5,7 +5,7 @@
 	<groupId>fr.pederobien</groupId>
 	<artifactId>mumble-server</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>2.0-SNAPSHOT</version>
 	<name>mumble-server</name>
 	<url>http://maven.apache.org</url>
 
