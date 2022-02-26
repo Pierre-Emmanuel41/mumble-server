@@ -8,3 +8,8 @@
 	url = https://github.com/Pierre-Emmanuel41/persistence.git
 	update = rebase
 	branch = 2.0-SNAPSHOT
+[submodule "vocal-server"]
+	path = vocal-server
+	url = https://github.com/Pierre-Emmanuel41/vocal-server
+	update = rebase
+	branch = 1.0-SNAPSHOT
