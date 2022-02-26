@@ -4,20 +4,22 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.communication.interfaces.IUdpConnection;
-import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.server.interfaces.IPlayer;
 
 public class MumblePlayerClient {
-	private InternalServer internalServer;
-	private TcpClient tcpClient;
-	private UdpClient udpClient;
+	private InternalServer server;
+	private MumbleTcpPlayerClient playerclient;
 	private Player player;
 	private UUID uuid;
 	private InetSocketAddress gameAddress;
 
-	protected MumblePlayerClient(InternalServer internalServer, UUID uuid) {
-		this.internalServer = internalServer;
+	/**
+	 * Creates a client associated to a specific player.
+	 * 
+	 * @param server The server associated to this client.
+	 * @param uuid   The client unique identifier.
+	 */
+	protected MumblePlayerClient(InternalServer server, UUID uuid) {
+		this.server = server;
 		this.uuid = uuid;
 	}
 
@@ -36,39 +38,11 @@ public class MumblePlayerClient {
 	/**
 	 * Creates a TCP client associated to the given socket
 	 * 
-	 * @param socket The underlying socket used by the TCP connection to send data to the remote TCP lient.
+	 * @param connection The TCP connection to send/receive data from the remote TCP client.
 	 */
 	public void createTcpClient(ITcpConnection connection) {
-		tcpClient = new TcpClient(internalServer, this, connection);
-	}
-
-	/**
-	 * Creates a UDP client associated to the given connection.
-	 * 
-	 * @param udpServerConnection the connection used to send audio stream.
-	 * @param address             The address associated to the remote UDP client.
-	 * 
-	 * @return The created or updated UDP client.
-	 */
-	public UdpClient createUdpClient(IUdpConnection udpServerConnection, InetSocketAddress address) {
-		if (udpClient == null)
-			udpClient = new UdpClient(internalServer, udpServerConnection, address);
-		udpClient.setAddress(address);
-		return udpClient;
-	}
-
-	/**
-	 * Send a request associated to the Idc {@link Idc#PLAYER_SPEAK} to the mumble client, if defined.
-	 * 
-	 * @param player The speaking player.
-	 * @param data   The bytes array that contains audio sample.
-	 * @param global The global volume of the sample.
-	 * @param left   The volume of the left channel.
-	 * @param right  The volume of the right channel.
-	 */
-	public void onOtherPlayerSpeak(IPlayer player, byte[] data, double global, double left, double right) {
-		if (udpClient != null)
-			udpClient.onPlayerSpeak(player, data, global, left, right);
+		if (playerclient == null)
+			playerclient = new MumbleTcpPlayerClient(server, this, connection);
 	}
 
 	/**
@@ -80,25 +54,18 @@ public class MumblePlayerClient {
 	 * @return True if the game address or the mumble address correspond to the given address and port.
 	 */
 	public boolean isAssociatedTo(int port) {
-		boolean isAssociated = false;
-		if (gameAddress != null && gameAddress.getPort() == port)
-			isAssociated = true;
-
-		if (getMumbleAddress() != null && getMumbleAddress().getPort() == port)
-			isAssociated = true;
-
-		return isAssociated;
+		return getGameAddress() != null && getGameAddress().getPort() == port || getMumbleAddress() != null && getMumbleAddress().getPort() == port;
 	}
 
 	/**
-	 * @return The TCP client associated to this mumble client.
+	 * @return The TCP connection with the remote.
 	 */
-	public TcpClient getTcpClient() {
-		return tcpClient;
+	public ITcpConnection getTcpConnection() {
+		return playerclient == null ? null : playerclient.getConnection();
 	}
 
 	/**
-	 * @return The player associated to this client.
+	 * @return The player associated to this client. Null if not connected in game.
 	 */
 	public Player getPlayer() {
 		return player;
@@ -107,13 +74,14 @@ public class MumblePlayerClient {
 	/**
 	 * Set the player associated to this client.
 	 * 
-	 * @param player The new player.
+	 * @param player The player of this client.
 	 */
 	public void setPlayer(Player player) {
 		this.player = player;
-		if (player != null)
-			player.setClient(this);
-		else
+		if (player != null) {
+			player.setUUID(getUUID());
+			player.setGameAddress(getGameAddress());
+		} else
 			gameAddress = null;
 	}
 
@@ -144,6 +112,6 @@ public class MumblePlayerClient {
 	 * @return The address used by the player to speak to the other players. Null if there the player is not connected with mumble.
 	 */
 	public InetSocketAddress getMumbleAddress() {
-		return tcpClient == null ? null : tcpClient.getAddress();
+		return playerclient == null ? null : playerclient.getConnection().getAddress();
 	}
 }

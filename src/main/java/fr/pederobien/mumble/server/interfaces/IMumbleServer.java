@@ -23,11 +23,9 @@ public interface IMumbleServer {
 	boolean isOpened();
 
 	/**
-	 * Get a list that contains all players connected to the game. It does not means their mumble client is also connected.
-	 * 
-	 * @return A list that contains all registered players. This list is unmodifiable.
+	 * @return A list that contains all players connected to the game. It does not means their mumble client is also connected.
 	 */
-	IPlayerList getPlayers();
+	IServerPlayerList getPlayers();
 
 	/**
 	 * @return The list of channels associated to this server.

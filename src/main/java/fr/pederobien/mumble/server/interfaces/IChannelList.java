@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyRegisteredException;
-import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 
 public interface IChannelList extends Iterable<IChannel> {
@@ -24,7 +23,7 @@ public interface IChannelList extends Iterable<IChannel> {
 	 * @return the created channel.
 	 * 
 	 * @throws ChannelAlreadyRegisteredException  If a channel is already registered for the channel name.
-	 * @throws SoundModifierDoesNotExistException If the sound modifier name refer to registered sound modifier.
+	 * @throws SoundModifierDoesNotExistException If the sound modifier name does not refer to registered sound modifier.
 	 */
 	IChannel add(String channelName, String soundModifierName);
 
@@ -59,17 +58,6 @@ public interface IChannelList extends Iterable<IChannel> {
 	 * @return An optional that contains the channel if registered, an empty optional otherwise.
 	 */
 	Optional<IChannel> getChannel(String name);
-
-	/**
-	 * Rename the channel associated to the oldName.
-	 * 
-	 * @param oldName The old channel name.
-	 * @param newName The new channel name.
-	 * 
-	 * @throws ChannelAlreadyRegisteredException If the channel associated to the new name already exists.
-	 * @throws ChannelNotRegisteredException     If the channel associated to the old name does not exists.
-	 */
-	void renameChannel(String oldName, String newName);
 
 	/**
 	 * @return a sequential {@code Stream} over the elements in this collection.

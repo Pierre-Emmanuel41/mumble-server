@@ -2,21 +2,19 @@ package fr.pederobien.mumble.server.external;
 
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ChannelPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ChannelPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
-import fr.pederobien.mumble.server.event.RequestEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -37,7 +35,7 @@ public class MumbleGameServerClient implements IEventListener {
 		if (!event.getServer().equals(internalServer))
 			return;
 
-		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
 	}
 
 	@EventHandler
@@ -45,27 +43,27 @@ public class MumbleGameServerClient implements IEventListener {
 		if (!event.getServer().equals(internalServer))
 			return;
 
-		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName()));
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.REMOVE, event.getChannel().getName()));
 	}
 
 	@EventHandler
 	private void onChannelRenamed(ChannelNameChangePostEvent event) {
-		send(MumbleMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName()));
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName()));
 	}
 
 	@EventHandler
-	private void onPlayerAdded(ChannelPlayerAddPostEvent event) {
-		send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getChannel().getName(), event.getPlayer().getName()));
+	private void onPlayerAdded(PlayerListPlayerAddPostEvent event) {
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getList().getName(), event.getPlayer().getName()));
 	}
 
 	@EventHandler
-	private void onPlayerRemoved(ChannelPlayerRemovePostEvent event) {
-		send(MumbleMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getChannel().getName(), event.getPlayer().getName()));
+	private void onPlayerRemoved(PlayerListPlayerRemovePostEvent event) {
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getList().getName(), event.getPlayer().getName()));
 	}
 
 	@EventHandler
 	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		send(MumbleMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
+		send(MumbleServerMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
 	}
 
 	@EventHandler
@@ -73,20 +71,20 @@ public class MumbleGameServerClient implements IEventListener {
 		if (!event.getConnection().equals(tcpConnection))
 			return;
 
-		IMessage<Header> request = MumbleMessageFactory.parse(event.getAnswer());
+		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
 		if (checkPermission(request))
-			send(internalServer.answer(new RequestEvent(null, request)));
+			send(internalServer.getRequestManager().answer(request));
 		else
-			send(MumbleMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
 
-	private void send(IMessage<Header> message) {
+	private void send(IMumbleMessage message) {
 		if (tcpConnection.isDisposed())
 			return;
 		tcpConnection.send(new MumbleCallbackMessage(message, null));
 	}
 
-	private boolean checkPermission(IMessage<Header> request) {
+	private boolean checkPermission(IMumbleMessage request) {
 		switch (request.getHeader().getIdc()) {
 		case SERVER_JOIN:
 		case PLAYER_INFO:

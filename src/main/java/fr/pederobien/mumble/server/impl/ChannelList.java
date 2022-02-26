@@ -14,13 +14,11 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyRegisteredException;
-import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
@@ -28,9 +26,9 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class ChannelList implements IChannelList {
+public class ChannelList implements IChannelList, IEventListener {
 	private IMumbleServer server;
 	private Map<String, IChannel> channels;
 	private Lock lock;
@@ -39,6 +37,8 @@ public class ChannelList implements IChannelList {
 		this.server = server;
 		channels = new LinkedHashMap<String, IChannel>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -53,21 +53,8 @@ public class ChannelList implements IChannelList {
 
 	@Override
 	public IChannel add(String channelName, String soundModifierName) {
-		Optional<IChannel> optChannel = getChannel(channelName);
-		if (optChannel.isPresent())
-			throw new ChannelAlreadyRegisteredException(server, optChannel.get());
-
-		Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
-		if (!optSoundModifier.isPresent())
-			throw new SoundModifierDoesNotExistException(soundModifierName);
-
 		ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(server, channelName, soundModifierName);
-		Supplier<IChannel> add = () -> {
-			Channel channel = new Channel(server, channelName, optSoundModifier.get());
-			addChannel(channel);
-			return channel;
-		};
-
+		Supplier<IChannel> add = () -> addChannel(channelName, soundModifierName);
 		return EventManager.callEvent(preEvent, add, channel -> new ServerChannelAddPostEvent(server, channel));
 	}
 
@@ -78,7 +65,12 @@ public class ChannelList implements IChannelList {
 			return null;
 
 		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(server, optChannel.get());
-		EventManager.callEvent(preEvent, () -> removeChannel(name), new ServerChannelRemovePostEvent(server, optChannel.get()));
+		EventManager.callEvent(preEvent);
+		if (preEvent.isCancelled())
+			return null;
+
+		removeChannel(name);
+		EventManager.callEvent(new ServerChannelRemovePostEvent(server, optChannel.get()));
 		return optChannel.get();
 	}
 
@@ -108,19 +100,6 @@ public class ChannelList implements IChannelList {
 	}
 
 	@Override
-	public void renameChannel(String oldName, String newName) {
-		Optional<IChannel> optChannel = getChannel(oldName);
-		if (!optChannel.isPresent())
-			throw new ChannelNotRegisteredException(oldName);
-
-		Optional<IChannel> optRegistered = getChannel(newName);
-		if (optRegistered.isPresent())
-			throw new ChannelAlreadyRegisteredException(server, optChannel.get());
-
-		optChannel.get().setName(newName);
-	}
-
-	@Override
 	public Stream<IChannel> stream() {
 		return channels.values().stream();
 	}
@@ -130,16 +109,11 @@ public class ChannelList implements IChannelList {
 		return new ArrayList<IChannel>(channels.values());
 	}
 
-	@EventHandler(priority = EventPriority.LOW)
-	private void onChannelNameChangePre(ChannelNameChangePreEvent event) {
-		if (!getChannel(event.getChannel().getName()).isPresent() || !getChannel(event.getNewName()).isPresent())
-			return;
-
-		event.setCancelled(getChannel(event.getNewName()).isPresent());
-	}
-
 	@EventHandler
 	private void onChannelNameChangePost(ChannelNameChangePostEvent event) {
+		if (channels.get(event.getOldName()) == null)
+			return;
+
 		Optional<IChannel> optOldChannel = getChannel(event.getOldName());
 		if (!optOldChannel.isPresent())
 			return;
@@ -160,17 +134,26 @@ public class ChannelList implements IChannelList {
 	/**
 	 * Thread safe operation that adds a channel to the channels list.
 	 * 
-	 * @param channel The channel to add.
+	 * @param channelName       The channel name to add.
+	 * @param soundModifierName The sound modifier name associated to the new channel.
 	 * 
-	 * @throws ChannelAlreadyRegisteredException if a channel is already registered for the channel name.
+	 * @throws ChannelAlreadyRegisteredException  if a channel is already registered for the channel name.
+	 * @throws SoundModifierDoesNotExistException If the sound modifier name does not refer to registered sound modifier.
 	 */
-	private void addChannel(IChannel channel) {
+	private IChannel addChannel(String channelName, String soundModifierName) {
 		lock.lock();
 		try {
-			if (channels.get(channel.getName()) != null)
-				throw new ChannelAlreadyRegisteredException(server, channel);
+			IChannel registered = channels.get(channelName);
+			if (registered != null)
+				throw new ChannelAlreadyRegisteredException(server, registered);
 
+			Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
+			if (!optSoundModifier.isPresent())
+				throw new SoundModifierDoesNotExistException(soundModifierName);
+
+			IChannel channel = new Channel(server, channelName, optSoundModifier.get());
 			channels.put(channel.getName(), channel);
+			return channel;
 		} finally {
 			lock.unlock();
 		}

@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.impl.modifiers;
 import fr.pederobien.mumble.server.impl.MathHelper;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.vocal.common.impl.VolumeResult;
 
 public class LinearCircularSoundModifier extends SoundModifier {
 	public static final String RADIUS_PARAMETER_NAME = "Radius";
@@ -33,10 +34,7 @@ public class LinearCircularSoundModifier extends SoundModifier {
 	}
 
 	@Override
-	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-		if (transmitter.equals(receiver))
-			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
-
+	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
 		double distance = MathHelper.getDistance3D(transmitter.getPosition(), receiver.getPosition());
 		double[] volumes = MathHelper.getDefaultLeftAndRightVolume(transmitter.getPosition(), receiver.getPosition());
 		return new VolumeResult((-1.0 / radiusParameter.getValue()) * distance + 1, volumes[0], volumes[1]);

@@ -8,46 +8,39 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
-import fr.pederobien.communication.impl.UdpServer;
-import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.common.impl.Header;
-import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.server.event.RequestEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
+import fr.pederobien.mumble.server.impl.request.RequestManager;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayerList;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.utils.event.EventCalledEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventLogger;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.server.impl.VocalServer;
+import fr.pederobien.vocal.server.interfaces.IVocalServer;
 
 public class InternalServer implements IMumbleServer, IEventListener {
 	private String name;
 	private int port;
-	private String path;
 	private MumblePersistence persistence;
+	private IVocalServer vocalServer;
 	private TcpServer tcpServer;
-	private UdpServer udpServer;
 	private ClientList clients;
 	private IChannelList channels;
-	private IPlayerList players;
-	private RequestManagement requestManagement;
+	private IServerPlayerList players;
+	private RequestManager requestManagement;
 	private boolean isOpened;
 
 	/**
@@ -59,15 +52,14 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	public InternalServer(String name, String path) {
 		this.name = name;
-		this.path = path;
 
 		clients = new ClientList(this);
 		channels = new ChannelList(this);
-		players = new PlayerList(this);
-		requestManagement = new RequestManagement(this);
+		players = new ServerPlayerList(this);
+		requestManagement = new RequestManager(this);
 
-		persistence = new MumblePersistence();
-		persistence.deserialize(this, getPath(path, name.concat(persistence.getExtension())));
+		persistence = new MumblePersistence(path);
+		persistence.deserialize(this);
 
 		registerModifiers();
 		EventManager.registerListener(this);
@@ -78,43 +70,33 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		return name;
 	}
 
-	/**
-	 * Starts the TCP thread and the UDP thread.
-	 */
 	@Override
 	public void open() {
 		tcpServer.connect();
-		udpServer.connect();
+		vocalServer.open();
 		isOpened = true;
 	}
 
-	/**
-	 * Interrupts the TCP thread and the UDP thread.
-	 */
 	@Override
 	public void close() {
 		Runnable close = () -> {
 			tcpServer.disconnect();
-			udpServer.disconnect();
-			persistence.serialize(this, getPath(path, name.concat(persistence.getExtension())));
+			vocalServer.close();
+			persistence.serialize(this);
 			saveLog();
 			isOpened = false;
+			EventManager.unregisterListener(this);
 		};
 		EventManager.callEvent(new ServerClosePreEvent(this), close, new ServerClosePostEvent(this));
-		EventManager.unregisterListener(this);
 	}
 
-	/**
-	 * @return True if the server is opened, false otherwise. The server is opened if and only if {@link #open()} method has been
-	 *         called.
-	 */
 	@Override
 	public boolean isOpened() {
 		return isOpened;
 	}
 
 	@Override
-	public IPlayerList getPlayers() {
+	public IServerPlayerList getPlayers() {
 		return players;
 	}
 
@@ -158,18 +140,14 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	public void setPort(int port) {
 		this.port = port;
 		tcpServer = new TcpServer(name, port, () -> new MessageExtractor());
-		udpServer = new UdpServer(name, port, () -> new MessageExtractor());
+		vocalServer = new VocalServer(name, port);
 	}
 
 	/**
-	 * Try to answer to the specified event.
-	 * 
-	 * @param event The event that contains the client which received a request from the network.
-	 * 
-	 * @return A message that contains the answer.
+	 * @return The request manager in order to perform a specific action according the remote request.
 	 */
-	public IMessage<Header> answer(RequestEvent event) {
-		return requestManagement.answer(event);
+	public RequestManager getRequestManager() {
+		return requestManagement;
 	}
 
 	/**
@@ -187,28 +165,12 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		getClients().createClient(event.getConnection());
 	}
 
-	@EventHandler
-	private void onDataReceived(DataReceivedEvent event) {
-		if (!event.getConnection().equals(udpServer.getConnection()))
-			return;
-
-		IMessage<Header> response = MumbleMessageFactory.parse(event.getBuffer());
-		if (response.getHeader().getIdc() != Idc.PLAYER_SPEAK || response.getHeader().getOid() != Oid.GET)
-			return;
-
-		String playerName = (String) response.getPayload()[0];
-		Optional<MumblePlayerClient> optClient = getClients().getClient(playerName);
-		if (optClient.isPresent())
-			optClient.get().createUdpClient(udpServer.getConnection(), event.getAddress()).onPlayerSpeak(playerName, (byte[]) response.getPayload()[1]);
-	}
-
 	private void registerModifiers() {
 		SoundManager.add(new LinearCircularSoundModifier());
 	}
 
 	private void saveLog() {
-		Path logPath = Paths.get(getPath(path, "logs"));
-		System.out.println("logPath=" + logPath);
+		Path logPath = Paths.get(persistence.getPath().concat(FileSystems.getDefault().getSeparator()).concat("logs"));
 
 		// Creates intermediate folders if they don't exist.
 		if (!Files.exists(logPath))
@@ -232,13 +194,5 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private String getPath(String first, String... others) {
-		StringJoiner joiner = new StringJoiner(FileSystems.getDefault().getSeparator());
-		joiner.add(first);
-		for (String other : others)
-			joiner.add(other);
-		return joiner.toString();
 	}
 }

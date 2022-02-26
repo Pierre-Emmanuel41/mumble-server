@@ -10,26 +10,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.mumble.common.impl.messages.v10.GamePortSetMessageV10;
 
 public class GamePortAnalyzer {
-	private List<MumblePlayerClient> mumblePlayerClients;
+	private List<MumblePlayerClient> clients;
 	private ITcpConnection connection;
-	private MumblePlayerClient mumblePlayerClient;
+	private MumblePlayerClient client;
 
 	/**
 	 * Creates a game port analyzer that is responsible to ask each client in the specified list if a specific port is used on client
 	 * side.
 	 * 
-	 * @param mumblePlayerClients    The list of clients to check.
+	 * @param clients    The list of clients to check.
 	 * @param connection The connection used to send the request to the client.
 	 */
-	public GamePortAnalyzer(List<MumblePlayerClient> mumblePlayerClients, ITcpConnection connection) {
-		this.mumblePlayerClients = mumblePlayerClients;
+	public GamePortAnalyzer(List<MumblePlayerClient> clients, ITcpConnection connection) {
+		this.clients = clients;
 		this.connection = connection;
 	}
 
@@ -41,28 +39,28 @@ public class GamePortAnalyzer {
 	 * @return An optional that contains the client that use the port to play at the game if registered, an empty optional otherwise.
 	 */
 	public Optional<MumblePlayerClient> check(InetSocketAddress address) {
-		CountDownLatch countDownLatch = new CountDownLatch(mumblePlayerClients.size());
-		for (MumblePlayerClient mumblePlayerClient : mumblePlayerClients) {
+		CountDownLatch countDownLatch = new CountDownLatch(clients.size());
+		for (MumblePlayerClient client : clients) {
 			// Sending simultaneously the request to each client
-			new Thread(() -> singleCheck(mumblePlayerClient, address, countDownLatch)).start();
+			new Thread(() -> singleCheck(client, address, countDownLatch)).start();
 		}
 		try {
 			countDownLatch.await(5000, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(mumblePlayerClient);
+		return Optional.ofNullable(client);
 	}
 
-	private void singleCheck(MumblePlayerClient mumblePlayerClient, InetSocketAddress address, CountDownLatch countDownLatch) {
+	private void singleCheck(MumblePlayerClient client, InetSocketAddress address, CountDownLatch countDownLatch) {
 		// connection null means the client is created by the game.
 		if (connection == null) {
-			if (new GamePort(mumblePlayerClient.getTcpClient().getConnection()).check(address))
-				this.mumblePlayerClient = mumblePlayerClient;
+			if (new GamePort(client.getTcpConnection()).check(address))
+				this.client = client;
 		}
 		// connection not null means the client is created by mumble.
-		else if (new GamePort(connection).check(mumblePlayerClient.getGameAddress()))
-			this.mumblePlayerClient = mumblePlayerClient;
+		else if (new GamePort(connection).check(client.getGameAddress()))
+			this.client = client;
 
 		// Execution finished, notifying the waiting thread.
 		countDownLatch.countDown();
@@ -93,12 +91,12 @@ public class GamePortAnalyzer {
 				return false;
 
 			// Step 1: Sending the request to the client.
-			connection.send(new MumbleCallbackMessage(MumbleMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
+			connection.send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
 				if (args.isTimeout())
 					isUsed = false;
 				else {
-					IMessage<Header> response = MumbleMessageFactory.parse(args.getResponse().getBytes());
-					isUsed = (boolean) response.getPayload()[1];
+					GamePortSetMessageV10 response = (GamePortSetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+					isUsed = response.isUsed();
 				}
 
 				// Step 3: Signaling an answer has been received.

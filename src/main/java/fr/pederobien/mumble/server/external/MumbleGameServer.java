@@ -7,7 +7,7 @@ import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayerList;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -59,7 +59,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public IPlayerList getPlayers() {
+	public IServerPlayerList getPlayers() {
 		checkIsOpened();
 		return server.getPlayers();
 	}

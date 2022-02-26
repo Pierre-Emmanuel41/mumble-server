@@ -6,7 +6,7 @@ import fr.pederobien.mumble.server.impl.MumblePlayerClient;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class ServerClientRemovePostEvent extends ServerEvent {
-	private MumblePlayerClient mumblePlayerClient;
+	private MumblePlayerClient client;
 
 	/**
 	 * Creates an event thrown when the client is removed from the client list associated to the given server. This event is thrown
@@ -14,18 +14,18 @@ public class ServerClientRemovePostEvent extends ServerEvent {
 	 * connections is still alive then this event is not thrown.
 	 * 
 	 * @param server The server from which the client has been removed..
-	 * @param mumblePlayerClient The removed client.
+	 * @param client The removed client.
 	 */
-	public ServerClientRemovePostEvent(IMumbleServer server, MumblePlayerClient mumblePlayerClient) {
+	public ServerClientRemovePostEvent(IMumbleServer server, MumblePlayerClient client) {
 		super(server);
-		this.mumblePlayerClient = mumblePlayerClient;
+		this.client = client;
 	}
 
 	/**
 	 * @return The remove client.
 	 */
 	public MumblePlayerClient getClient() {
-		return mumblePlayerClient;
+		return client;
 	}
 
 	@Override

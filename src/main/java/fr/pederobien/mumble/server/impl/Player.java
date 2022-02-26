@@ -17,17 +17,22 @@ import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
 
 public class Player implements IPlayer {
-	private InetSocketAddress address;
 	private String name;
+	private UUID uuid;
+	private InetSocketAddress gameAddress;
 	private IPosition position;
 	private IChannel channel;
-	private MumblePlayerClient mumblePlayerClient;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private Map<IPlayer, Boolean> muteBy;
 	private Object lockMuteBy;
 
-	protected Player(InetSocketAddress address, String name, boolean isAdmin) {
-		this.address = address;
+	/**
+	 * Creates a player specified by a name, a vocal address and an administrator status.
+	 * 
+	 * @param name    The player name.
+	 * @param isAdmin The administrator status.
+	 */
+	protected Player(String name, boolean isAdmin) {
 		this.name = name;
 		this.isAdmin = isAdmin;
 
@@ -43,8 +48,8 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public InetSocketAddress getIp() {
-		return address;
+	public InetSocketAddress getGameAddress() {
+		return gameAddress;
 	}
 
 	@Override
@@ -73,16 +78,12 @@ public class Player implements IPlayer {
 
 	@Override
 	public UUID getUUID() {
-		return mumblePlayerClient.getUUID();
+		return uuid;
 	}
 
 	@Override
 	public IChannel getChannel() {
 		return channel;
-	}
-
-	public void setChannel(IChannel channel) {
-		this.channel = channel;
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class Player implements IPlayer {
 
 	@Override
 	public String toString() {
-		return "Player={" + address + "," + name + "}";
+		return String.format("Player={%s}", name);
 	}
 
 	@Override
@@ -127,25 +128,30 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Send the data to the client in order to play it on the client side.
+	 * Set the address used by this player in order to play to the game.
 	 * 
-	 * @param player The speaking player.
-	 * @param data   The byte array that correspond to what the player is saying.
-	 * @param global The global volume of the signal.
-	 * @param left   The left channel volume of the signal.
-	 * @param right  The right channel volume of the signal.
+	 * @param gameAddress The address
 	 */
-	public void onOtherPlayerSpeaker(IPlayer player, byte[] data, double global, double left, double right) {
-		mumblePlayerClient.onOtherPlayerSpeak(player, data, global, left, right);
+	public void setGameAddress(InetSocketAddress gameAddress) {
+		this.gameAddress = gameAddress;
 	}
 
 	/**
-	 * Set the client of this player. The client represent the client side associated to this player.
+	 * Set the identifier of this player.
 	 * 
-	 * @param mumblePlayerClient The client of the player.
+	 * @param uuid The player unique identifier.
 	 */
-	public void setClient(MumblePlayerClient mumblePlayerClient) {
-		this.mumblePlayerClient = mumblePlayerClient;
+	public void setUUID(UUID uuid) {
+		this.uuid = uuid;
+	}
+
+	/**
+	 * Set the channel associated to this player.
+	 * 
+	 * @param channel The new channel player.
+	 */
+	public void setChannel(IChannel channel) {
+		this.channel = channel;
 	}
 
 	/**

@@ -1,8 +1,9 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Stream;
 
-public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>>> {
+public interface IParameterList extends Iterable<IParameter<?>> {
 
 	/**
 	 * Get the parameter associated to the given name.
@@ -12,7 +13,7 @@ public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>
 	 * 
 	 * @return The parameter associated to the name if registered.
 	 */
-	public <T> IParameter<T> getParameter(String parameterName);
+	<T> IParameter<T> getParameter(String parameterName);
 
 	/**
 	 * Set the value of a parameter.
@@ -21,17 +22,12 @@ public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>
 	 * @param parameterName The parameter name.
 	 * @param value         The new parameter value.
 	 */
-	public <T> void setParameterValue(String parameterName, T value);
-
-	/**
-	 * @return The underlying list of the registered parameters.
-	 */
-	public Map<String, IParameter<?>> getParameters();
+	<T> void setParameterValue(String parameterName, T value);
 
 	/**
 	 * @return The number of registered parameters.
 	 */
-	public int size();
+	int size();
 
 	/**
 	 * Update the value of each parameter contains in this parameter list and the specified list.
@@ -46,4 +42,14 @@ public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>
 	 * @return A new parameter list.
 	 */
 	IParameterList clone();
+
+	/**
+	 * @return a sequential {@code Stream} over the elements in this collection.
+	 */
+	Stream<IParameter<?>> stream();
+
+	/**
+	 * @return A copy of the underlying list.
+	 */
+	List<IParameter<?>> toList();
 }

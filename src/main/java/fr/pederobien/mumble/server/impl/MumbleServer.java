@@ -3,7 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IPlayerList;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 
 public class MumbleServer implements IMumbleServer {
 	private InternalServer server;
@@ -42,7 +42,7 @@ public class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
-	public IPlayerList getPlayers() {
+	public IServerPlayerList getPlayers() {
 		checkIsOpened();
 		return server.getPlayers();
 	}
@@ -66,5 +66,12 @@ public class MumbleServer implements IMumbleServer {
 	private void checkIsOpened() {
 		if (!server.isOpened())
 			throw new ServerNotOpenedException();
+	}
+
+	/**
+	 * @return The implementation of this server.
+	 */
+	protected InternalServer getInternalServer() {
+		return server;
 	}
 }

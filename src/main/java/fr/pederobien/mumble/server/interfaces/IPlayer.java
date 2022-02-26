@@ -15,7 +15,7 @@ public interface IPlayer {
 	/**
 	 * @return The address used by the player to play to the game.
 	 */
-	InetSocketAddress getIp();
+	InetSocketAddress getGameAddress();
 
 	/**
 	 * @return The position in game of this player.

@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.interfaces;
 
+import fr.pederobien.vocal.common.impl.VolumeResult;
+
 public interface ISoundModifier extends Cloneable {
 
 	/**
@@ -45,41 +47,4 @@ public interface ISoundModifier extends Cloneable {
 	 * @return A new sound modifier.
 	 */
 	ISoundModifier clone();
-
-	public class VolumeResult {
-		public static final VolumeResult NONE = new VolumeResult(0);
-		public static final VolumeResult DEFAULT = new VolumeResult(1.0, 1.0, 1.0);
-		private double global, left, right;
-
-		public VolumeResult(double global, double left, double right) {
-			this.global = global < 0 ? 0 : global;
-			this.left = left < 0 ? 0 : left;
-			this.right = right < 0 ? 0 : right;
-		}
-
-		public VolumeResult(double global) {
-			this(global, 1.0, 1.0);
-		}
-
-		/**
-		 * @return The global volume for the left and right channel.
-		 */
-		public double getGlobal() {
-			return global;
-		}
-
-		/**
-		 * @return The volume for the left audio channel.
-		 */
-		public double getLeft() {
-			return left;
-		}
-
-		/**
-		 * @return The volume for the right audio channel.
-		 */
-		public double getRight() {
-			return right;
-		}
-	}
 }

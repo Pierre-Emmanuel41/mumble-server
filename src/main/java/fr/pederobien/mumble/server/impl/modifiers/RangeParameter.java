@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.impl.modifiers;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.common.impl.model.ParameterType;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
 public class RangeParameter<T> extends Parameter<T> {

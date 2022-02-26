@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.impl.modifiers;
 
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.vocal.common.impl.VolumeResult;
 
 public class LinearEllipseModifier extends SoundModifier {
 	// Major axis
@@ -16,9 +17,7 @@ public class LinearEllipseModifier extends SoundModifier {
 	}
 
 	@Override
-	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
-		if (transmitter.equals(receiver))
-			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
-		return super.calculate(transmitter, receiver);
+	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
+		return VolumeResult.DEFAULT;
 	}
 }

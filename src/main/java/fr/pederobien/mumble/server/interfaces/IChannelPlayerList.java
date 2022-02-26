@@ -1,27 +1,31 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface IPlayerList extends Iterable<IPlayer> {
+import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
+
+public interface IChannelPlayerList extends Iterable<IPlayer> {
 
 	/**
-	 * @return The name of this list.
+	 * @return The channel to which this list is associated.
+	 */
+	IChannel getChannel();
+
+	/**
+	 * @return The name of this player list.
 	 */
 	String getName();
 
 	/**
-	 * Register a player to this server.
+	 * Appends the given player to this list.
 	 * 
-	 * @param address    The address associated to this player
-	 * @param playerName The name of the connected player.
-	 * @param isAdmin    True if the player is an admin in game.
+	 * @param player The player to add.
 	 * 
-	 * @return The registered player.
+	 * @throws PlayerAlreadyRegisteredException If a player is already registered for the player name.
 	 */
-	IPlayer add(InetSocketAddress address, String playerName, boolean isAdmin);
+	void add(IPlayer player);
 
 	/**
 	 * Removes the player associated to the given name.
@@ -42,6 +46,11 @@ public interface IPlayerList extends Iterable<IPlayer> {
 	boolean remove(IPlayer player);
 
 	/**
+	 * Removes all registered players. It also clear each registered players.
+	 */
+	void clear();
+
+	/**
 	 * Get the player associated to the given name.
 	 * 
 	 * @param name The player name.
@@ -49,11 +58,6 @@ public interface IPlayerList extends Iterable<IPlayer> {
 	 * @return An optional that contains the player if registered, an empty optional otherwise.
 	 */
 	Optional<IPlayer> getPlayer(String name);
-
-	/**
-	 * @return A list that contains players registered in channels.
-	 */
-	List<IPlayer> getPlayersInChannel();
 
 	/**
 	 * @return a sequential {@code Stream} over the elements in this collection.

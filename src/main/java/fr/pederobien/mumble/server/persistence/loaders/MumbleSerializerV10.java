@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.server.persistence.loaders;
 
-import java.util.Map;
-
 import org.w3c.dom.Element;
 
 import fr.pederobien.mumble.server.impl.InternalServer;
@@ -43,25 +41,25 @@ public class MumbleSerializerV10 extends AbstractXmlMumbleSerializer {
 			channel.appendChild(soundModifier);
 
 			Element parameters = createElement(EMumbleXmlTag.PARAMETERS);
-			for (Map.Entry<String, IParameter<?>> parameterEntry : c.getSoundModifier().getParameters()) {
+			for (IParameter<?> param : c.getSoundModifier().getParameters()) {
 				Element parameter = createElement(EMumbleXmlTag.PARAMETER);
-				setAttribute(parameter, EMumbleXmlTag.NAME, parameterEntry.getValue().getName());
+				setAttribute(parameter, EMumbleXmlTag.NAME, param.getName());
 
 				Element type = createElement(EMumbleXmlTag.TYPE);
-				setAttribute(type, EMumbleXmlTag.NAME, parameterEntry.getValue().getType().toString());
-				type.appendChild(createTextNode("" + parameterEntry.getValue().getType().getCode()));
+				setAttribute(type, EMumbleXmlTag.NAME, param.getType().toString());
+				type.appendChild(createTextNode("" + param.getType().getCode()));
 				parameter.appendChild(type);
 
 				Element defaultValue = createElement(EMumbleXmlTag.DEFAULT_VALUE);
-				defaultValue.appendChild(createTextNode("" + parameterEntry.getValue().getDefaultValue()));
+				defaultValue.appendChild(createTextNode("" + param.getDefaultValue()));
 				parameter.appendChild(defaultValue);
 
 				Element value = createElement(EMumbleXmlTag.VALUE);
-				value.appendChild(createTextNode("" + parameterEntry.getValue().getValue()));
+				value.appendChild(createTextNode("" + param.getValue()));
 				parameter.appendChild(value);
 
-				if (parameterEntry.getValue() instanceof RangeParameter) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameterEntry.getValue();
+				if (param instanceof RangeParameter) {
+					RangeParameter<?> rangeParameter = (RangeParameter<?>) param.getValue();
 					Element range = createElement(EMumbleXmlTag.RANGE);
 					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getMin());
 					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getMax());

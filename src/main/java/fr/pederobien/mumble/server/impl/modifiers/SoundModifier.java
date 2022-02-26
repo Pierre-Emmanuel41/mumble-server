@@ -1,11 +1,10 @@
 package fr.pederobien.mumble.server.impl.modifiers;
 
-import java.util.Map;
-
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
+import fr.pederobien.vocal.common.impl.VolumeResult;
 
 public class SoundModifier implements ISoundModifier {
 	public static final String FEEDBACK_PARAMETER_NAME = "Feedback";
@@ -30,8 +29,8 @@ public class SoundModifier implements ISoundModifier {
 		this.parameters = original.getParameters().clone();
 		this.channel = original.getChannel();
 
-		for (Map.Entry<String, IParameter<?>> entry : parameters)
-			((Parameter<?>) entry.getValue()).setSoundModifier(this);
+		for (IParameter<?> parameter : parameters)
+			((Parameter<?>) parameter).setSoundModifier(this);
 
 		feedbackParameter = parameters.getParameter(FEEDBACK_PARAMETER_NAME);
 	}
@@ -64,8 +63,8 @@ public class SoundModifier implements ISoundModifier {
 	@Override
 	public VolumeResult calculate(IPlayer transmitter, IPlayer receiver) {
 		if (transmitter.equals(receiver))
-			return sendFeedback() ? VolumeResult.DEFAULT : VolumeResult.NONE;
-		return VolumeResult.DEFAULT;
+			return sendFeedback() ? dispatch(transmitter, receiver) : VolumeResult.NONE;
+		return dispatch(transmitter, receiver);
 	}
 
 	@Override
@@ -92,5 +91,17 @@ public class SoundModifier implements ISoundModifier {
 	 */
 	public void setChannel(IChannel channel) {
 		this.channel = channel;
+	}
+
+	/**
+	 * Calculate the left audio channel volume, the right audio channel volume and the signal global volume.
+	 * 
+	 * @param transmitter The player currently speaking.
+	 * @param receiver    The player currently hearing.
+	 * 
+	 * @return The result.
+	 */
+	protected VolumeResult dispatch(IPlayer transmitter, IPlayer receiver) {
+		return VolumeResult.DEFAULT;
 	}
 }

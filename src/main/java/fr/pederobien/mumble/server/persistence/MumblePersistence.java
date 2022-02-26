@@ -11,13 +11,17 @@ import fr.pederobien.persistence.impl.xml.XmlPersistence;
 import fr.pederobien.persistence.interfaces.IPersistence;
 
 public class MumblePersistence {
+	private String path;
 	private XmlPersistence<InternalServer> persistence;
 	private boolean loadingSucceed;
 
 	/**
 	 * Creates a new persistence for the mumble server configuration.
+	 * 
+	 * @param path The folder that contains the server configuration file.
 	 */
-	public MumblePersistence() {
+	public MumblePersistence(String path) {
+		this.path = path;
 		persistence = Persistences.xmlPersistence();
 		persistence.register(persistence.adapt(new MumbleSerializerV10()));
 	}
@@ -26,12 +30,11 @@ public class MumblePersistence {
 	 * Load the file associated to the given path, and update the element properties.
 	 * 
 	 * @param element The element that contains data registered in the configuration file.
-	 * @param path    The path leading to the configuration file. It should contains the file name and the extension.
 	 * 
 	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
 	 *                            persistence.
 	 */
-	public void deserialize(InternalServer element, String path) {
+	public void deserialize(InternalServer element) {
 		try {
 			persistence.deserialize(element, path);
 			loadingSucceed = true;
@@ -47,9 +50,8 @@ public class MumblePersistence {
 	 * to this persistence it is automatically added. If some intermediate directories are missing they are automatically created.
 	 * 
 	 * @param element the element that contains informations to save.
-	 * @param path    The path leading to the configuration file. It should contains the file name.
 	 */
-	public void serialize(InternalServer element, String path) {
+	public void serialize(InternalServer element) {
 		if (!loadingSucceed)
 			return;
 
@@ -61,9 +63,9 @@ public class MumblePersistence {
 	}
 
 	/**
-	 * @return The file extension associated to this persistence.
+	 * @return The folder that contains the server configuration file.
 	 */
-	public String getExtension() {
-		return persistence.getExtension();
+	public String getPath() {
+		return path;
 	}
 }

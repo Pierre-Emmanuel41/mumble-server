@@ -8,18 +8,23 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.interfaces.IPlayer;
-import fr.pederobien.mumble.server.interfaces.IPlayerList;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 
-public class PlayerList implements IPlayerList {
+public class ServerPlayerList implements IServerPlayerList {
 	private InternalServer server;
 
-	public PlayerList(InternalServer server) {
+	/**
+	 * Creates a player list associated to the given server.
+	 * 
+	 * @param server The server to which this list is attached.
+	 */
+	public ServerPlayerList(InternalServer server) {
 		this.server = server;
 	}
 
 	@Override
 	public Iterator<IPlayer> iterator() {
-		return server.getPlayers().iterator();
+		return server.getClients().getPlayers().iterator();
 	}
 
 	@Override
@@ -43,18 +48,16 @@ public class PlayerList implements IPlayerList {
 	}
 
 	@Override
-	public Optional<IPlayer> getPlayer(String name) {
-		Optional<MumblePlayerClient> optClient = server.getClients().getClient(name);
-		return !optClient.isPresent() ? Optional.empty() : Optional.of(optClient.get().getPlayer());
+	public void clear() {
+		List<IPlayer> players = server.getClients().getPlayers();
+		for (IPlayer player : players)
+			remove(player);
 	}
 
 	@Override
-	public List<IPlayer> getPlayersInChannel() {
-		List<IPlayer> players = new ArrayList<IPlayer>();
-		for (MumblePlayerClient mumblePlayerClient : server.getClients().getClients())
-			if (mumblePlayerClient.getPlayer() != null && mumblePlayerClient.getPlayer().getChannel() != null)
-				players.add(mumblePlayerClient.getPlayer());
-		return players;
+	public Optional<IPlayer> getPlayer(String name) {
+		Optional<MumblePlayerClient> optClient = server.getClients().getClient(name);
+		return optClient.isPresent() ? Optional.of(optClient.get().getPlayer()) : Optional.empty();
 	}
 
 	@Override
@@ -65,5 +68,14 @@ public class PlayerList implements IPlayerList {
 	@Override
 	public List<IPlayer> toList() {
 		return server.getClients().getPlayers();
+	}
+
+	@Override
+	public List<IPlayer> getPlayersInChannel() {
+		List<IPlayer> players = new ArrayList<IPlayer>();
+		for (MumblePlayerClient client : server.getClients().toList())
+			if (client.getPlayer() != null && client.getPlayer().getChannel() != null)
+				players.add(client.getPlayer());
+		return players;
 	}
 }

@@ -7,7 +7,7 @@ import fr.pederobien.mumble.server.impl.MumblePlayerClient;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class ServerClientAddPostEvent extends ServerEvent {
-	private MumblePlayerClient mumblePlayerClient;
+	private MumblePlayerClient client;
 	private Origin origin;
 	private InetSocketAddress address;
 
@@ -15,11 +15,11 @@ public class ServerClientAddPostEvent extends ServerEvent {
 	 * Creates an event thrown when a new client has been created.
 	 * 
 	 * @param server The server on which the client has been created.
-	 * @param mumblePlayerClient The created client.
+	 * @param client The created client.
 	 */
-	public ServerClientAddPostEvent(IMumbleServer server, MumblePlayerClient mumblePlayerClient, Origin origin, InetSocketAddress address) {
+	public ServerClientAddPostEvent(IMumbleServer server, MumblePlayerClient client, Origin origin, InetSocketAddress address) {
 		super(server);
-		this.mumblePlayerClient = mumblePlayerClient;
+		this.client = client;
 		this.origin = origin;
 		this.address = address;
 	}
@@ -28,7 +28,7 @@ public class ServerClientAddPostEvent extends ServerEvent {
 	 * @return The created client.
 	 */
 	public MumblePlayerClient getClient() {
-		return mumblePlayerClient;
+		return client;
 	}
 
 	/**

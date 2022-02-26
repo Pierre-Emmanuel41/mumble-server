@@ -4,7 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.common.impl.model.ParameterType;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;
