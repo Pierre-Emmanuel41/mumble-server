@@ -14,8 +14,8 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerInfoGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerInfoSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
@@ -94,7 +94,7 @@ public abstract class RequestServerManagement {
 	 * 
 	 * @return The server response.
 	 */
-	protected abstract IMumbleMessage playerInfoGet(PlayerInfoGetMessageV10 request);
+	protected abstract IMumbleMessage playerInfoGet(PlayerGetMessageV10 request);
 
 	/**
 	 * Update the statuses of a specific player.
@@ -103,7 +103,7 @@ public abstract class RequestServerManagement {
 	 * 
 	 * @return The server response.
 	 */
-	protected abstract IMumbleMessage playerInfoSet(PlayerInfoSetMessageV10 request);
+	protected abstract IMumbleMessage playerInfoSet(PlayerSetMessageV10 request);
 
 	/**
 	 * Get the channels list.

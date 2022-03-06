@@ -20,13 +20,13 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerInfoGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerInfoSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
@@ -62,14 +62,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		// Server info map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> serverInfoMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		serverInfoMap.put(Oid.INFO, request -> serverInfoGet((ServerInfoGetMessageV10) request));
+		serverInfoMap.put(Oid.GET, request -> serverInfoGet((ServerInfoGetMessageV10) request));
 		getRequests().put(Idc.SERVER_INFO, serverInfoMap);
 
 		// Player info map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerInfoMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerInfoMap.put(Oid.GET, request -> playerInfoGet((PlayerInfoGetMessageV10) request));
-		playerInfoMap.put(Oid.SET, request -> playerInfoSet((PlayerInfoSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_INFO, playerInfoMap);
+		playerInfoMap.put(Oid.GET, request -> playerInfoGet((PlayerGetMessageV10) request));
+		playerInfoMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
+		getRequests().put(Idc.PLAYER, playerInfoMap);
 
 		// Channels map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -123,61 +123,48 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	protected IMumbleMessage serverInfoGet(ServerInfoGetMessageV10 request) {
 		List<Object> informations = new ArrayList<Object>();
 
-		// Number of clients
-		informations.add(getServer().getClients().toList().size());
+		List<MumblePlayerClient> clients = getServer().getClients().toList();
+		clients.removeIf(client -> client.getPlayer() == null);
 
-		for (MumblePlayerClient client : getServer().getClients().toList()) {
-			// Client's UUID
-			informations.add(client.getUUID());
+		// Number of players
+		informations.add(clients.size());
 
-			// Client connected in mumble status
-			informations.add(client.getMumbleAddress() != null);
+		for (MumblePlayerClient client : clients) {
+			// Player's name
+			informations.add(client.getPlayer().getName());
 
-			if (client.getMumbleAddress() != null) {
-				// Client's mumble address
-				informations.add(client.getMumbleAddress().getAddress().getHostAddress());
+			// Player's identifier
+			informations.add(client.getPlayer().getUUID());
 
-				// Client's mumble port
-				informations.add(client.getMumbleAddress().getPort());
-			}
+			// Player's game address
+			informations.add(client.getPlayer().getGameAddress().getAddress().getHostAddress());
 
-			// Player's online status
-			informations.add(client.getPlayer() != null);
+			// Player's game port
+			informations.add(client.getPlayer().getGameAddress().getPort());
 
-			if (client.getPlayer() != null) {
-				// Player's game address
-				informations.add(client.getGameAddress().getAddress().getHostAddress());
+			// Player's administrator status
+			informations.add(client.getPlayer().isAdmin());
 
-				// Player's game port
-				informations.add(client.getGameAddress().getAddress().getHostAddress());
+			// Player's mute status
+			informations.add(client.getPlayer().isMute());
 
-				// Player's name
-				informations.add(client.getPlayer().getName());
+			// Player's deafen status
+			informations.add(client.getPlayer().isDeafen());
 
-				// Player's admin status
-				informations.add(client.getPlayer().isAdmin());
+			// Player's X coordinate
+			informations.add(client.getPlayer().getPosition().getX());
 
-				// Player's mute status
-				informations.add(client.getPlayer().isMute());
+			// Player's Y coordinate
+			informations.add(client.getPlayer().getPosition().getY());
 
-				// Player's deafen status
-				informations.add(client.getPlayer().isDeafen());
+			// Player's Z coordinate
+			informations.add(client.getPlayer().getPosition().getZ());
 
-				// Player's X coordinate
-				informations.add(client.getPlayer().getPosition().getX());
+			// Player's yaw angle
+			informations.add(client.getPlayer().getPosition().getYaw());
 
-				// Player's Y coordinate
-				informations.add(client.getPlayer().getPosition().getY());
-
-				// Player's Z coordinate
-				informations.add(client.getPlayer().getPosition().getZ());
-
-				// Player's yaw angle
-				informations.add(client.getPlayer().getPosition().getYaw());
-
-				// Player's pitch angle
-				informations.add(client.getPlayer().getPosition().getPitch());
-			}
+			// Player's pitch angle
+			informations.add(client.getPlayer().getPosition().getPitch());
 
 		}
 
@@ -213,7 +200,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 				// Parameter's range value
 				if (isRange) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter.getValue();
+					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
 					informations.add(rangeParameter.getMin());
 					informations.add(rangeParameter.getMax());
 				}
@@ -254,26 +241,26 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	}
 
 	@Override
-	protected IMumbleMessage playerInfoGet(PlayerInfoGetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+	protected IMumbleMessage playerInfoGet(PlayerGetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerInfo().getName());
 		if (optPlayer.isPresent())
 			return MumbleServerMessageFactory.answer(request, optPlayer.get().isOnline(), optPlayer.get().getName(), optPlayer.get().isAdmin());
 		return MumbleServerMessageFactory.answer(request, false);
 	}
 
 	@Override
-	protected IMumbleMessage playerInfoSet(PlayerInfoSetMessageV10 request) {
-		if (request.isOnline()) {
-			String address = request.getIpAddress();
-			int port = request.getGamePort();
-			boolean isAdmin = request.isAdmin();
+	protected IMumbleMessage playerInfoSet(PlayerSetMessageV10 request) {
+		if (request.getPlayerInfo().isOnline()) {
+			String address = request.getPlayerInfo().getGameAddress();
+			int port = request.getPlayerInfo().getGamePort();
+			boolean isAdmin = request.getPlayerInfo().isAdmin();
 			try {
-				getServer().getClients().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port), request.getPlayerName(), isAdmin);
+				getServer().getClients().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port), request.getPlayerInfo().getName(), isAdmin);
 			} catch (UnknownHostException e) {
 				return MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR);
 			}
 		} else
-			getServer().getClients().removePlayer(request.getPlayerName());
+			getServer().getClients().removePlayer(request.getPlayerInfo().getName());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 

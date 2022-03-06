@@ -47,12 +47,31 @@ public class MumbleTcpClient {
 	 * @param player The player whose the online status has changed.
 	 */
 	public void onPlayerOnlineChange(IPlayer player) {
-		if (player.isOnline())
-			send(Idc.PLAYER_INFO, true, player.getName(), player.isAdmin());
-		else {
+		if (player.isOnline()) {
+			List<Object> properties = new ArrayList<Object>();
+			// Player's name
+			properties.add(player.getName());
+
+			// Player's online status
+			properties.add(player.isOnline());
+
+			// Player's IP address
+			properties.add(player.getGameAddress().getAddress().getAddress());
+
+			// Player's game port number
+			properties.add(player.getGameAddress().getPort());
+
+			// Player's administrator status
+			properties.add(player.isAdmin());
+
+			// Player's identifier
+			properties.add(player.getUUID());
+
+			send(Idc.PLAYER, Oid.SET, properties.toArray());
+		} else {
 			if (player.getChannel() != null)
 				player.getChannel().getPlayers().remove(player);
-			send(Idc.PLAYER_INFO, false);
+			send(Idc.PLAYER, Oid.SET, player.getName(), false);
 		}
 	}
 

@@ -1,7 +1,9 @@
 package fr.pederobien.mumble.server.external;
 
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
+import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
 import fr.pederobien.mumble.server.impl.InternalServer;
@@ -16,6 +18,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	private InternalServer server;
 	private TcpServer tcpServer;
 	private MumbleGameServerClient client;
+	private ITcpConnection connection;
 
 	/**
 	 * Creates an external mumble server. This kind of server is used when it should be running outside from the game server. The
@@ -89,7 +92,15 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 		if (client != null)
 			event.getConnection().dispose();
 		else
-			client = new MumbleGameServerClient(server, event.getConnection());
+			client = new MumbleGameServerClient(server, connection = event.getConnection());
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		client = null;
 	}
 
 	/**

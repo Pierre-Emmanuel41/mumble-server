@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.server.external;
 
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -72,22 +73,34 @@ public class MumbleGameServerClient implements IEventListener {
 			return;
 
 		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
+
 		if (checkPermission(request))
 			send(internalServer.getRequestManager().answer(request));
 		else
 			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
 
+	@EventHandler
+	private void onConnectionLost(ConnectionLostEvent event) {
+		if (!event.getConnection().equals(tcpConnection))
+			return;
+
+		tcpConnection.dispose();
+		EventManager.unregisterListener(this);
+	}
+
 	private void send(IMumbleMessage message) {
 		if (tcpConnection.isDisposed())
 			return;
+
 		tcpConnection.send(new MumbleCallbackMessage(message, null));
 	}
 
 	private boolean checkPermission(IMumbleMessage request) {
 		switch (request.getHeader().getIdc()) {
+		case SERVER_INFO:
 		case SERVER_JOIN:
-		case PLAYER_INFO:
+		case PLAYER:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case CHANNELS:

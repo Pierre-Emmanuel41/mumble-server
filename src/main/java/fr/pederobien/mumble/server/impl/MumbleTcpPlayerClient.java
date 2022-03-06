@@ -173,7 +173,13 @@ public class MumbleTcpPlayerClient implements IEventListener {
 
 		switch (request.getHeader().getIdc()) {
 		case SERVER_INFO:
-		case PLAYER_INFO:
+			switch (request.getHeader().getOid()) {
+			case GET:
+				return true;
+			default:
+				return false;
+			}
+		case PLAYER:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 			return true;
