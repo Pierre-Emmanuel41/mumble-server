@@ -33,8 +33,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
-import fr.pederobien.mumble.server.exceptions.ChannelAlreadyRegisteredException;
-import fr.pederobien.mumble.server.exceptions.ChannelNotRegisteredException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumblePlayerClient;
@@ -336,6 +334,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		if (optChannel.isPresent()) {
 			if (getServer().getChannels().remove(request.getChannelName()) == null)
 				return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
 			return MumbleServerMessageFactory.answer(request, request.getProperties());
 		} else
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
@@ -343,14 +342,19 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 	@Override
 	protected IMumbleMessage channelsSet(ChannelsSetMessageV10 request) {
-		try {
-			getServer().getChannels().getChannel(request.getOldName()).get().setName(request.getNewName());
-			return MumbleServerMessageFactory.answer(request, request.getProperties());
-		} catch (ChannelAlreadyRegisteredException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
-		} catch (ChannelNotRegisteredException e) {
+		Optional<IChannel> optOldChannel = getServer().getChannels().getChannel(request.getOldName());
+		if (!optOldChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-		}
+
+		Optional<IChannel> optNewChannel = getServer().getChannels().getChannel(request.getNewName());
+		if (optNewChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
+
+		optOldChannel.get().setName(request.getNewName());
+		if (!optOldChannel.get().getName().equals(request.getNewName()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
 	@Override

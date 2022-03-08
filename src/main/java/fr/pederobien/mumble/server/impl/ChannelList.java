@@ -111,9 +111,6 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@EventHandler
 	private void onChannelNameChangePost(ChannelNameChangePostEvent event) {
-		if (channels.get(event.getOldName()) == null)
-			return;
-
 		Optional<IChannel> optOldChannel = getChannel(event.getOldName());
 		if (!optOldChannel.isPresent())
 			return;
