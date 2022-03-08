@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.persistence;
 
 import java.io.FileNotFoundException;
+import java.nio.file.FileSystems;
 
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
@@ -36,7 +37,8 @@ public class MumblePersistence {
 	 */
 	public void deserialize(InternalServer element) {
 		try {
-			persistence.deserialize(element, path.concat(String.format("\\%s%s", element.getName(), persistence.getExtension())));
+			String filePath = path.concat(String.format("%s%s%s", FileSystems.getDefault().getSeparator(), element.getName(), persistence.getExtension()));
+			persistence.deserialize(element, filePath);
 			loadingSucceed = true;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
@@ -58,7 +60,8 @@ public class MumblePersistence {
 			return;
 
 		try {
-			persistence.serialize(element, IPersistence.LATEST, path.concat(String.format("\\%s%s", element.getName(), persistence.getExtension())));
+			String filePath = path.concat(String.format("%s%s%s", FileSystems.getDefault().getSeparator(), element.getName(), persistence.getExtension()));
+			persistence.serialize(element, IPersistence.LATEST, filePath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
