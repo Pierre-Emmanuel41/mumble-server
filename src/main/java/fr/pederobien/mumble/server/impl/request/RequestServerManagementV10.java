@@ -281,15 +281,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			// Number of parameters
 			informations.add(channel.getSoundModifier().getParameters().size());
 
-			for (IParameter<?> parameterEntry : channel.getSoundModifier().getParameters()) {
+			for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
 				// Parameter's name
-				informations.add(parameterEntry.getName());
+				informations.add(parameter.getName());
 
 				// Parameter's type
-				informations.add(parameterEntry.getType());
+				informations.add(parameter.getType());
 
 				// Parameter's value
-				informations.add(parameterEntry.getValue());
+				informations.add(parameter.getValue());
 			}
 
 			// Number of players
@@ -561,7 +561,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 				// Parameter's range value
 				if (isRange) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter.getValue();
+					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
 					informations.add(rangeParameter.getMin());
 					informations.add(rangeParameter.getMax());
 				}

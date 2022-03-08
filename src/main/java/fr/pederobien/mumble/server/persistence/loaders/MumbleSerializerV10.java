@@ -59,7 +59,7 @@ public class MumbleSerializerV10 extends AbstractXmlMumbleSerializer {
 				parameter.appendChild(value);
 
 				if (param instanceof RangeParameter) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) param.getValue();
+					RangeParameter<?> rangeParameter = (RangeParameter<?>) param;
 					Element range = createElement(EMumbleXmlTag.RANGE);
 					setAttribute(range, EMumbleXmlTag.RANGE_MIN, rangeParameter.getMin());
 					setAttribute(range, EMumbleXmlTag.RANGE_MAX, rangeParameter.getMax());
