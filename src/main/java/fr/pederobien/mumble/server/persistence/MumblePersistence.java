@@ -36,10 +36,12 @@ public class MumblePersistence {
 	 */
 	public void deserialize(InternalServer element) {
 		try {
-			persistence.deserialize(element, path);
+			persistence.deserialize(element, path.concat(String.format("\\%s%s", element.getName(), persistence.getExtension())));
 			loadingSucceed = true;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
+			if (!loadingSucceed)
+				e.printStackTrace();
 			element.getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			element.setPort(28000);
 		}
@@ -56,7 +58,7 @@ public class MumblePersistence {
 			return;
 
 		try {
-			persistence.serialize(element, IPersistence.LATEST, path);
+			persistence.serialize(element, IPersistence.LATEST, path.concat(String.format("\\%s%s", element.getName(), persistence.getExtension())));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
