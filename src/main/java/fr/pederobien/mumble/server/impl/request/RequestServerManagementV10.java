@@ -334,7 +334,8 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	protected IMumbleMessage channelsRemove(ChannelsRemoveMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
 		if (optChannel.isPresent()) {
-			getServer().getChannels().remove(request.getChannelName());
+			if (getServer().getChannels().remove(request.getChannelName()) == null)
+				return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 			return MumbleServerMessageFactory.answer(request, request.getProperties());
 		} else
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
