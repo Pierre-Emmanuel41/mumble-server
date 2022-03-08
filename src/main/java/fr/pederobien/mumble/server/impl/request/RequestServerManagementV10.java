@@ -322,9 +322,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		for (LazyParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo())
 			parameterList.add(Parameter.fromType(parameterInfo.getType(), parameterInfo.getName(), parameterInfo.getValue(), parameterInfo.getValue()));
 
-		IChannel addedChannel = getServer().getChannels().add(request.getChannelInfo().getName(), request.getChannelInfo().getSoundModifierInfo().getName());
-		addedChannel.getSoundModifier().getParameters().update(parameterList);
+		IChannel channel = getServer().getChannels().add(request.getChannelInfo().getName(), request.getChannelInfo().getSoundModifierInfo().getName());
+		if (channel == null)
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
+		channel.getSoundModifier().getParameters().update(parameterList);
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 

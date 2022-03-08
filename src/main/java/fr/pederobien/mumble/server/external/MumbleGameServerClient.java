@@ -1,5 +1,8 @@
 package fr.pederobien.mumble.server.external;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
@@ -16,6 +19,7 @@ import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
+import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -36,7 +40,29 @@ public class MumbleGameServerClient implements IEventListener {
 		if (!event.getServer().equals(internalServer))
 			return;
 
-		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.ADD, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
+		List<Object> properties = new ArrayList<Object>();
+
+		// Channel's name
+		properties.add(event.getChannel().getName());
+
+		// Sound modifier's name
+		properties.add(event.getChannel().getSoundModifier().getName());
+
+		// Number of parameters
+		properties.add(event.getChannel().getSoundModifier().getParameters().toList().size());
+
+		for (IParameter<?> parameter : event.getChannel().getSoundModifier().getParameters()) {
+			// Parameter's name
+			properties.add(parameter.getName());
+
+			// Parameter's type
+			properties.add(parameter.getType());
+
+			// Parameter's value
+			properties.add(parameter.getValue());
+		}
+
+		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.ADD, properties.toArray()));
 	}
 
 	@EventHandler
