@@ -18,6 +18,7 @@ import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.interfaces.IParameter;
@@ -120,6 +121,11 @@ public class MumbleGameServerClient implements IEventListener {
 		properties.add(event.getPlayer().getPosition().getPitch());
 
 		send(MumbleServerMessageFactory.create(Idc.PLAYER, Oid.ADD, properties.toArray()));
+	}
+
+	@EventHandler
+	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+		send(MumbleServerMessageFactory.create(Idc.PLAYER, Oid.REMOVE, event.getPlayer().getName()));
 	}
 
 	@EventHandler

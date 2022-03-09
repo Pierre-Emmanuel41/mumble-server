@@ -27,6 +27,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
@@ -78,6 +79,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMap.put(Oid.GET, request -> playerInfoGet((PlayerGetMessageV10) request));
 		playerMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
 		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
+		playerMap.put(Oid.REMOVE, request -> removePlayer((PlayerRemoveMessageV10) request));
 		getRequests().put(Idc.PLAYER, playerMap);
 
 		// Channels player map
@@ -584,7 +586,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	}
 
 	/**
-	 * Rename a channel based on the properties of the given request.
+	 * Renames a channel based on the properties of the given request.
 	 * 
 	 * @param request The request sent by the remote in order to rename a channel.
 	 * 
@@ -607,7 +609,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	}
 
 	/**
-	 * Add a player on the server.
+	 * Adds a player on the server.
 	 * 
 	 * @param request The request sent by the server in order to add a player.
 	 * 
@@ -626,6 +628,25 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR);
 		}
 		IPlayer player = getServer().getPlayers().add(info.getName(), gameAddress, info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(), info.getPitch());
+		if (player == null)
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Removes a player on the server.
+	 * 
+	 * @param request The request sent by the server in order to add a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage removePlayer(PlayerRemoveMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
 		if (player == null)
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 

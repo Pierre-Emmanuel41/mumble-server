@@ -127,17 +127,16 @@ public class ClientList implements IEventListener {
 		Optional<MumblePlayerClient> optClient = getClient(name);
 		if (optClient.isPresent() && optClient.get().getPlayer() != null) {
 			Player player = optClient.get().getPlayer();
-			Runnable remove = () -> {
+			Supplier<IPlayer> remove = () -> {
 				player.setIsOnline(false);
 				optClient.get().setPlayer(null);
 				garbage(optClient.get());
 				players.remove(name);
+				return player;
 			};
 
 			ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(internalServer, player);
-			ServerPlayerRemovePostEvent postEvent = new ServerPlayerRemovePostEvent(internalServer, player);
-			EventManager.callEvent(preEvent, remove, postEvent);
-			return player;
+			return EventManager.callEvent(preEvent, remove, p -> new ServerPlayerRemovePostEvent(internalServer, p));
 		}
 		return null;
 	}
