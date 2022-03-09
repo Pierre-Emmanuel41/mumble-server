@@ -2,7 +2,9 @@ package fr.pederobien.mumble.server.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
+import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -30,6 +32,63 @@ public class MumbleTcpClient {
 	 */
 	public ITcpConnection getConnection() {
 		return connection;
+	}
+
+	/**
+	 * Send a message to the remote in order to register a new player.
+	 * 
+	 * @param name        The player's name.
+	 * @param isOnline    The player's online status.
+	 * @param gameAddress The game address used to play to the game.
+	 * @param gamePort    The port number used to play to the game.
+	 * @param isAdmin     The player's administrator status.
+	 * @param isMute      The player's mute status.
+	 * @param isDeafen    The player's deafen status.
+	 * @param x           The player's x coordinate.
+	 * @param y           The player's y coordinate.
+	 * @param z           The player's z coordinate.
+	 * @param yaw         The player's yaw angle.
+	 * @param pitch       The player's pitch angle.
+	 * @param callback    The callback to run when an answer is received from the server.
+	 */
+	public void onServerPlayerAdd(String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z,
+			double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
+		List<Object> properties = new ArrayList<Object>();
+
+		// Player's name
+		properties.add(name);
+
+		// Player's game address
+		properties.add(gameAddress);
+
+		// Player's gamePort
+		properties.add(gamePort);
+
+		// Player's administrator status
+		properties.add(isAdmin);
+
+		// Player's mute status
+		properties.add(isMute);
+
+		// Player's deafen status
+		properties.add(isMute);
+
+		// Player's x coordinate
+		properties.add(x);
+
+		// Player's y coordinate
+		properties.add(y);
+
+		// Player's z coordinate
+		properties.add(z);
+
+		// Player's yaw angle
+		properties.add(yaw);
+
+		// Player's pitch
+		properties.add(pitch);
+
+		send(Idc.PLAYER, Oid.ADD, properties.toArray());
 	}
 
 	/**

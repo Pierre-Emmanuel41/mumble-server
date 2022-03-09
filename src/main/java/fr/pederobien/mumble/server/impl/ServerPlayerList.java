@@ -33,8 +33,8 @@ public class ServerPlayerList implements IServerPlayerList {
 	}
 
 	@Override
-	public IPlayer add(InetSocketAddress address, String playerName, boolean isAdmin) {
-		return server.getClients().addPlayer(address, playerName, isAdmin);
+	public IPlayer add(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
+		return server.getClients().addPlayer(name, gameAddress, isAdmin, x, y, z, yaw, pitch);
 	}
 
 	@Override

@@ -71,15 +71,22 @@ public class Position implements IPosition {
 
 	@Override
 	public void update(double x, double y, double z, double yaw, double pitch) {
+		if (this.x == x && this.y == y && this.z == z && this.yaw == yaw && this.pitch == pitch)
+			return;
+
+		update0(x, y, z, yaw, pitch);
+	}
+
+	private String format(double number) {
+		return FORMAT.format(number);
+	}
+
+	private void update0(double x, double y, double z, double yaw, double pitch) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.yaw = yaw;
 		this.pitch = pitch;
 		EventManager.callEvent(new PlayerPositionChangeEvent(this));
-	}
-
-	private String format(double number) {
-		return FORMAT.format(number);
 	}
 }

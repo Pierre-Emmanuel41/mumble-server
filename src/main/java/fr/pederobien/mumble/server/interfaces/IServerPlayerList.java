@@ -17,15 +17,20 @@ public interface IServerPlayerList extends Iterable<IPlayer> {
 	/**
 	 * Creates a player and register it.
 	 * 
-	 * @param address    The address associated to this player
-	 * @param playerName The name of the connected player.
-	 * @param isAdmin    True if the player is an admin in game.
+	 * @param name        The player's name.
+	 * @param gameAddress The player's address to play to the game.
+	 * @param isAdmin     The player's administrator status.
+	 * @param x           The player's x coordinate.
+	 * @param x           The player's y coordinate.
+	 * @param x           The player's z coordinate.
+	 * @param x           The player's yaw angle.
+	 * @param x           The player's pitch angle.
 	 * 
 	 * @return The created player.
 	 * 
 	 * @throws PlayerAlreadyRegisteredException If a player is already registered for the player name.
 	 */
-	IPlayer add(InetSocketAddress address, String playerName, boolean isAdmin);
+	IPlayer add(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch);
 
 	/**
 	 * Removes the player associated to the given name.

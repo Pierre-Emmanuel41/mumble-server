@@ -29,14 +29,21 @@ public class Player implements IPlayer {
 	/**
 	 * Creates a player specified by a name, a vocal address and an administrator status.
 	 * 
-	 * @param name    The player name.
-	 * @param isAdmin The administrator status.
+	 * @param name        The player's name.
+	 * @param gameAddress The player's address to play to the game.
+	 * @param isAdmin     The player's administrator status.
+	 * @param x           The player's x coordinate.
+	 * @param x           The player's y coordinate.
+	 * @param x           The player's z coordinate.
+	 * @param x           The player's yaw angle.
+	 * @param x           The player's pitch angle.
 	 */
-	protected Player(String name, boolean isAdmin) {
+	protected Player(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
 		this.name = name;
+		this.gameAddress = gameAddress;
 		this.isAdmin = isAdmin;
 
-		position = new Position(this);
+		position = new Position(this, x, y, z, yaw, pitch);
 		isOnline = false;
 		muteBy = new HashMap<IPlayer, Boolean>();
 		lockMuteBy = new Object();

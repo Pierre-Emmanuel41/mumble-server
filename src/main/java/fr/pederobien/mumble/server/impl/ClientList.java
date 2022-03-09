@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
@@ -103,19 +104,18 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return The created player if it was possible to create one, null otherwise.
 	 */
-	public IPlayer addPlayer(InetSocketAddress address, String playerName, boolean isAdmin) {
-		Optional<Player> optPlayer = createPlayer(playerName, isAdmin);
+	public IPlayer addPlayer(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
+		Player player = new Player(name, gameAddress, isAdmin, x, y, z, yaw, pitch);
 
-		// The creation of a player has been cancelled.
-		if (!optPlayer.isPresent())
-			return null;
-
-		MumblePlayerClient client = getOrCreateClientByGame(address);
-		client.setGameAddress(address);
-		client.setPlayer(optPlayer.get());
-		optPlayer.get().setIsOnline(true);
-		players.put(playerName, client);
-		return optPlayer.get();
+		Supplier<IPlayer> update = () -> {
+			MumblePlayerClient client = getOrCreateClientByGame(gameAddress);
+			client.setGameAddress(gameAddress);
+			client.setPlayer(player);
+			player.setIsOnline(true);
+			players.put(name, client);
+			return player;
+		};
+		return EventManager.callEvent(new ServerPlayerAddPreEvent(internalServer, player), update, p -> new ServerPlayerAddPostEvent(internalServer, p));
 	}
 
 	/**
@@ -304,22 +304,6 @@ public class ClientList implements IEventListener {
 		MumblePlayerClient client = createClient(Origin.PLAYER_CONNECTED_IN_MUMBLE, connection.getAddress());
 		clients.add(client);
 		return client;
-	}
-
-	/**
-	 * Creates the player associated to the given parameter.
-	 * 
-	 * @param playerName The player name.
-	 * @param isAdmin    The player admin status in game.
-	 * 
-	 * @return An optional that contains the created player if it was possible to create one, an empty optional otherwise.
-	 */
-	private Optional<Player> createPlayer(String playerName, boolean isAdmin) {
-		Player player = new Player(playerName, isAdmin);
-
-		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(internalServer, player);
-		ServerPlayerAddPostEvent postEvent = new ServerPlayerAddPostEvent(internalServer, player);
-		return Optional.ofNullable(EventManager.callEvent(preEvent, () -> player, ignored -> postEvent));
 	}
 
 	/**

@@ -17,6 +17,7 @@ import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.interfaces.IParameter;
@@ -76,6 +77,49 @@ public class MumbleGameServerClient implements IEventListener {
 	@EventHandler
 	private void onChannelRenamed(ChannelNameChangePostEvent event) {
 		send(MumbleServerMessageFactory.create(Idc.CHANNELS, Oid.SET, event.getOldName(), event.getChannel().getName()));
+	}
+
+	@EventHandler
+	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
+		List<Object> properties = new ArrayList<Object>();
+
+		// Player's name
+		properties.add(event.getPlayer().getName());
+
+		// Player's game address
+		properties.add(event.getPlayer().getGameAddress().getAddress().getHostAddress());
+
+		// Player's game port
+		properties.add(event.getPlayer().getGameAddress().getPort());
+
+		// Player's identifier
+		properties.add(event.getPlayer().getUUID());
+
+		// Player's administrator status
+		properties.add(event.getPlayer().isAdmin());
+
+		// Player's mute status
+		properties.add(event.getPlayer().isMute());
+
+		// Player's deafen status
+		properties.add(event.getPlayer().isDeafen());
+
+		// Player's x coordinate
+		properties.add(event.getPlayer().getPosition().getX());
+
+		// Player's y coordinate
+		properties.add(event.getPlayer().getPosition().getY());
+
+		// Player's z coordinate
+		properties.add(event.getPlayer().getPosition().getZ());
+
+		// Player's yaw angle
+		properties.add(event.getPlayer().getPosition().getYaw());
+
+		// Player's pitch angle
+		properties.add(event.getPlayer().getPosition().getPitch());
+
+		send(MumbleServerMessageFactory.create(Idc.PLAYER, Oid.ADD, properties.toArray()));
 	}
 
 	@EventHandler

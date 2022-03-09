@@ -7,21 +7,16 @@ import java.util.function.Function;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsAddMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
@@ -79,15 +74,6 @@ public abstract class RequestServerManagement {
 	}
 
 	/**
-	 * Get the server configuration.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The message that contains the server configuration.
-	 */
-	protected abstract IMumbleMessage serverInfoGet(ServerInfoGetMessageV10 request);
-
-	/**
 	 * Get information about a specific player.
 	 * 
 	 * @param request The request sent by the remote.
@@ -104,42 +90,6 @@ public abstract class RequestServerManagement {
 	 * @return The server response.
 	 */
 	protected abstract IMumbleMessage playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Get the channels list.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage channelsGet(ChannelsGetMessageV10 request);
-
-	/**
-	 * Adds a channel to the server channels list.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage channelsAdd(ChannelsAddMessageV10 request);
-
-	/**
-	 * Removes a channel from the server channels list.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage channelsRemove(ChannelsRemoveMessageV10 request);
-
-	/**
-	 * Set the name of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage channelsSet(ChannelsSetMessageV10 request);
 
 	/**
 	 * Adds a player to a channel.
