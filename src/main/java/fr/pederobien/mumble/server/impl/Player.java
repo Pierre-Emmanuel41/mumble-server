@@ -9,6 +9,8 @@ import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangeEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -52,6 +54,15 @@ public class Player implements IPlayer {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		if (this.name.equals(name))
+			return;
+
+		String oldName = this.name;
+		EventManager.callEvent(new PlayerNameChangePreEvent(this, name), () -> this.name = name, new PlayerNameChangePostEvent(this, oldName));
 	}
 
 	@Override

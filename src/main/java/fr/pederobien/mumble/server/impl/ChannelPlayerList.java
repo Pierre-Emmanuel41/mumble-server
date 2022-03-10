@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelPlayerList;
@@ -97,6 +98,25 @@ public class ChannelPlayerList implements IChannelPlayerList {
 	@Override
 	public List<IPlayer> toList() {
 		return new ArrayList<IPlayer>(players.values());
+	}
+
+	@EventHandler
+	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+		Optional<IPlayer> optOldPlayer = getPlayer(event.getOldName());
+		if (!optOldPlayer.isPresent())
+			return;
+
+		Optional<IPlayer> optNewPlayer = getPlayer(event.getPlayer().getName());
+		if (optNewPlayer.isPresent())
+			throw new PlayerAlreadyRegisteredException(this, optNewPlayer.get());
+
+		lock.lock();
+		try {
+			players.remove(event.getOldName());
+			players.put(event.getPlayer().getName(), event.getPlayer());
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@EventHandler

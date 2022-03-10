@@ -13,6 +13,13 @@ public interface IPlayer {
 	String getName();
 
 	/**
+	 * Set the name of this player.
+	 * 
+	 * @param name The new player name.
+	 */
+	void setName(String name);
+
+	/**
 	 * @return The address used by the player to play to the game.
 	 */
 	InetSocketAddress getGameAddress();

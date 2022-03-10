@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
+import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerClientAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerClientAddPostEvent.Origin;
 import fr.pederobien.mumble.server.event.ServerClientRemovePostEvent;
@@ -25,6 +26,7 @@ import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePreEvent;
+import fr.pederobien.mumble.server.exceptions.ServerPlayerListPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -105,6 +107,10 @@ public class ClientList implements IEventListener {
 	 * @return The created player if it was possible to create one, null otherwise.
 	 */
 	public IPlayer addPlayer(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
+		Optional<Player> optPlayer = getPlayer(name);
+		if (optPlayer.isPresent())
+			throw new ServerPlayerListPlayerAlreadyRegisteredException(internalServer.getPlayers(), optPlayer.get());
+
 		Player player = new Player(name, gameAddress, isAdmin, x, y, z, yaw, pitch);
 
 		Supplier<IPlayer> update = () -> {
@@ -211,6 +217,24 @@ public class ClientList implements IEventListener {
 	private void onServerClosing(ServerClosePostEvent event) {
 		clear();
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+		Optional<Player> optOldPlayer = getPlayer(event.getOldName());
+		if (!optOldPlayer.isPresent())
+			return;
+
+		Optional<Player> optNewPlayer = getPlayer(event.getPlayer().getName());
+		if (optNewPlayer.isPresent())
+			throw new ServerPlayerListPlayerAlreadyRegisteredException(internalServer.getPlayers(), optNewPlayer.get());
+
+		lock.lock();
+		try {
+			players.put(event.getPlayer().getName(), players.remove(event.getOldName()));
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**

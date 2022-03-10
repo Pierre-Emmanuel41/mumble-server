@@ -25,6 +25,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
@@ -81,6 +82,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
 		playerMap.put(Oid.REMOVE, request -> removePlayer((PlayerRemoveMessageV10) request));
 		getRequests().put(Idc.PLAYER, playerMap);
+
+		// Player name map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerNameMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerNameMap.put(Oid.SET, request -> renamePlayer((PlayerNameSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_NAME, playerNameMap);
 
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -648,6 +654,29 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
 		if (player == null)
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Rename a player on the server.
+	 * 
+	 * @param request The request received from the remote in order to rename a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage renamePlayer(PlayerNameSetMessageV10 request) {
+		Optional<IPlayer> optOldPlayer = getServer().getPlayers().getPlayer(request.getOldName());
+		if (!optOldPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		Optional<IPlayer> optNewPlayer = getServer().getPlayers().getPlayer(request.getNewName());
+		if (optNewPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_EXISTS);
+
+		optOldPlayer.get().setName(request.getNewName());
+		if (!optOldPlayer.get().getName().equals(request.getNewName()))
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
