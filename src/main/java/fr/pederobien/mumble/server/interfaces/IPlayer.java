@@ -47,6 +47,13 @@ public interface IPlayer {
 	boolean isOnline();
 
 	/**
+	 * Set the online status of a player.
+	 * 
+	 * @param isOnline The new player's online status.
+	 */
+	void setOnline(boolean isOnline);
+
+	/**
 	 * @return The unique identifier associated to this player.
 	 */
 	UUID getUUID();

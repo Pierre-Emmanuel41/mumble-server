@@ -105,7 +105,6 @@ public class ClientList implements IEventListener {
 			MumblePlayerClient client = getOrCreateClientByGame(gameAddress);
 			client.setGameAddress(gameAddress);
 			client.setPlayer(player);
-			player.setIsOnline(true);
 			players.put(name, client);
 			return player;
 		};
@@ -122,7 +121,7 @@ public class ClientList implements IEventListener {
 		if (optClient.isPresent() && optClient.get().getPlayer() != null) {
 			Player player = optClient.get().getPlayer();
 			Supplier<IPlayer> remove = () -> {
-				player.setIsOnline(false);
+				player.setOnline(false);
 				optClient.get().setPlayer(null);
 				garbage(optClient.get());
 				players.remove(name);

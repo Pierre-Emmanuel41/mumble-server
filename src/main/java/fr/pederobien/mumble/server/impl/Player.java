@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
@@ -11,7 +13,8 @@ import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerOnlineChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -26,7 +29,7 @@ public class Player implements IPlayer {
 	private IChannel channel;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private Map<IPlayer, Boolean> muteBy;
-	private Object lockMuteBy;
+	private Lock lock;
 
 	/**
 	 * Creates a player specified by a name, a vocal address and an administrator status.
@@ -45,10 +48,10 @@ public class Player implements IPlayer {
 		this.gameAddress = gameAddress;
 		this.isAdmin = isAdmin;
 
+		isOnline = true;
 		position = new Position(this, x, y, z, yaw, pitch);
-		isOnline = false;
 		muteBy = new HashMap<IPlayer, Boolean>();
-		lockMuteBy = new Object();
+		lock = new ReentrantLock(true);
 	}
 
 	@Override
@@ -92,6 +95,16 @@ public class Player implements IPlayer {
 	@Override
 	public boolean isOnline() {
 		return isOnline;
+	}
+
+	@Override
+	public void setOnline(boolean isOnline) {
+		if (this.isOnline == isOnline)
+			return;
+
+		boolean oldOnline = this.isOnline;
+		Runnable update = () -> this.isOnline = isOnline;
+		EventManager.callEvent(new PlayerOnlineChangePreEvent(this, isOnline), update, new PlayerOnlineChangePostEvent(this, oldOnline));
 	}
 
 	@Override
@@ -173,30 +186,20 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set if this player is online are not. If the status changed then data is sent through the client in order to update the client
-	 * graphical user interface.
-	 * 
-	 * @param isOnline True if the player is online, false otherwise.
-	 */
-	public void setIsOnline(boolean isOnline) {
-		if (this.isOnline == isOnline)
-			return;
-
-		this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineChangeEvent(this, isOnline));
-	}
-
-	/**
 	 * Set if this player is muted by another player. True in order to mute it, false in order to unmute it.
 	 * 
 	 * @param player The player that mute this player.
 	 * @param isMute True if the player is mute, false if the player is unmute.
 	 */
 	public void setIsMuteBy(IPlayer player, boolean isMute) {
-		synchronized (lockMuteBy) {
+		lock.lock();
+		try {
 			muteBy.put(player, isMute);
-			EventManager.callEvent(new PlayerMuteByChangeEvent(this, player, isMute));
+		} finally {
+			lock.unlock();
 		}
+
+		EventManager.callEvent(new PlayerMuteByChangeEvent(this, player, isMute));
 	}
 
 	/**

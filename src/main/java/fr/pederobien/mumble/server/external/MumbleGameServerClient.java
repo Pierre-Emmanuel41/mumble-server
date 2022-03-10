@@ -16,6 +16,7 @@ import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
@@ -135,6 +136,11 @@ public class MumbleGameServerClient implements IEventListener {
 	}
 
 	@EventHandler
+	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+		send(MumbleServerMessageFactory.create(Idc.PLAYER_ONLINE, Oid.SET, event.getPlayer().getName(), event.getPlayer().isOnline()));
+	}
+
+	@EventHandler
 	private void onPlayerAdded(PlayerListPlayerAddPostEvent event) {
 		send(MumbleServerMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getList().getName(), event.getPlayer().getName()));
 	}
@@ -184,6 +190,7 @@ public class MumbleGameServerClient implements IEventListener {
 		case CHANNELS:
 		case PLAYER:
 		case PLAYER_NAME:
+		case PLAYER_ONLINE:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case SOUND_MODIFIER:

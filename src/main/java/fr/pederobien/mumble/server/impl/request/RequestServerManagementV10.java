@@ -26,6 +26,8 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
@@ -87,6 +89,12 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerNameMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		playerNameMap.put(Oid.SET, request -> renamePlayer((PlayerNameSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_NAME, playerNameMap);
+
+		// Player online map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerOnlineMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerOnlineMap.put(Oid.GET, request -> getPlayerOnlineStatus((PlayerOnlineGetMessageV10) request));
+		playerOnlineMap.put(Oid.SET, request -> setPlayerOnlineStatus((PlayerOnlineSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_ONLINE, playerOnlineMap);
 
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -677,6 +685,40 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		optOldPlayer.get().setName(request.getNewName());
 		if (!optOldPlayer.get().getName().equals(request.getNewName()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Get the online status of a player.
+	 * 
+	 * @param request The request received from the remote in order to get the online status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerOnlineStatus(PlayerOnlineGetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		return MumbleServerMessageFactory.answer(request, request.getPlayerName(), optPlayer.get().isOnline());
+	}
+
+	/**
+	 * Set the online status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the online status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerOnlineStatus(PlayerOnlineSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		optPlayer.get().setOnline(request.isOnline());
+		if (optPlayer.get().isOnline() != request.isOnline())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
