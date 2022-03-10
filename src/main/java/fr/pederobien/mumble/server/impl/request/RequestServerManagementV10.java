@@ -1,8 +1,5 @@
 package fr.pederobien.mumble.server.impl.request;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -635,13 +632,8 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
 
 		FullPlayerInfo info = request.getPlayerInfo();
-		InetSocketAddress gameAddress;
-		try {
-			gameAddress = new InetSocketAddress(InetAddress.getByName(info.getGameAddress()), info.getGamePort());
-		} catch (UnknownHostException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR);
-		}
-		IPlayer player = getServer().getPlayers().add(info.getName(), gameAddress, info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(), info.getPitch());
+		IPlayer player = getServer().getPlayers().add(info.getName(), info.getGameAddress(), info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(),
+				info.getPitch());
 		if (player == null)
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
