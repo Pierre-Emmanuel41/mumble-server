@@ -291,7 +291,7 @@ public class ClientList implements IEventListener {
 				return client;
 		}
 
-		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(clients, null).check(socketAddress);
+		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(clients).check(socketAddress);
 		if (optClient.isPresent())
 			return optClient.get();
 
@@ -311,8 +311,7 @@ public class ClientList implements IEventListener {
 	 * @return The client, retrieved or created, associated to the given socket.
 	 */
 	private MumblePlayerClient getOrCreateClientByMumble(ITcpConnection connection) {
-		InetSocketAddress address = connection.getAddress();
-		List<MumblePlayerClient> clients = getOrCreateClients(address.getAddress().getHostAddress());
+		List<MumblePlayerClient> clients = getOrCreateClients(connection.getAddress().getAddress().getHostAddress());
 
 		// No client registered
 		if (clients.isEmpty()) {
@@ -328,7 +327,7 @@ public class ClientList implements IEventListener {
 				return client;
 		}
 
-		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(clients, connection).check(null);
+		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(clients).check(null);
 		if (optClient.isPresent())
 			return optClient.get();
 

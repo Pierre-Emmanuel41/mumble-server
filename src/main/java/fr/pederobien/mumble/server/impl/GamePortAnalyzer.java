@@ -9,26 +9,22 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortSetMessageV10;
 
 public class GamePortAnalyzer {
 	private List<MumblePlayerClient> clients;
-	private ITcpConnection connection;
 	private MumblePlayerClient client;
 
 	/**
 	 * Creates a game port analyzer that is responsible to ask each client in the specified list if a specific port is used on client
 	 * side.
 	 * 
-	 * @param clients    The list of clients to check.
-	 * @param connection The connection used to send the request to the client.
+	 * @param clients The list of clients to check.
 	 */
-	public GamePortAnalyzer(List<MumblePlayerClient> clients, ITcpConnection connection) {
+	public GamePortAnalyzer(List<MumblePlayerClient> clients) {
 		this.clients = clients;
-		this.connection = connection;
 	}
 
 	/**
@@ -53,13 +49,7 @@ public class GamePortAnalyzer {
 	}
 
 	private void singleCheck(MumblePlayerClient client, InetSocketAddress address, CountDownLatch countDownLatch) {
-		// connection null means the client is created by the game.
-		if (connection == null) {
-			if (new GamePort(client.getTcpConnection()).check(address))
-				this.client = client;
-		}
-		// connection not null means the client is created by mumble.
-		else if (new GamePort(connection).check(client.getGameAddress()))
+		if (new GamePort(client).check(address))
 			this.client = client;
 
 		// Execution finished, notifying the waiting thread.
@@ -67,13 +57,13 @@ public class GamePortAnalyzer {
 	}
 
 	private class GamePort {
-		private ITcpConnection connection;
+		private MumblePlayerClient client;
 		private Lock lock;
 		private Condition received;
 		private boolean isUsed;
 
-		public GamePort(ITcpConnection connection) {
-			this.connection = connection;
+		public GamePort(MumblePlayerClient client) {
+			this.client = client;
 
 			lock = new ReentrantLock();
 			received = lock.newCondition();
@@ -87,11 +77,12 @@ public class GamePortAnalyzer {
 		 * @return True if the port is used on the client side, false otherwise.
 		 */
 		public boolean check(InetSocketAddress address) {
-			if (address == null)
+			address = address == null ? client.getPlayer() == null ? null : client.getPlayer().getGameAddress() : null;
+			if (client.getTcpConnection() == null || address == null)
 				return false;
 
 			// Step 1: Sending the request to the client.
-			connection.send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
+			client.getTcpConnection().send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
 				if (args.isTimeout())
 					isUsed = false;
 				else {
