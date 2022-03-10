@@ -12,7 +12,6 @@ import java.util.StringJoiner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
@@ -24,14 +23,12 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.server.persistence.MumblePersistence;
 import fr.pederobien.utils.event.EventCalledEvent;
-import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventLogger;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.vocal.server.impl.VocalServer;
 import fr.pederobien.vocal.server.interfaces.IVocalServer;
 
-public class InternalServer implements IMumbleServer, IEventListener {
+public class InternalServer implements IMumbleServer {
 	private String name;
 	private int port;
 	private MumblePersistence persistence;
@@ -62,7 +59,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		persistence.deserialize(this);
 
 		registerModifiers();
-		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -85,7 +81,6 @@ public class InternalServer implements IMumbleServer, IEventListener {
 			persistence.serialize(this);
 			saveLog();
 			isOpened = false;
-			EventManager.unregisterListener(this);
 		};
 		EventManager.callEvent(new ServerClosePreEvent(this), close, new ServerClosePostEvent(this));
 	}
@@ -157,12 +152,11 @@ public class InternalServer implements IMumbleServer, IEventListener {
 		return clients;
 	}
 
-	@EventHandler
-	private void onNewClientConnect(NewTcpClientEvent event) {
-		if (!event.getServer().equals(tcpServer))
-			return;
-
-		getClients().createClient(event.getConnection());
+	/**
+	 * @return The TCP server for mumble players.
+	 */
+	public TcpServer getTcpServer() {
+		return tcpServer;
 	}
 
 	private void registerModifiers() {
