@@ -40,6 +40,7 @@ public class PlayerOnlineChangePreEvent extends PlayerEvent implements ICancella
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentOnline=" + getPlayer().isOnline());
 		joiner.add("newOnline=" + getNewOnline());
 		return String.format("%s_%s", getName(), joiner);
 	}

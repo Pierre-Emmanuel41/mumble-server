@@ -29,6 +29,7 @@ public class PlayerOnlineChangePostEvent extends PlayerEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentOnline=" + getPlayer().isOnline());
 		joiner.add("oldOnline=" + getOldOnline());
 		return String.format("%s_%s", getName(), joiner);
 	}
