@@ -9,6 +9,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
@@ -74,6 +76,16 @@ public class Player implements IPlayer {
 	}
 
 	@Override
+	public void setGameAddress(InetSocketAddress gameAddress) {
+		if (this.gameAddress.equals(gameAddress))
+			return;
+
+		InetSocketAddress oldGameAddress = this.gameAddress;
+		Runnable update = () -> this.gameAddress = gameAddress;
+		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, gameAddress), update, new PlayerGameAddressChangePostEvent(this, oldGameAddress));
+	}
+
+	@Override
 	public IPosition getPosition() {
 		return position;
 	}
@@ -108,7 +120,7 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public UUID getUUID() {
+	public UUID getIdentifier() {
 		return uuid;
 	}
 
@@ -155,16 +167,7 @@ public class Player implements IPlayer {
 			return false;
 
 		IPlayer other = (IPlayer) obj;
-		return getUUID().equals(other.getUUID());
-	}
-
-	/**
-	 * Set the address used by this player in order to play to the game.
-	 * 
-	 * @param gameAddress The address
-	 */
-	public void setGameAddress(InetSocketAddress gameAddress) {
-		this.gameAddress = gameAddress;
+		return getIdentifier().equals(other.getIdentifier());
 	}
 
 	/**

@@ -25,6 +25,13 @@ public interface IPlayer {
 	InetSocketAddress getGameAddress();
 
 	/**
+	 * Set the address used by this player to play to the game.
+	 * 
+	 * @param gameAddress The the player's game address.
+	 */
+	void setGameAddress(InetSocketAddress gameAddress);
+
+	/**
 	 * @return The position in game of this player.
 	 */
 	IPosition getPosition();
@@ -56,7 +63,7 @@ public interface IPlayer {
 	/**
 	 * @return The unique identifier associated to this player.
 	 */
-	UUID getUUID();
+	UUID getIdentifier();
 
 	/**
 	 * @return The channel in which this player is registered or null if it is not registered in any channels.
