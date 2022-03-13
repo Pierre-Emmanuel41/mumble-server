@@ -2,9 +2,7 @@ package fr.pederobien.mumble.server.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
-import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -32,124 +30,6 @@ public class MumbleTcpClient {
 	 */
 	public ITcpConnection getConnection() {
 		return connection;
-	}
-
-	/**
-	 * Send a message to the remote in order to register a new player.
-	 * 
-	 * @param name        The player's name.
-	 * @param isOnline    The player's online status.
-	 * @param gameAddress The game address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
-	 * @param isAdmin     The player's administrator status.
-	 * @param isMute      The player's mute status.
-	 * @param isDeafen    The player's deafen status.
-	 * @param x           The player's x coordinate.
-	 * @param y           The player's y coordinate.
-	 * @param z           The player's z coordinate.
-	 * @param yaw         The player's yaw angle.
-	 * @param pitch       The player's pitch angle.
-	 * @param callback    The callback to run when an answer is received from the server.
-	 */
-	public void onServerPlayerAdd(String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z,
-			double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
-		List<Object> properties = new ArrayList<Object>();
-
-		// Player's name
-		properties.add(name);
-
-		// Player's game address
-		properties.add(gameAddress);
-
-		// Player's gamePort
-		properties.add(gamePort);
-
-		// Player's administrator status
-		properties.add(isAdmin);
-
-		// Player's mute status
-		properties.add(isMute);
-
-		// Player's deafen status
-		properties.add(isMute);
-
-		// Player's x coordinate
-		properties.add(x);
-
-		// Player's y coordinate
-		properties.add(y);
-
-		// Player's z coordinate
-		properties.add(z);
-
-		// Player's yaw angle
-		properties.add(yaw);
-
-		// Player's pitch
-		properties.add(pitch);
-
-		send(Idc.PLAYER, Oid.ADD, properties.toArray());
-	}
-
-	/**
-	 * Send a message to the remote in order to update the player status admin.
-	 * 
-	 * @param player The player whose the admin status has changed.
-	 */
-	public void onPlayerAdminChange(IPlayer player) {
-		send(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
-	}
-
-	/**
-	 * Send a message to the remote in order to update the player online status.
-	 * 
-	 * @param player The player whose the online status has changed.
-	 */
-	public void onPlayerOnlineChange(IPlayer player) {
-		if (player.isOnline()) {
-			List<Object> properties = new ArrayList<Object>();
-			// Player's name
-			properties.add(player.getName());
-
-			// Player's online status
-			properties.add(player.isOnline());
-
-			// Player's IP address
-			properties.add(player.getGameAddress().getAddress().getAddress());
-
-			// Player's game port number
-			properties.add(player.getGameAddress().getPort());
-
-			// Player's administrator status
-			properties.add(player.isAdmin());
-
-			// Player's identifier
-			properties.add(player.getUUID());
-
-			send(Idc.PLAYER, Oid.SET, properties.toArray());
-		} else {
-			if (player.getChannel() != null)
-				player.getChannel().getPlayers().remove(player);
-			send(Idc.PLAYER, Oid.SET, player.getName(), false);
-		}
-	}
-
-	/**
-	 * Send a message to the remote in order to update the player mute status.
-	 * 
-	 * @param player The player whose the mute status has changed.
-	 */
-	public void onPlayerMuteChange(IPlayer player) {
-		send(Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
-	}
-
-	/**
-	 * Send a message to the remote in order to update the player deafen status.
-	 * 
-	 * @param player The player whose the deafen status has changed.
-	 */
-	public void onPlayerDeafenChange(IPlayer player) {
-		send(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
 	}
 
 	/**
@@ -200,6 +80,117 @@ public class MumbleTcpClient {
 	 */
 	public void onChannelNameChange(IChannel channel, String oldName) {
 		send(Idc.CHANNELS, Oid.SET, oldName, channel.getName());
+	}
+
+	/**
+	 * Send a message to the remote in order to register a new player.
+	 * 
+	 * @param player the added player.
+	 */
+	public void onServerPlayerAdd(IPlayer player) {
+		List<Object> properties = new ArrayList<Object>();
+
+		// Player's name
+		properties.add(player.getName());
+
+		// Player's game address
+		properties.add(player.getGameAddress().getAddress().getHostAddress());
+
+		// Player's gamePort
+		properties.add(player.getGameAddress().getPort());
+
+		// Player's identifier
+		properties.add(player.getIdentifier());
+
+		// Player's administrator status
+		properties.add(player.isAdmin());
+
+		// Player's mute status
+		properties.add(player.isMute());
+
+		// Player's deafen status
+		properties.add(player.isDeafen());
+
+		// Player's x coordinate
+		properties.add(player.getPosition().getX());
+
+		// Player's y coordinate
+		properties.add(player.getPosition().getY());
+
+		// Player's z coordinate
+		properties.add(player.getPosition().getZ());
+
+		// Player's yaw angle
+		properties.add(player.getPosition().getYaw());
+
+		// Player's pitch
+		properties.add(player.getPosition().getPitch());
+
+		send(Idc.PLAYER, Oid.ADD, properties.toArray());
+	}
+
+	/**
+	 * Send a message to the remote in order to remove a player from the server.
+	 * 
+	 * @param name The name of the player to remove.
+	 */
+	public void onServerPlayerRemove(String name) {
+		send(Idc.PLAYER, Oid.REMOVE, name);
+	}
+
+	/**
+	 * Send a message to the remote in order to rename a player.
+	 * 
+	 * @param oldName The name of the player to rename.
+	 * @param newName The new player's name.
+	 */
+	public void onPlayerNameChange(String oldName, String newName) {
+		send(Idc.PLAYER_NAME, Oid.SET, oldName, newName);
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player status admin.
+	 * 
+	 * @param player The player whose the admin status has changed.
+	 */
+	public void onPlayerAdminChange(IPlayer player) {
+		send(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player online status.
+	 * 
+	 * @param player The player whose the online status has changed.
+	 */
+	public void onPlayerOnlineChange(IPlayer player) {
+		send(Idc.PLAYER_ONLINE, Oid.SET, player.getName(), player.isOnline());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player game address.
+	 * 
+	 * @param player The player whose the game address has changed.
+	 */
+	public void onPlayerGameAddressChange(IPlayer player) {
+		send(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(), player.getGameAddress().getPort());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player mute status.
+	 * 
+	 * @param player The player whose the mute status has changed.
+	 */
+	public void onPlayerMuteChange(IPlayer player) {
+		send(Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player deafen status.
+	 * 
+	 * @param player The player whose the deafen status has changed.
+	 */
+	public void onPlayerDeafenChange(IPlayer player) {
+		send(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
 	}
 
 	/**

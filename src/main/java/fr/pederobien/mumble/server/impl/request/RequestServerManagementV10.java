@@ -18,6 +18,8 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
@@ -92,6 +94,12 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerOnlineMap.put(Oid.GET, request -> getPlayerOnlineStatus((PlayerOnlineGetMessageV10) request));
 		playerOnlineMap.put(Oid.SET, request -> setPlayerOnlineStatus((PlayerOnlineSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_ONLINE, playerOnlineMap);
+
+		// Player game address map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerGameAddressMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerGameAddressMap.put(Oid.GET, request -> getPlayerGameAddress((PlayerGameAddressGetMessageV10) request));
+		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
 
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -394,7 +402,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			informations.add(client.getPlayer().getName());
 
 			// Player's identifier
-			informations.add(client.getPlayer().getUUID());
+			informations.add(client.getPlayer().getIdentifier());
 
 			// Player's game address
 			informations.add(client.getPlayer().getGameAddress().getAddress().getHostAddress());
@@ -711,6 +719,42 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		optPlayer.get().setOnline(request.isOnline());
 		if (optPlayer.get().isOnline() != request.isOnline())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Get the game address of a player.
+	 * 
+	 * @param request The request received from the remote in order to get game address of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerGameAddress(PlayerGameAddressGetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		String gameAddress = optPlayer.get().getGameAddress().getAddress().getHostAddress();
+		int gamePort = optPlayer.get().getGameAddress().getPort();
+		return MumbleServerMessageFactory.answer(request, request.getPlayerName(), gameAddress, gamePort);
+	}
+
+	/**
+	 * Update the game address of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the game address of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().getPlayer(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		optPlayer.get().setGameAddress(request.getGameAddress());
+		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
