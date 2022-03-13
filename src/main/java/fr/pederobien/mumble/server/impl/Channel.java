@@ -16,7 +16,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class Channel implements IChannel, IEventListener {
-	private IMumbleServer mumbleServer;
+	private IMumbleServer server;
 	private String name;
 	private IChannelPlayerList players;
 	private ISoundModifier soundModifier;
@@ -24,12 +24,12 @@ public class Channel implements IChannel, IEventListener {
 	/**
 	 * Creates a channel based on the given parameter.
 	 * 
-	 * @param mumbleServer  The mumble server to which this channel is attached.
+	 * @param server        The mumble server to which this channel is attached.
 	 * @param name          The channel name.
 	 * @param soundModifier The channel sound modifier.
 	 */
-	public Channel(IMumbleServer mumbleServer, String name, ISoundModifier soundModifier) {
-		this.mumbleServer = mumbleServer;
+	public Channel(IMumbleServer server, String name, ISoundModifier soundModifier) {
+		this.server = server;
 		this.name = name;
 		this.soundModifier = soundModifier;
 		((SoundModifier) soundModifier).setChannel(this);
@@ -37,6 +37,11 @@ public class Channel implements IChannel, IEventListener {
 		players = new ChannelPlayerList(this);
 
 		EventManager.registerListener(this);
+	}
+
+	@Override
+	public IMumbleServer getServer() {
+		return server;
 	}
 
 	@Override
@@ -87,7 +92,7 @@ public class Channel implements IChannel, IEventListener {
 
 	@EventHandler
 	private void onServerClosing(ServerClosePostEvent event) {
-		if (!event.getServer().equals(mumbleServer))
+		if (!event.getServer().equals(server))
 			return;
 
 		players.clear();

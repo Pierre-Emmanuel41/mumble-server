@@ -3,6 +3,11 @@ package fr.pederobien.mumble.server.interfaces;
 public interface IChannel {
 
 	/**
+	 * @return The server to which this channel is attached.
+	 */
+	IMumbleServer getServer();
+
+	/**
 	 * @return The channel name.
 	 */
 	String getName();
