@@ -8,7 +8,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
-import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
@@ -153,9 +154,13 @@ public class Player implements IPlayer {
 
 	@Override
 	public void setDeafen(boolean isDeafen) {
+		if (this.isDeafen == isDeafen)
+			return;
+
 		checkChannel();
-		this.isDeafen = isDeafen;
-		EventManager.callEvent(new PlayerDeafenChangeEvent(this, isDeafen));
+		boolean oldDeafen = this.isDeafen;
+		Runnable update = () -> this.isDeafen = isDeafen;
+		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), update, new PlayerDeafenChangePostEvent(this, oldDeafen));
 	}
 
 	@Override

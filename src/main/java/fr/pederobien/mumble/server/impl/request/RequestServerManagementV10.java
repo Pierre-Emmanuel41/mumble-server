@@ -105,16 +105,16 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMuteMap.put(Oid.SET, request -> setPlayerMute((PlayerMuteSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
 
+		// Player deafen map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_DEAFEN, playerDeafenMap);
+
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> channelsPlayerAdd((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player deafen map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerDeafenMap.put(Oid.SET, request -> playerDeafenSet((PlayerDeafenSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_DEAFEN, playerDeafenMap);
 
 		// Player mute by map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -194,20 +194,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// doing modification on the getServer().
 		optChannel.get().getPlayers().remove(optPlayerRemove.get());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
-	}
-
-	@Override
-	protected IMumbleMessage playerDeafenSet(PlayerDeafenSetMessageV10 request) {
-		try {
-			Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-			if (!optPlayer.isPresent())
-				return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-			optPlayer.get().setDeafen(request.isDeafen());
-			return MumbleServerMessageFactory.answer(request, request.getProperties());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
 	}
 
 	@Override
@@ -747,7 +733,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	/**
 	 * Update the mute status of a player.
 	 * 
-	 * @param request The request received from the remote in order to update de mute status of a player.
+	 * @param request The request received from the remote in order to update the mute status of a player.
 	 * 
 	 * @return The server answer.
 	 */
@@ -763,6 +749,30 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		}
 
 		if (optPlayer.get().isMute() != request.isMute())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Update the deafen status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the deafen status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerDeafen(PlayerDeafenSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		try {
+			optPlayer.get().setDeafen(request.isDeafen());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isDeafen() != request.isDeafen())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());

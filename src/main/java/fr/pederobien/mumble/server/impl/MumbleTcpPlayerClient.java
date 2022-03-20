@@ -11,7 +11,7 @@ import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
 import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
-import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePreEvent;
@@ -74,7 +74,7 @@ public class MumbleTcpPlayerClient implements IEventListener {
 	}
 
 	@EventHandler
-	private void sendPlayerDeafenChanged(PlayerDeafenChangeEvent event) {
+	private void sendPlayerDeafenChanged(PlayerDeafenChangePreEvent event) {
 		doIfPlayerJoined(() -> tcpClient.onPlayerDeafenChange(event.getPlayer()));
 	}
 
