@@ -2,20 +2,20 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 
-public class ServerPlayerAddPostEvent extends ServerEvent {
+public class ServerPlayerAddPostEvent extends ServerPlayerListEvent {
 	private IPlayer player;
 
 	/**
 	 * Creates an event thrown when a player has been added on a server.
 	 * 
-	 * @param server The server on which a player has been added.
+	 * @param list   The list to which a player has been added.
 	 * @param player The added player.
 	 */
-	public ServerPlayerAddPostEvent(IMumbleServer server, IPlayer player) {
-		super(server);
+	public ServerPlayerAddPostEvent(IServerPlayerList list, IPlayer player) {
+		super(list);
 		this.player = player;
 	}
 
@@ -29,7 +29,7 @@ public class ServerPlayerAddPostEvent extends ServerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("list=" + getServer().getName());
+		joiner.add("list=" + getList().getName());
 		joiner.add("name=" + getPlayer().getName());
 		joiner.add("gameAddress=" + getPlayer().getGameAddress().getAddress().getHostAddress());
 		joiner.add("gamePort=" + getPlayer().getGameAddress().getPort());

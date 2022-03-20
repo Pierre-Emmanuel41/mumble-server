@@ -2,22 +2,22 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.utils.ICancellable;
 
-public class ServerPlayerAddPreEvent extends ServerEvent implements ICancellable {
+public class ServerPlayerAddPreEvent extends ServerPlayerListEvent implements ICancellable {
 	private boolean isCancelled;
 	private IPlayer player;
 
 	/**
 	 * Creates an event thrown when a player is about to be added on the server.
 	 * 
-	 * @param server The server on which a player is about to be added.
+	 * @param list   The list to which a player is about to be added.
 	 * @param player The added player.
 	 */
-	public ServerPlayerAddPreEvent(IMumbleServer server, IPlayer player) {
-		super(server);
+	public ServerPlayerAddPreEvent(IServerPlayerList list, IPlayer player) {
+		super(list);
 		this.player = player;
 	}
 
@@ -41,7 +41,7 @@ public class ServerPlayerAddPreEvent extends ServerEvent implements ICancellable
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("list=" + getServer().getName());
+		joiner.add("list=" + getList().getName());
 		joiner.add("name=" + getPlayer());
 		joiner.add("gameAddress=" + getPlayer().getGameAddress().getAddress().getHostAddress());
 		joiner.add("gamePort=" + getPlayer().getGameAddress().getPort());

@@ -66,7 +66,7 @@ public class MumbleGameServerClient implements IEventListener {
 
 	@EventHandler
 	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
-		if (!event.getServer().equals(server))
+		if (!event.getList().getServer().equals(server))
 			return;
 
 		tcpClient.onServerPlayerAdd(event.getPlayer());

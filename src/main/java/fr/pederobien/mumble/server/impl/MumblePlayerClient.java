@@ -7,10 +7,9 @@ import fr.pederobien.communication.interfaces.ITcpConnection;
 
 public class MumblePlayerClient {
 	private InternalServer server;
-	private MumbleTcpPlayerClient playerclient;
+	private MumbleTcpPlayerClient playerClient;
 	private Player player;
 	private UUID uuid;
-	private InetSocketAddress gameAddress;
 
 	/**
 	 * Creates a client associated to a specific player.
@@ -41,8 +40,8 @@ public class MumblePlayerClient {
 	 * @param connection The TCP connection to send/receive data from the remote TCP client.
 	 */
 	public void createTcpClient(ITcpConnection connection) {
-		if (playerclient == null)
-			playerclient = new MumbleTcpPlayerClient(server, this, connection);
+		if (playerClient == null)
+			playerClient = new MumbleTcpPlayerClient(server, this, connection);
 	}
 
 	/**
@@ -61,7 +60,7 @@ public class MumblePlayerClient {
 	 * @return The TCP connection with the remote.
 	 */
 	public ITcpConnection getTcpConnection() {
-		return playerclient == null ? null : playerclient.getConnection();
+		return playerClient == null ? null : playerClient.getConnection();
 	}
 
 	/**
@@ -78,11 +77,8 @@ public class MumblePlayerClient {
 	 */
 	public void setPlayer(Player player) {
 		this.player = player;
-		if (player != null) {
+		if (player != null)
 			player.setUUID(getUUID());
-			player.setGameAddress(getGameAddress());
-		} else
-			gameAddress = null;
 	}
 
 	/**
@@ -96,22 +92,13 @@ public class MumblePlayerClient {
 	 * @return the address of the player used to play at the game. Null if the player is not connected in game.
 	 */
 	public InetSocketAddress getGameAddress() {
-		return gameAddress;
-	}
-
-	/**
-	 * Set the address of the player used to play at the game.
-	 * 
-	 * @param gameAddress The address used by the player to player at the game.
-	 */
-	public void setGameAddress(InetSocketAddress gameAddress) {
-		this.gameAddress = gameAddress;
+		return player != null && player.isOnline() ? player.getGameAddress() : null;
 	}
 
 	/**
 	 * @return The address used by the player to speak to the other players. Null if there the player is not connected with mumble.
 	 */
 	public InetSocketAddress getMumbleAddress() {
-		return playerclient == null ? null : playerclient.getConnection().getAddress();
+		return playerClient == null ? null : playerClient.getConnection().getAddress();
 	}
 }

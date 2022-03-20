@@ -10,6 +10,11 @@ import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 public interface IServerPlayerList extends Iterable<IPlayer> {
 
 	/**
+	 * @return The server to which this list is associated.
+	 */
+	IMumbleServer getServer();
+
+	/**
 	 * @return The name of this player list.
 	 */
 	String getName();
@@ -62,7 +67,7 @@ public interface IServerPlayerList extends Iterable<IPlayer> {
 	 * 
 	 * @return An optional that contains the player if registered, an empty optional otherwise.
 	 */
-	Optional<IPlayer> getPlayer(String name);
+	Optional<IPlayer> get(String name);
 
 	/**
 	 * @return a sequential {@code Stream} over the elements in this collection.

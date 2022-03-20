@@ -2,20 +2,20 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 
-public class ServerPlayerRemovePostEvent extends ServerEvent {
+public class ServerPlayerRemovePostEvent extends ServerPlayerListEvent {
 	private IPlayer player;
 
 	/**
 	 * Creates an event thrown when a player has been removed from a server.
 	 * 
-	 * @param server The server from which a player has been removed.
+	 * @param list   The list from which a player has been removed.
 	 * @param player The removed player.
 	 */
-	public ServerPlayerRemovePostEvent(IMumbleServer server, IPlayer player) {
-		super(server);
+	public ServerPlayerRemovePostEvent(IServerPlayerList list, IPlayer player) {
+		super(list);
 		this.player = player;
 	}
 
@@ -29,7 +29,7 @@ public class ServerPlayerRemovePostEvent extends ServerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("list=" + getList().getName());
 		joiner.add("player=" + getPlayer().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
