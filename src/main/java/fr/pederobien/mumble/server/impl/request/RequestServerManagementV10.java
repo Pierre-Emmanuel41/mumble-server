@@ -17,6 +17,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressSetMessageV10;
@@ -99,6 +100,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerGameAddressMap.put(Oid.GET, request -> getPlayerGameAddress((PlayerGameAddressGetMessageV10) request));
 		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
+
+		// Player administrator map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerAdminMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerAdminMap.put(Oid.SET, request -> setPlayerAdmin((PlayerAdminSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_ADMIN, playerAdminMap);
 
 		// Player mute map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -725,6 +731,30 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		optPlayer.get().setGameAddress(request.getGameAddress());
 		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Update the administrator status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the administrator status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerAdmin(PlayerAdminSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		try {
+			optPlayer.get().setAdmin(request.isAdmin());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isAdmin() != request.isAdmin())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());

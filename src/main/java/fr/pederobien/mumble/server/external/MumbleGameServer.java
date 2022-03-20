@@ -33,7 +33,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	 */
 	public MumbleGameServer(String name, int gameServerPort, String path) {
 		server = new InternalServer(name, path);
-		tcpServer = new TcpServer(name.concat(GAME_CLIENT), gameServerPort, () -> new MessageExtractor());
+		tcpServer = new TcpServer(String.format("%s%s", name, GAME_CLIENT), gameServerPort, () -> new MessageExtractor());
 		EventManager.registerListener(this);
 	}
 

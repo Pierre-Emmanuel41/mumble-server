@@ -7,7 +7,8 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
@@ -102,8 +103,9 @@ public class Player implements IPlayer {
 		if (this.isAdmin == isAdmin)
 			return;
 
-		this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminStatusChangeEvent(this, isAdmin));
+		boolean oldAdmin = this.isAdmin;
+		Runnable update = () -> this.isAdmin = isAdmin;
+		EventManager.callEvent(new PlayerAdminChangePreEvent(this, isAdmin), update, new PlayerAdminChangePostEvent(this, oldAdmin));
 	}
 
 	@Override

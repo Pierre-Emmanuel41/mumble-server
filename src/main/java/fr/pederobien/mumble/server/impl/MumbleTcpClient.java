@@ -149,15 +149,6 @@ public class MumbleTcpClient {
 	}
 
 	/**
-	 * Send a message to the remote in order to update the player status admin.
-	 * 
-	 * @param player The player whose the admin status has changed.
-	 */
-	public void onPlayerAdminChange(IPlayer player) {
-		send(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
-	}
-
-	/**
 	 * Send a message to the remote in order to update the player online status.
 	 * 
 	 * @param player The player whose the online status has changed.
@@ -173,6 +164,15 @@ public class MumbleTcpClient {
 	 */
 	public void onPlayerGameAddressChange(IPlayer player) {
 		send(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(), player.getGameAddress().getPort());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the player administrator status.
+	 * 
+	 * @param player The player whose the administrator status has changed.
+	 */
+	public void onPlayerAdminChange(IPlayer player) {
+		send(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
 	}
 
 	/**

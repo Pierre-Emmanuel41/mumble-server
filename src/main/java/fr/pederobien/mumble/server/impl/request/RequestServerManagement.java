@@ -46,7 +46,6 @@ public abstract class RequestServerManagement {
 	 */
 	public IMumbleMessage answer(IMumbleMessage request) {
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> map = requests.get(request.getHeader().getIdc());
-
 		if (map == null)
 			return MumbleServerMessageFactory.answer(request, ErrorCode.IDC_UNKNOWN);
 

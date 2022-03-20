@@ -10,7 +10,7 @@ import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
 import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerAdminStatusChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
@@ -53,7 +53,7 @@ public class MumbleTcpPlayerClient implements IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerAdminChange(PlayerAdminStatusChangeEvent event) {
+	private void onPlayerAdminChange(PlayerAdminChangePreEvent event) {
 		if (!event.getPlayer().equals(playerClient.getPlayer()))
 			return;
 
