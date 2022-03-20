@@ -12,7 +12,8 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
@@ -136,9 +137,13 @@ public class Player implements IPlayer {
 
 	@Override
 	public void setMute(boolean isMute) {
+		if (this.isMute == isMute)
+			return;
+
 		checkChannel();
-		this.isMute = isMute;
-		EventManager.callEvent(new PlayerMuteChangeEvent(this, isMute));
+		boolean oldMute = this.isMute;
+		Runnable update = () -> this.isMute = isMute;
+		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), update, new PlayerMuteChangePostEvent(this, oldMute));
 	}
 
 	@Override

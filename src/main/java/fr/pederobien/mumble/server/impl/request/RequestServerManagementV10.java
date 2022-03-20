@@ -100,16 +100,16 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
 
+		// Player mute map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerMuteMap.put(Oid.SET, request -> setPlayerMute((PlayerMuteSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
+
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> channelsPlayerAdd((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player mute map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerMuteMap.put(Oid.SET, request -> playerMuteSet((PlayerMuteSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
 
 		// Player deafen map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -194,20 +194,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// doing modification on the getServer().
 		optChannel.get().getPlayers().remove(optPlayerRemove.get());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
-	}
-
-	@Override
-	protected IMumbleMessage playerMuteSet(PlayerMuteSetMessageV10 request) {
-		try {
-			Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-			if (!optPlayer.isPresent())
-				return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-			optPlayer.get().setMute(request.isMute());
-			return MumbleServerMessageFactory.answer(request, request.getProperties());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
 	}
 
 	@Override
@@ -753,6 +739,30 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		optPlayer.get().setGameAddress(request.getGameAddress());
 		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Update the mute status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update de mute status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerMute(PlayerMuteSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		try {
+			optPlayer.get().setMute(request.isMute());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isMute() != request.isMute())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
