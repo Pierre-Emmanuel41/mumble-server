@@ -14,6 +14,8 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
@@ -22,11 +24,13 @@ import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
 
 public class Player implements IPlayer {
+	private IMumbleServer server;
 	private String name;
 	private UUID uuid;
 	private InetSocketAddress gameAddress;
@@ -39,6 +43,7 @@ public class Player implements IPlayer {
 	/**
 	 * Creates a player specified by a name, a vocal address and an administrator status.
 	 * 
+	 * @param server      The server on which this player is registered.
 	 * @param name        The player's name.
 	 * @param gameAddress The player's address to play to the game.
 	 * @param isAdmin     The player's administrator status.
@@ -48,7 +53,8 @@ public class Player implements IPlayer {
 	 * @param x           The player's yaw angle.
 	 * @param x           The player's pitch angle.
 	 */
-	protected Player(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
+	protected Player(IMumbleServer server, String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch) {
+		this.server = server;
 		this.name = name;
 		this.gameAddress = gameAddress;
 		this.isAdmin = isAdmin;
@@ -57,6 +63,11 @@ public class Player implements IPlayer {
 		position = new Position(this, x, y, z, yaw, pitch);
 		muteBy = new HashMap<IPlayer, Boolean>();
 		lock = new ReentrantLock(true);
+	}
+
+	@Override
+	public IMumbleServer getServer() {
+		return server;
 	}
 
 	@Override
@@ -150,6 +161,26 @@ public class Player implements IPlayer {
 	}
 
 	@Override
+	public boolean isMuteBy(IPlayer player) {
+		Boolean isMute = muteBy.get(player);
+		return isMute == null ? false : isMute;
+	}
+
+	@Override
+	public void setMuteBy(IPlayer player, boolean isMute) {
+		if (!getServer().getPlayers().toList().contains(player))
+			throw new IllegalArgumentException("The player must be registered on the server");
+
+		Boolean status = muteBy.get(player);
+		boolean oldMute = status == null ? false : status;
+		if (oldMute == isMute)
+			return;
+
+		Runnable update = () -> muteBy.put(player, isMute);
+		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute), update, new PlayerMuteByChangePostEvent(this, player, oldMute));
+	}
+
+	@Override
 	public boolean isDeafen() {
 		return isDeafen;
 	}
@@ -215,17 +246,6 @@ public class Player implements IPlayer {
 		}
 
 		EventManager.callEvent(new PlayerMuteByChangeEvent(this, player, isMute));
-	}
-
-	/**
-	 * Get if this player is mute by the given player.
-	 * 
-	 * @param player The player for which this player is mute or unmute.
-	 * @return True if this player is mute for the given player, false if this player is unmute for the given player.
-	 */
-	public boolean isMuteBy(IPlayer player) {
-		Boolean isMute = muteBy.get(player);
-		return isMute == null ? false : isMute;
 	}
 
 	private void checkChannel() {

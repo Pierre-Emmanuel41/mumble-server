@@ -42,7 +42,6 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
-import fr.pederobien.mumble.server.impl.Player;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
@@ -111,6 +110,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMuteMap.put(Oid.SET, request -> setPlayerMute((PlayerMuteSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
 
+		// Player mute by map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerMuteByMap.put(Oid.SET, request -> setPlayerMuteBy((PlayerMuteBySetMessageV10) request));
+		getRequests().put(Idc.PLAYER_MUTE_BY, playerMuteByMap);
+
 		// Player deafen map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
@@ -121,11 +125,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		channelsPlayerMap.put(Oid.ADD, request -> channelsPlayerAdd((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player mute by map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerMuteByMap.put(Oid.SET, request -> playerMuteBySet((PlayerMuteBySetMessageV10) request));
-		getRequests().put(Idc.PLAYER_MUTE_BY, playerMuteByMap);
 
 		// Player kick map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerKickMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -199,23 +198,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		// doing modification on the getServer().
 		optChannel.get().getPlayers().remove(optPlayerRemove.get());
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
-	}
-
-	@Override
-	protected IMumbleMessage playerMuteBySet(PlayerMuteBySetMessageV10 request) {
-		Optional<IPlayer> optMutingPlayer = getServer().getPlayers().get(request.getMutingPlayer());
-		if (!optMutingPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-		Optional<IPlayer> optMutedPlayer = getServer().getPlayers().get(request.getMutedPlayer());
-		if (!optMutedPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-		if (!optMutingPlayer.get().isAdmin() && !optMutedPlayer.get().getChannel().equals(optMutingPlayer.get().getChannel()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYERS_IN_DIFFERENT_CHANNELS);
-
-		((Player) optMutedPlayer.get()).setIsMuteBy(optMutingPlayer.get(), request.isMute());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
@@ -803,6 +785,29 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		}
 
 		if (optPlayer.get().isDeafen() != request.isDeafen())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Update the mute status of a player for another player.
+	 * 
+	 * @param request The request received from the remote in order to update the mute status of a player for another player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
+		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
+		if (!optTarget.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
+		if (!optSource.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		optTarget.get().setMuteBy(optSource.get(), request.isMute());
+		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());

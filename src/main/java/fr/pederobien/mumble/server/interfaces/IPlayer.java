@@ -8,6 +8,11 @@ import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelExcept
 public interface IPlayer {
 
 	/**
+	 * @return The server on which this player is registered.
+	 */
+	IMumbleServer getServer();
+
+	/**
 	 * @return The player name.
 	 */
 	String getName();
@@ -83,6 +88,22 @@ public interface IPlayer {
 	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void setMute(boolean isMute);
+
+	/**
+	 * Indicates if this player is mute for the given player.
+	 * 
+	 * @param player The player to check.
+	 * @return True if this player is mute for the given player, false otherwise.
+	 */
+	boolean isMuteBy(IPlayer player);
+
+	/**
+	 * Set if this player is mute for another player.
+	 * 
+	 * @param player The other player for which this player is mute.
+	 * @param isMute True to mute, false to unmute.
+	 */
+	void setMuteBy(IPlayer player, boolean isMute);
 
 	/**
 	 * @return True if this player is deafen, false otherwise.

@@ -15,6 +15,7 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
@@ -73,7 +74,6 @@ public class MumbleGameServerClient implements IEventListener {
 			return;
 
 		tcpClient.onServerPlayerAdd(event.getPlayer());
-
 	}
 
 	@EventHandler
@@ -104,6 +104,11 @@ public class MumbleGameServerClient implements IEventListener {
 	@EventHandler
 	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
 		tcpClient.onPlayerMuteChange(event.getPlayer());
+	}
+
+	@EventHandler
+	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
+		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getSource());
 	}
 
 	@EventHandler
@@ -166,6 +171,7 @@ public class MumbleGameServerClient implements IEventListener {
 		case PLAYER_ADMIN:
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
+		case PLAYER_MUTE_BY:
 		case SOUND_MODIFIER:
 		case PLAYER_KICK:
 		case PLAYER_POSITION:

@@ -11,7 +11,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
@@ -105,15 +104,6 @@ public abstract class RequestServerManagement {
 	 * @return The server response.
 	 */
 	protected abstract IMumbleMessage channelsPlayerRemove(ChannelsPlayerRemoveMessageV10 request);
-
-	/**
-	 * Mutes or unmutes a player by another player.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage playerMuteBySet(PlayerMuteBySetMessageV10 request);
 
 	/**
 	 * Kicks a player from a channel.

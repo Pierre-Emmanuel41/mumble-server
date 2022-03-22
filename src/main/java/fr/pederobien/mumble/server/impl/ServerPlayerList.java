@@ -63,7 +63,7 @@ public class ServerPlayerList implements IServerPlayerList {
 		if (optPlayer.isPresent())
 			throw new ServerPlayerListPlayerAlreadyRegisteredException(server.getPlayers(), optPlayer.get());
 
-		IPlayer player = new Player(name, gameAddress, isAdmin, x, y, z, yaw, pitch);
+		IPlayer player = new Player(getServer(), name, gameAddress, isAdmin, x, y, z, yaw, pitch);
 		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(this, player);
 		EventManager.callEvent(preEvent, () -> addPlayer(player));
 		return preEvent.isCancelled() ? null : player;

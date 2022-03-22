@@ -185,6 +185,16 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to mute or unmute a target player for a source player.
+	 * 
+	 * @param target The target player to mute or unmute for a source player.
+	 * @param source The source player for which a target player is mute or unmute.
+	 */
+	public void onPlayerMuteByChange(IPlayer target, IPlayer source) {
+		send(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), target.isMuteBy(source));
+	}
+
+	/**
 	 * Send a message to the remote in order to update the player deafen status.
 	 * 
 	 * @param player The player whose the deafen status has changed.
