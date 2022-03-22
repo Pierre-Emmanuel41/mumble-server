@@ -28,6 +28,7 @@ import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.MumbleTcpClient;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleGameServerClient implements IEventListener {
@@ -44,7 +45,7 @@ public class MumbleGameServerClient implements IEventListener {
 		EventManager.registerListener(this);
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
 		if (!event.getServer().equals(server))
 			return;
@@ -52,7 +53,7 @@ public class MumbleGameServerClient implements IEventListener {
 		tcpClient.onChannelAdd(event.getChannel());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
 		if (!event.getServer().equals(server))
 			return;
@@ -60,7 +61,7 @@ public class MumbleGameServerClient implements IEventListener {
 		tcpClient.onChannelRemove(event.getChannel());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelNameChange(ChannelNameChangePostEvent event) {
 		if (!event.getChannel().getServer().equals(server))
 			return;
@@ -68,7 +69,7 @@ public class MumbleGameServerClient implements IEventListener {
 		tcpClient.onChannelNameChange(event.getChannel(), event.getOldName());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
 		if (!event.getList().getServer().equals(server))
 			return;
@@ -76,42 +77,42 @@ public class MumbleGameServerClient implements IEventListener {
 		tcpClient.onServerPlayerAdd(event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
 		tcpClient.onServerPlayerRemove(event.getPlayer().getName());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
 		tcpClient.onPlayerNameChange(event.getOldName(), event.getPlayer().getName());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
 		tcpClient.onPlayerOnlineChange(event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerGameAddressChange(PlayerGameAddressChangePostEvent event) {
 		tcpClient.onPlayerGameAddressChange(event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
 		tcpClient.onPlayerAdminChange(event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
 		tcpClient.onPlayerMuteChange(event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
 		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getSource());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
 		tcpClient.onPlayerDeafenChange(event.getPlayer());
 	}
