@@ -13,7 +13,6 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteByChangeEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
@@ -22,14 +21,18 @@ import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePreEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class Player implements IPlayer {
+public class Player implements IPlayer, IEventListener {
 	private IMumbleServer server;
 	private String name;
 	private UUID uuid;
@@ -37,7 +40,7 @@ public class Player implements IPlayer {
 	private IPosition position;
 	private IChannel channel;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
-	private Map<IPlayer, Boolean> muteBy;
+	private Map<IPlayer, Boolean> isMuteBy;
 	private Lock lock;
 
 	/**
@@ -61,8 +64,10 @@ public class Player implements IPlayer {
 
 		isOnline = true;
 		position = new Position(this, x, y, z, yaw, pitch);
-		muteBy = new HashMap<IPlayer, Boolean>();
+		isMuteBy = new HashMap<IPlayer, Boolean>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -162,7 +167,7 @@ public class Player implements IPlayer {
 
 	@Override
 	public boolean isMuteBy(IPlayer player) {
-		Boolean isMute = muteBy.get(player);
+		Boolean isMute = isMuteBy.get(player);
 		return isMute == null ? false : isMute;
 	}
 
@@ -171,13 +176,7 @@ public class Player implements IPlayer {
 		if (!getServer().getPlayers().toList().contains(player))
 			throw new IllegalArgumentException("The player must be registered on the server");
 
-		Boolean status = muteBy.get(player);
-		boolean oldMute = status == null ? false : status;
-		if (oldMute == isMute)
-			return;
-
-		Runnable update = () -> muteBy.put(player, isMute);
-		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute), update, new PlayerMuteByChangePostEvent(this, player, oldMute));
+		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute), () -> setMuteBy0(player, isMute));
 	}
 
 	@Override
@@ -231,25 +230,44 @@ public class Player implements IPlayer {
 		this.channel = channel;
 	}
 
-	/**
-	 * Set if this player is muted by another player. True in order to mute it, false in order to unmute it.
-	 * 
-	 * @param player The player that mute this player.
-	 * @param isMute True if the player is mute, false if the player is unmute.
-	 */
-	public void setIsMuteBy(IPlayer player, boolean isMute) {
-		lock.lock();
-		try {
-			muteBy.put(player, isMute);
-		} finally {
-			lock.unlock();
-		}
+	@EventHandler(priority = EventPriority.LOWEST)
+	private void onServerPlayerRemoveAndUpdateMuteByStatus(ServerPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			setMuteBy0(event.getPlayer(), false);
+	}
 
-		EventManager.callEvent(new PlayerMuteByChangeEvent(this, player, isMute));
+	@EventHandler(priority = EventPriority.LOW)
+	private void onServerPlayerRemoveAndRemoveFromChannel(ServerPlayerRemovePostEvent event) {
+		if (event.getPlayer().equals(this) && channel != null)
+			channel.getPlayers().remove(this);
+
+		EventManager.unregisterListener(this);
 	}
 
 	private void checkChannel() {
 		if (channel == null)
 			throw new PlayerNotRegisteredInChannelException(this);
+	}
+
+	/**
+	 * Update the muteBy status of this player for a source player.
+	 * 
+	 * @param source The source player for which this player is mute or unmute.
+	 * @param isMute The new player's mute by status.
+	 */
+	private void setMuteBy0(IPlayer source, boolean isMute) {
+		Boolean status = isMuteBy.get(source);
+		boolean oldMute = status == null ? false : status;
+		if (oldMute == isMute)
+			return;
+
+		lock.lock();
+		try {
+			isMuteBy.put(source, isMute);
+		} finally {
+			lock.unlock();
+		}
+
+		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, source, oldMute));
 	}
 }
