@@ -209,7 +209,7 @@ public class MumbleTcpClient {
 	 * @param channel The channel to which a player has been added.
 	 * @param player  The added player.
 	 */
-	public void onPlayerAdd(IChannel channel, IPlayer player) {
+	public void onChannelPlayerAdd(IChannel channel, IPlayer player) {
 		send(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName());
 	}
 

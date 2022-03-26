@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
@@ -56,8 +57,7 @@ public class ChannelPlayerList implements IChannelPlayerList {
 
 	@Override
 	public void add(IPlayer player) {
-		addPlayer(player);
-		EventManager.callEvent(new PlayerListPlayerAddPostEvent(this, player));
+		EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
 	}
 
 	@Override
@@ -162,6 +162,7 @@ public class ChannelPlayerList implements IChannelPlayerList {
 		} finally {
 			lock.unlock();
 		}
+		EventManager.callEvent(new PlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**

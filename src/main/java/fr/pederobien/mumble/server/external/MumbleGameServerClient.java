@@ -117,9 +117,9 @@ public class MumbleGameServerClient implements IEventListener {
 		tcpClient.onPlayerDeafenChange(event.getPlayer());
 	}
 
-	@EventHandler
-	private void onPlayerAdded(PlayerListPlayerAddPostEvent event) {
-		send(MumbleServerMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.ADD, event.getList().getName(), event.getPlayer().getName()));
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
+		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer());
 	}
 
 	@EventHandler
@@ -173,6 +173,7 @@ public class MumbleGameServerClient implements IEventListener {
 		case PLAYER_MUTE:
 		case PLAYER_DEAFEN:
 		case PLAYER_MUTE_BY:
+		case CHANNELS_PLAYER:
 		case SOUND_MODIFIER:
 		case PLAYER_KICK:
 		case PLAYER_POSITION:

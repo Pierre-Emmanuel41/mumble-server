@@ -122,7 +122,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		channelsPlayerMap.put(Oid.ADD, request -> channelsPlayerAdd((ChannelsPlayerAddMessageV10) request));
+		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
 
@@ -135,14 +135,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerPositionMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		playerPositionMap.put(Oid.GET, request -> playerPositionGet((PlayerPositionGetMessageV10) request));
 		playerPositionMap.put(Oid.SET, request -> playerPositionSet((PlayerPositionSetMessageV10) request));
-		getRequests().put(Idc.CHANNELS_PLAYER, playerPositionMap);
+		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
 
 		// Sound modifier map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		soundModifierMap.put(Oid.GET, request -> soundModifierGet((SoundModifierGetMessageV10) request));
 		soundModifierMap.put(Oid.SET, request -> soundModifierSet((SoundModifierSetMessageV10) request));
 		soundModifierMap.put(Oid.INFO, request -> soundModifierInfo((SoundModifierInfoMessageV10) request));
-		getRequests().put(Idc.CHANNELS_PLAYER, soundModifierMap);
+		getRequests().put(Idc.SOUND_MODIFIER, soundModifierMap);
 	}
 
 	@Override
@@ -165,25 +165,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * request.getProperties());
 		 */
 		return null;
-	}
-
-	@Override
-	protected IMumbleMessage channelsPlayerAdd(ChannelsPlayerAddMessageV10 request) {
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
-		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-
-		final Optional<IPlayer> optPlayerAdd = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayerAdd.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-		// A player cannot be registered in two channels at the same time.
-		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayerAdd.get()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
-
-		// Doing modification on the getServer().
-		optChannel.get().getPlayers().add(optPlayerAdd.get());
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
 	@Override
@@ -810,6 +791,29 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Adds a player to a channel.
+	 * 
+	 * @param request The request received from the remote in order to add a player to a channel.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		if (!optChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+
+		final Optional<IPlayer> optPlayerAdd = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayerAdd.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayerAdd.get()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
+
+		optChannel.get().getPlayers().add(optPlayerAdd.get());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 }

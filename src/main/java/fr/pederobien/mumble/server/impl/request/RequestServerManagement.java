@@ -7,7 +7,6 @@ import java.util.function.Function;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
@@ -86,15 +85,6 @@ public abstract class RequestServerManagement {
 	 * @return The server response.
 	 */
 	protected abstract IMumbleMessage playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Adds a player to a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage channelsPlayerAdd(ChannelsPlayerAddMessageV10 request);
 
 	/**
 	 * Removes a player from a channel.

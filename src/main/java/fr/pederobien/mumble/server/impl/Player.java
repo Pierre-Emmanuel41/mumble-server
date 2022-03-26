@@ -13,6 +13,8 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
@@ -221,13 +223,20 @@ public class Player implements IPlayer, IEventListener {
 		this.uuid = uuid;
 	}
 
-	/**
-	 * Set the channel associated to this player.
-	 * 
-	 * @param channel The new channel player.
-	 */
-	public void setChannel(IChannel channel) {
-		this.channel = channel;
+	@EventHandler
+	private void onChannelsPlayerAdd(PlayerListPlayerAddPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		channel = event.getList().getChannel();
+	}
+
+	@EventHandler
+	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		channel = null;
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)

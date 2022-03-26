@@ -116,7 +116,7 @@ public class ServerPlayerList implements IServerPlayerList {
 	@Override
 	public List<IPlayer> getPlayersInChannel() {
 		List<IPlayer> players = toList();
-		toList().removeIf(player -> player.getChannel() == null);
+		players.removeIf(player -> player.getChannel() == null);
 		return players;
 	}
 
