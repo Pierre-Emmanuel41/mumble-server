@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
@@ -24,8 +25,9 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class ServerPlayerList implements IServerPlayerList {
+public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	private InternalServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
@@ -40,6 +42,8 @@ public class ServerPlayerList implements IServerPlayerList {
 
 		players = new HashMap<String, IPlayer>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -136,6 +140,11 @@ public class ServerPlayerList implements IServerPlayerList {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	@EventHandler
+	private void onServerClosing(ServerClosePostEvent event) {
+		EventManager.unregisterListener(this);
 	}
 
 	/**
