@@ -123,7 +123,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
-		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
+		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
 
 		// Player kick map
@@ -165,21 +165,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * request.getProperties());
 		 */
 		return null;
-	}
-
-	@Override
-	protected IMumbleMessage channelsPlayerRemove(ChannelsPlayerRemoveMessageV10 request) {
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
-		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-
-		final Optional<IPlayer> optPlayerRemove = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayerRemove.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-
-		// doing modification on the getServer().
-		optChannel.get().getPlayers().remove(optPlayerRemove.get());
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
 	@Override
@@ -806,14 +791,41 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		if (!optChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
 
-		final Optional<IPlayer> optPlayerAdd = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayerAdd.isPresent())
+		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
 
-		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayerAdd.get()))
+		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayer.get()))
 			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
 
-		optChannel.get().getPlayers().add(optPlayerAdd.get());
+		optChannel.get().getPlayers().add(optPlayer.get());
+		if (!optChannel.get().getPlayers().toList().contains(optPlayer.get()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Removes a player from a channel.
+	 * 
+	 * @param request The request received from the remote in order to remove a player from a channel.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		if (!optChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+
+		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+
+		optChannel.get().getPlayers().remove(optPlayer.get());
+		if (optChannel.get().getPlayers().toList().contains(optPlayer.get()))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+
 	}
 }

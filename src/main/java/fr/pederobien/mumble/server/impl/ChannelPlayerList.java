@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -62,10 +63,12 @@ public class ChannelPlayerList implements IChannelPlayerList {
 
 	@Override
 	public IPlayer remove(String name) {
-		IPlayer player = removePlayer(name);
-		if (player != null)
-			EventManager.callEvent(new PlayerListPlayerRemovePostEvent(this, player));
-		return player;
+		Optional<IPlayer> optPlayer = getPlayer(name);
+		if (!optPlayer.isPresent())
+			return null;
+
+		EventManager.callEvent(new PlayerListPlayerRemovePreEvent(this, optPlayer.get()), () -> removePlayer(optPlayer.get()));
+		return optPlayer.get();
 	}
 
 	@Override
@@ -172,12 +175,18 @@ public class ChannelPlayerList implements IChannelPlayerList {
 	 * 
 	 * @return The player associated to the given name if registered, null otherwise.
 	 */
-	private IPlayer removePlayer(String name) {
+	private boolean removePlayer(IPlayer player) {
 		lock.lock();
+		boolean removed;
 		try {
-			return players.remove(name);
+			removed = players.remove(player.getName()) != null;
 		} finally {
 			lock.unlock();
 		}
+
+		if (removed)
+			EventManager.callEvent(new PlayerListPlayerRemovePostEvent(this, player));
+
+		return removed;
 	}
 }

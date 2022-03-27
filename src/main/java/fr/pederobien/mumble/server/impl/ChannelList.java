@@ -54,8 +54,8 @@ public class ChannelList implements IChannelList, IEventListener {
 	@Override
 	public IChannel add(String channelName, String soundModifierName) {
 		ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(server, channelName, soundModifierName);
-		Supplier<IChannel> add = () -> addChannel(channelName, soundModifierName);
-		return EventManager.callEvent(preEvent, add, channel -> new ServerChannelAddPostEvent(server, channel));
+		Supplier<IChannel> update = () -> addChannel(channelName, soundModifierName);
+		return EventManager.callEvent(preEvent, update, channel -> new ServerChannelAddPostEvent(server, channel));
 	}
 
 	@Override
@@ -64,14 +64,9 @@ public class ChannelList implements IChannelList, IEventListener {
 		if (!optChannel.isPresent())
 			return null;
 
+		Supplier<IChannel> update = () -> removeChannel(name);
 		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(server, optChannel.get());
-		EventManager.callEvent(preEvent);
-		if (preEvent.isCancelled())
-			return null;
-
-		removeChannel(name);
-		EventManager.callEvent(new ServerChannelRemovePostEvent(server, optChannel.get()));
-		return optChannel.get();
+		return EventManager.callEvent(preEvent, update, channel -> new ServerChannelRemovePostEvent(server, channel));
 	}
 
 	@Override
@@ -165,10 +160,16 @@ public class ChannelList implements IChannelList, IEventListener {
 	 */
 	private IChannel removeChannel(String name) {
 		lock.lock();
+		IChannel channel;
 		try {
-			return channels.remove(name);
+			channel = channels.remove(name);
 		} finally {
 			lock.unlock();
 		}
+
+		if (channel != null)
+			channel.getPlayers().clear();
+
+		return channel;
 	}
 }

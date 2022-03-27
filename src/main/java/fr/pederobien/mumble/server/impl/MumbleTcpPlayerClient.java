@@ -106,7 +106,7 @@ public class MumbleTcpPlayerClient implements IEventListener {
 
 	@EventHandler
 	private void onPlayerRemoved(PlayerListPlayerRemovePostEvent event) {
-		doIfPlayerJoined(() -> tcpClient.onPlayerRemove(event.getList().getChannel(), event.getPlayer()));
+		doIfPlayerJoined(() -> tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer()));
 	}
 
 	@EventHandler

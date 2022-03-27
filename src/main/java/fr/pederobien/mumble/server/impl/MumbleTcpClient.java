@@ -219,7 +219,7 @@ public class MumbleTcpClient {
 	 * @param channel The channel from which a player has been removed.
 	 * @param player  The removed player.
 	 */
-	public void onPlayerRemove(IChannel channel, IPlayer player) {
+	public void onChannelPlayerRemove(IChannel channel, IPlayer player) {
 		send(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName());
 	}
 

@@ -42,7 +42,7 @@ public class ServerChannelRemovePreEvent extends ServerEvent implements ICancell
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("server=" + getServer().getName());
-		joiner.add("channel=" + getChannel());
+		joiner.add("channel=" + getChannel().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

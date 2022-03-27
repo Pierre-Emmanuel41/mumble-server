@@ -123,8 +123,8 @@ public class MumbleGameServerClient implements IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerRemoved(PlayerListPlayerRemovePostEvent event) {
-		send(MumbleServerMessageFactory.create(Idc.CHANNELS_PLAYER, Oid.REMOVE, event.getList().getName(), event.getPlayer().getName()));
+	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer());
 	}
 
 	@EventHandler
