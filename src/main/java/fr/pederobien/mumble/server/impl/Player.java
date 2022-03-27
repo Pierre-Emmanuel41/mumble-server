@@ -223,7 +223,7 @@ public class Player implements IPlayer, IEventListener {
 		this.uuid = uuid;
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onChannelsPlayerAdd(PlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
@@ -231,7 +231,7 @@ public class Player implements IPlayer, IEventListener {
 		channel = event.getList().getChannel();
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
