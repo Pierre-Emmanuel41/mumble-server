@@ -171,7 +171,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	protected IMumbleMessage playerKickSet(PlayerKickSetMessageV10 request) {
 		final Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKickedPlayer());
 		if (!optKickedPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optKickedPlayer.get().getChannel().getPlayers().remove(optKickedPlayer.get());
@@ -187,7 +187,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		IPosition position = optPlayer.get().getPosition();
 		return MumbleServerMessageFactory.answer(request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
@@ -197,7 +197,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	protected IMumbleMessage playerPositionSet(PlayerPositionSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
@@ -210,7 +210,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// channel's name
 		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		// channel's name
 		informations.add(optChannel.get().getName());
@@ -239,7 +239,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// Channel's name
 		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		// Modifier's name
 		Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getSoundModifierInfo().getName());
@@ -525,7 +525,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 			return MumbleServerMessageFactory.answer(request, request.getProperties());
 		} else
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 	}
 
 	/**
@@ -538,7 +538,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage renameChannel(ChannelsSetMessageV10 request) {
 		Optional<IChannel> optOldChannel = getServer().getChannels().getChannel(request.getOldName());
 		if (!optOldChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<IChannel> optNewChannel = getServer().getChannels().getChannel(request.getNewName());
 		if (optNewChannel.isPresent())
@@ -582,7 +582,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage removePlayer(PlayerRemoveMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
 		if (player == null)
@@ -601,7 +601,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage renamePlayer(PlayerNameSetMessageV10 request) {
 		Optional<IPlayer> optOldPlayer = getServer().getPlayers().get(request.getOldName());
 		if (!optOldPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		Optional<IPlayer> optNewPlayer = getServer().getPlayers().get(request.getNewName());
 		if (optNewPlayer.isPresent())
@@ -624,7 +624,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage getPlayerOnlineStatus(PlayerOnlineGetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		return MumbleServerMessageFactory.answer(request, request.getPlayerName(), optPlayer.get().isOnline());
 	}
@@ -639,7 +639,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerOnlineStatus(PlayerOnlineSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().setOnline(request.isOnline());
 		if (optPlayer.get().isOnline() != request.isOnline())
@@ -658,7 +658,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage getPlayerGameAddress(PlayerGameAddressGetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		String gameAddress = optPlayer.get().getGameAddress().getAddress().getHostAddress();
 		int gamePort = optPlayer.get().getGameAddress().getPort();
@@ -675,7 +675,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().setGameAddress(request.getGameAddress());
 		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
@@ -694,7 +694,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerAdmin(PlayerAdminSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setAdmin(request.isAdmin());
@@ -718,7 +718,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerMute(PlayerMuteSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setMute(request.isMute());
@@ -742,7 +742,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerDeafen(PlayerDeafenSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setDeafen(request.isDeafen());
@@ -766,11 +766,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
 		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
 		if (!optTarget.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
 		if (!optSource.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optTarget.get().setMuteBy(optSource.get(), request.isMute());
 		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
@@ -789,11 +789,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayer.get()))
 			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
@@ -815,11 +815,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private IMumbleMessage removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optChannel.get().getPlayers().remove(optPlayer.get());
 		if (optChannel.get().getPlayers().toList().contains(optPlayer.get()))
