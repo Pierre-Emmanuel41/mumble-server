@@ -100,8 +100,8 @@ public class MumbleTcpPlayerClient implements IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerAdded(PlayerListPlayerAddPostEvent event) {
-		doIfPlayerJoined(() -> tcpClient.onPlayerAdd(event.getList().getChannel(), event.getPlayer()));
+	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
+		doIfPlayerJoined(() -> tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer()));
 	}
 
 	@EventHandler
