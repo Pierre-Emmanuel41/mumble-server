@@ -204,6 +204,16 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to kick a player from a channel.
+	 * 
+	 * @param kicked  The player that has been kicked by another player.
+	 * @param kicking The player that has kicked another player.
+	 */
+	public void onPlayerKick(IPlayer kicked, IPlayer kicking) {
+		send(Idc.PLAYER_KICK, Oid.SET, kicked.getName(), kicking.getName());
+	}
+
+	/**
 	 * Send a message to the remote in order to add a player to a channel.
 	 * 
 	 * @param channel The channel to which a player has been added.

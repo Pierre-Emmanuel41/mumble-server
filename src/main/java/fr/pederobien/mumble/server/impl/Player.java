@@ -13,6 +13,8 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
+import fr.pederobien.mumble.server.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
@@ -24,6 +26,7 @@ import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
@@ -195,6 +198,22 @@ public class Player implements IPlayer, IEventListener {
 		boolean oldDeafen = this.isDeafen;
 		Runnable update = () -> this.isDeafen = isDeafen;
 		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), update, new PlayerDeafenChangePostEvent(this, oldDeafen));
+	}
+
+	@Override
+	public void kick(IPlayer kickingPlayer) {
+		if (!kickingPlayer.isAdmin())
+			throw new PlayerNotAdministratorException(kickingPlayer);
+
+		if (channel == null)
+			throw new PlayerNotRegisteredInChannelException(this);
+
+		Runnable update = () -> {
+			IChannel oldChannel = channel;
+			EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, kickingPlayer));
+			channel = null;
+		};
+		EventManager.callEvent(new PlayerKickPreEvent(this, channel, kickingPlayer), update);
 	}
 
 	@Override

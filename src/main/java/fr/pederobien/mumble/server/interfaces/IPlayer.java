@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.interfaces;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
+import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 
 public interface IPlayer {
@@ -118,4 +119,14 @@ public interface IPlayer {
 	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void setDeafen(boolean isDeafen);
+
+	/**
+	 * Kick this player by another player from a channel, if registered.
+	 * 
+	 * @param kickingPlayer The player kicking another player.
+	 * 
+	 * @throws PlayerNotAdministratorException       If the kicking player is not an administrator.
+	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
+	 */
+	void kick(IPlayer kickingPlayer);
 }

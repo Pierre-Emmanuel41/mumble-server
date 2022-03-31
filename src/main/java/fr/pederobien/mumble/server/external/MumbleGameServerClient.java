@@ -13,6 +13,7 @@ import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
@@ -118,11 +119,16 @@ public class MumbleGameServerClient implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerKick(PlayerKickPostEvent event) {
+		tcpClient.onPlayerKick(event.getPlayer(), event.getKickingPlayer());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
 		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
 		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer());
 	}

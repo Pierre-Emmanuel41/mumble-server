@@ -12,20 +12,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.vocal.server.event.PlayerSpeakEvent;
 
-public class ChannelPlayerList implements IChannelPlayerList {
+public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	private IChannel channel;
 	private Map<String, IPlayer> players;
 	private Lock lock;
@@ -39,6 +43,8 @@ public class ChannelPlayerList implements IChannelPlayerList {
 		this.channel = channel;
 		players = new LinkedHashMap<String, IPlayer>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -146,6 +152,35 @@ public class ChannelPlayerList implements IChannelPlayerList {
 
 			event.getVolumes().put(event.getPlayers().get(optPlayer.get().getName()), channel.getSoundModifier().calculate(optPlayer.get(), receiver));
 		}
+	}
+
+	@EventHandler
+	private void onPlayerKick(PlayerKickPostEvent event) {
+		if (!event.getChannel().equals(getChannel()))
+			return;
+
+		lock.lock();
+		try {
+			players.remove(event.getPlayer().getName());
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@EventHandler
+	private void onChannelRemove(ServerChannelRemovePostEvent event) {
+		if (!event.getChannel().equals(getChannel()))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onServerClosing(ServerClosePostEvent event) {
+		if (!event.getServer().equals(getChannel().getServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	/**

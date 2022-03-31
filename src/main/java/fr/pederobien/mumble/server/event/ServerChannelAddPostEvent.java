@@ -30,7 +30,8 @@ public class ServerChannelAddPostEvent extends ServerEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("server=" + getServer().getName());
-		joiner.add("channel=" + getChannel());
+		joiner.add("channel=" + getChannel().getName());
+		joiner.add("soundModifier=" + getChannel().getSoundModifier().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

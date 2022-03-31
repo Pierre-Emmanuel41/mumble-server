@@ -39,6 +39,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
+import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
@@ -120,16 +121,16 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_DEAFEN, playerDeafenMap);
 
+		// Player kick map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerKickMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerKickMap.put(Oid.SET, request -> kickPlayerFromChannel((PlayerKickSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
+
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player kick map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerKickMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerKickMap.put(Oid.ADD, request -> playerKickSet((PlayerKickSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
 
 		// Player position map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerPositionMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -165,20 +166,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * request.getProperties());
 		 */
 		return null;
-	}
-
-	@Override
-	protected IMumbleMessage playerKickSet(PlayerKickSetMessageV10 request) {
-		final Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKickedPlayer());
-		if (!optKickedPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
-
-		try {
-			optKickedPlayer.get().getChannel().getPlayers().remove(optKickedPlayer.get());
-			return MumbleServerMessageFactory.answer(request, request.getProperties());
-		} catch (NullPointerException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
 	}
 
 	@Override
@@ -826,6 +813,35 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
 
+	/**
+	 * Kicks a player from a channel.
+	 * 
+	 * @param request The request received from the remote in order to kick a player from a channel.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage kickPlayerFromChannel(PlayerKickSetMessageV10 request) {
+		Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKicked());
+		if (!optKickedPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+
+		Optional<IPlayer> optKickingPlayer = getServer().getPlayers().get(request.getKicking());
+		if (!optKickingPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+
+		try {
+			optKickedPlayer.get().kick(optKickingPlayer.get());
+		} catch (PlayerNotAdministratorException e) {
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED);
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optKickedPlayer.get().getChannel() != null)
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 }
