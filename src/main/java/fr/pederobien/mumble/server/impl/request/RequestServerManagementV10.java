@@ -315,6 +315,9 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			// Player's identifier
 			informations.add(player.getIdentifier());
 
+			// Player's online status
+			informations.add(player.isOnline());
+
 			// Player's game address
 			informations.add(player.getGameAddress().getAddress().getHostAddress());
 
