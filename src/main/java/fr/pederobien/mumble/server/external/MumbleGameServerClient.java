@@ -20,6 +20,7 @@ import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
@@ -121,6 +122,11 @@ public class MumbleGameServerClient implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerKick(PlayerKickPostEvent event) {
 		tcpClient.onPlayerKick(event.getPlayer(), event.getKickingPlayer());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
+		tcpClient.onPlayerPositionChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

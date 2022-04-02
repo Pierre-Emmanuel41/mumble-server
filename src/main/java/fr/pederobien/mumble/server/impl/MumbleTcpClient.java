@@ -214,6 +214,16 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to update the position of a player.
+	 * 
+	 * @param player The player whose the position has changed.
+	 */
+	public void onPlayerPositionChange(IPlayer player) {
+		send(Idc.PLAYER_POSITION, Oid.SET, player.getName(), player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ(),
+				player.getPosition().getYaw(), player.getPosition().getPitch());
+	}
+
+	/**
 	 * Send a message to the remote in order to add a player to a channel.
 	 * 
 	 * @param channel The channel to which a player has been added.

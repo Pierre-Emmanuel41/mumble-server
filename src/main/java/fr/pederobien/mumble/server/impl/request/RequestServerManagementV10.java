@@ -126,17 +126,17 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerKickMap.put(Oid.SET, request -> kickPlayerFromChannel((PlayerKickSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
 
+		// Player position map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerPositionMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		playerPositionMap.put(Oid.GET, request -> getPlayerPosition((PlayerPositionGetMessageV10) request));
+		playerPositionMap.put(Oid.SET, request -> setPlayerPosition((PlayerPositionSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
+
 		// Channels player map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player position map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerPositionMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerPositionMap.put(Oid.GET, request -> playerPositionGet((PlayerPositionGetMessageV10) request));
-		playerPositionMap.put(Oid.SET, request -> playerPositionSet((PlayerPositionSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
 
 		// Sound modifier map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -166,28 +166,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * request.getProperties());
 		 */
 		return null;
-	}
-
-	@Override
-	protected IMumbleMessage playerPositionGet(PlayerPositionGetMessageV10 request) {
-		String playerName = request.getPlayerInfo().getName();
-
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
-		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
-
-		IPosition position = optPlayer.get().getPosition();
-		return MumbleServerMessageFactory.answer(request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
-	}
-
-	@Override
-	protected IMumbleMessage playerPositionSet(PlayerPositionSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
-
-		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
 	@Override
@@ -843,6 +821,45 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		}
 
 		if (optKickedPlayer.get().getChannel() != null)
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Get the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerPosition(PlayerPositionGetMessageV10 request) {
+		String playerName = request.getPlayerInfo().getName();
+
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+
+		IPosition position = optPlayer.get().getPosition();
+		return MumbleServerMessageFactory.answer(request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
+	}
+
+	/**
+	 * Update the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerPosition(PlayerPositionSetMessageV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+
+		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
+		if (optPlayer.get().getPosition().getX() != request.getX() || optPlayer.get().getPosition().getY() != request.getY()
+				|| optPlayer.get().getPosition().getZ() != request.getZ() || optPlayer.get().getPosition().getYaw() != request.getYaw()
+				|| optPlayer.get().getPosition().getPitch() != request.getPitch())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());

@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import fr.pederobien.mumble.server.event.PlayerPositionChangeEvent;
+import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
 
 public interface IPosition {
 
@@ -35,7 +35,7 @@ public interface IPosition {
 	double getPitch();
 
 	/**
-	 * Update the coordinates associated to this position. Rise an {@link PlayerPositionChangeEvent}.
+	 * Update the coordinates associated to this position. Rise an {@link PlayerPositionChangePostEvent}.
 	 * 
 	 * @param x     The new x position.
 	 * @param y     The new y position.
