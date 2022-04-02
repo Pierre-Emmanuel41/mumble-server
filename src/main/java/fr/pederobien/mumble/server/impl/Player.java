@@ -217,7 +217,6 @@ public class Player implements IPlayer, IEventListener {
 		Runnable update = () -> {
 			IChannel oldChannel = channel;
 			EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, kickingPlayer));
-			channel = null;
 		};
 		EventManager.callEvent(new PlayerKickPreEvent(this, channel, kickingPlayer), update);
 	}
@@ -259,9 +258,17 @@ public class Player implements IPlayer, IEventListener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
-			setMuteBy0(event.getPlayer(), false);
-		else
-			channel = null;
+			return;
+
+		channel = null;
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	private void onPlayerKick(PlayerKickPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		channel = null;
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
