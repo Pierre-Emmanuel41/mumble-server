@@ -43,7 +43,7 @@ public class ClientList implements IEventListener {
 	 */
 	public Optional<MumblePlayerClient> get(String name) {
 		for (MumblePlayerClient client : clients)
-			if (client.getPlayer() != null && client.getPlayer().isOnline() && client.getPlayer().getName().equals(name))
+			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
 				return Optional.of(client);
 		return Optional.empty();
 	}
