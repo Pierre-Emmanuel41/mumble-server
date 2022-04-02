@@ -2,6 +2,7 @@ package fr.pederobien.mumble.server.interfaces;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
@@ -105,6 +106,11 @@ public interface IPlayer {
 	 * @param isMute True to mute, false to unmute.
 	 */
 	void setMuteBy(IPlayer player, boolean isMute);
+
+	/**
+	 * @return A list that contains players for which this player is mute.
+	 */
+	Stream<IPlayer> getMuteByPlayers();
 
 	/**
 	 * @return True if this player is deafen, false otherwise.

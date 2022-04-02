@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminChangePreEvent;
@@ -182,6 +183,11 @@ public class Player implements IPlayer, IEventListener {
 			throw new IllegalArgumentException("The player must be registered on the server");
 
 		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute), () -> setMuteBy0(player, isMute));
+	}
+
+	@Override
+	public Stream<IPlayer> getMuteByPlayers() {
+		return isMuteBy.entrySet().stream().filter(entry -> entry.getValue()).map(entry -> entry.getKey());
 	}
 
 	@Override
