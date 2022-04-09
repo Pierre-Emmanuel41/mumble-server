@@ -16,6 +16,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
@@ -35,7 +36,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
@@ -138,10 +138,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
 
+		// Parameter value map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
+
 		// Sound modifier map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		soundModifierMap.put(Oid.GET, request -> soundModifierGet((SoundModifierGetMessageV10) request));
-		soundModifierMap.put(Oid.SET, request -> soundModifierSet((SoundModifierSetMessageV10) request));
+		// soundModifierMap.put(Oid.SET, request -> setSoundModifierProperties((SoundModifierSetMessageV10) request));
 		soundModifierMap.put(Oid.INFO, request -> soundModifierInfo((SoundModifierInfoMessageV10) request));
 		getRequests().put(Idc.SOUND_MODIFIER, soundModifierMap);
 	}
@@ -173,7 +178,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		List<Object> informations = new ArrayList<Object>();
 
 		// channel's name
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
@@ -197,32 +202,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			informations.add(parameter.getValue());
 		}
 		return MumbleServerMessageFactory.answer(request, informations.toArray());
-	}
-
-	@Override
-	protected IMumbleMessage soundModifierSet(SoundModifierSetMessageV10 request) {
-		// Channel's name
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
-		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
-
-		// Modifier's name
-		Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getSoundModifierInfo().getName());
-		if (!optModifier.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
-
-		ParameterList parameterList = new ParameterList();
-		for (LazyParameterInfo parameterInfo : request.getSoundModifierInfo().getParameterInfo())
-			parameterList.add(Parameter.fromType(parameterInfo.getType(), parameterInfo.getName(), parameterInfo.getValue(), parameterInfo.getValue()));
-
-		if (optChannel.get().getSoundModifier().equals(optModifier.get()))
-			optChannel.get().getSoundModifier().getParameters().update(parameterList);
-		else {
-			optModifier.get().getParameters().update(parameterList);
-			optChannel.get().setSoundModifier(optModifier.get());
-		}
-
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
 	}
 
 	@Override
@@ -459,7 +438,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @return The server answer.
 	 */
 	private IMumbleMessage addChannel(ChannelsAddMessageV10 request) {
-		if (getServer().getChannels().getChannel(request.getChannelInfo().getName()).isPresent())
+		if (getServer().getChannels().get(request.getChannelInfo().getName()).isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
 
 		Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getChannelInfo().getSoundModifierInfo().getName());
@@ -486,7 +465,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @return The server answer.
 	 */
 	private IMumbleMessage removeChannel(ChannelsRemoveMessageV10 request) {
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (optChannel.isPresent()) {
 			if (getServer().getChannels().remove(request.getChannelName()) == null)
 				return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
@@ -504,11 +483,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @return The server answer.
 	 */
 	private IMumbleMessage renameChannel(ChannelsSetMessageV10 request) {
-		Optional<IChannel> optOldChannel = getServer().getChannels().getChannel(request.getOldName());
+		Optional<IChannel> optOldChannel = getServer().getChannels().get(request.getOldName());
 		if (!optOldChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
-		Optional<IChannel> optNewChannel = getServer().getChannels().getChannel(request.getNewName());
+		Optional<IChannel> optNewChannel = getServer().getChannels().get(request.getNewName());
 		if (optNewChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
 
@@ -755,7 +734,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @return The server answer.
 	 */
 	private IMumbleMessage addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
@@ -781,7 +760,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @return The server answer.
 	 */
 	private IMumbleMessage removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
-		Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName());
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
 
@@ -863,5 +842,28 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, request.getProperties());
+	}
+
+	/**
+	 * Update the value of a parameter of a sound modifier associated to a a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the value of a parameter
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setParameterValue(ParameterValueSetMessageV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+
+		optParameter.get().setValue(request.getNewValue());
+		if (optParameter.get().getValue() != request.getNewValue())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewValue());
 	}
 }

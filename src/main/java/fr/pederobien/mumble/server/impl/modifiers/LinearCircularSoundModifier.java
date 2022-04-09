@@ -28,9 +28,10 @@ public class LinearCircularSoundModifier extends SoundModifier {
 	 * 
 	 * @param original The original sound modifier to clone.
 	 */
+	@SuppressWarnings("unchecked")
 	private LinearCircularSoundModifier(LinearCircularSoundModifier original) {
 		super(original);
-		this.radiusParameter = getParameters().getParameter(RADIUS_PARAMETER_NAME);
+		this.radiusParameter = (IParameter<Double>) getParameters().get(RADIUS_PARAMETER_NAME).get();
 	}
 
 	@Override

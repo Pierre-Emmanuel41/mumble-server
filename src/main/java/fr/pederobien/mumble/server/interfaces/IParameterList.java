@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.interfaces;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface IParameterList extends Iterable<IParameter<?>> {
@@ -8,21 +9,11 @@ public interface IParameterList extends Iterable<IParameter<?>> {
 	/**
 	 * Get the parameter associated to the given name.
 	 * 
-	 * @param <T>           The type of the parameter to return
-	 * @param parameterName The parameter name.
+	 * @param name The parameter name.
 	 * 
-	 * @return The parameter associated to the name if registered.
+	 * @return An optional that contains the associated parameter if registered, an empty optional otherwise.
 	 */
-	<T> IParameter<T> getParameter(String parameterName);
-
-	/**
-	 * Set the value of a parameter.
-	 * 
-	 * @param <T>           The type of the parameter.
-	 * @param parameterName The parameter name.
-	 * @param value         The new parameter value.
-	 */
-	<T> void setParameterValue(String parameterName, T value);
+	Optional<IParameter<?>> get(String name);
 
 	/**
 	 * @return The number of registered parameters.

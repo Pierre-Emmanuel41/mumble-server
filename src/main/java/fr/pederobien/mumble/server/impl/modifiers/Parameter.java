@@ -144,8 +144,7 @@ public class Parameter<T> implements IParameter<T> {
 			this.value = type.cast(value);
 		else {
 			T oldValue = this.value;
-			Runnable set = () -> this.value = type.cast(value);
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value), set, new ParameterValueChangePostEvent(this, oldValue));
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, value), () -> this.value = type.cast(value), new ParameterValueChangePostEvent(this, oldValue));
 		}
 	}
 

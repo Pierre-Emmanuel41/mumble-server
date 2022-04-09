@@ -60,7 +60,7 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@Override
 	public IChannel remove(String name) {
-		Optional<IChannel> optChannel = getChannel(name);
+		Optional<IChannel> optChannel = get(name);
 		if (!optChannel.isPresent())
 			return null;
 
@@ -90,7 +90,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	@Override
-	public Optional<IChannel> getChannel(String name) {
+	public Optional<IChannel> get(String name) {
 		return Optional.ofNullable(channels.get(name));
 	}
 
@@ -106,11 +106,11 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@EventHandler
 	private void onChannelNameChangePost(ChannelNameChangePostEvent event) {
-		Optional<IChannel> optOldChannel = getChannel(event.getOldName());
+		Optional<IChannel> optOldChannel = get(event.getOldName());
 		if (!optOldChannel.isPresent())
 			return;
 
-		Optional<IChannel> optNewChannel = getChannel(event.getChannel().getName());
+		Optional<IChannel> optNewChannel = get(event.getChannel().getName());
 		if (optNewChannel.isPresent())
 			throw new ChannelAlreadyRegisteredException(server, optNewChannel.get());
 

@@ -57,7 +57,7 @@ public interface IChannelList extends Iterable<IChannel> {
 	 * 
 	 * @return An optional that contains the channel if registered, an empty optional otherwise.
 	 */
-	Optional<IChannel> getChannel(String name);
+	Optional<IChannel> get(String name);
 
 	/**
 	 * @return a sequential {@code Stream} over the elements in this collection.

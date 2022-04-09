@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.interfaces.IParameter;
@@ -34,18 +35,8 @@ public class ParameterList implements IParameterList {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> Parameter<T> getParameter(String parameterName) {
-		return (Parameter<T>) parameters.get(parameterName);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> void setParameterValue(String parameterName, T value) {
-		IParameter<?> parameter = parameters.get(parameterName);
-		if (parameter == null)
-			return;
-		((IParameter<T>) parameter).setValue(value);
+	public Optional<IParameter<?>> get(String name) {
+		return Optional.ofNullable(parameters.get(name));
 	}
 
 	@Override

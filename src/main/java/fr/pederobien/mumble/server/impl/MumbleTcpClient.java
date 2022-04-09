@@ -285,12 +285,6 @@ public class MumbleTcpClient {
 		// Channel's name
 		informations.add(parameter.getSoundModifier().getChannel().getName());
 
-		// Modifier's name
-		informations.add(parameter.getSoundModifier().getName());
-
-		// Number of parameters
-		informations.add(1);
-
 		// Parameter's name
 		informations.add(parameter.getName());
 
@@ -300,7 +294,7 @@ public class MumbleTcpClient {
 		// Parameter's value
 		informations.add(parameter.getValue());
 
-		send(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
+		send(Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
 	}
 
 	/**

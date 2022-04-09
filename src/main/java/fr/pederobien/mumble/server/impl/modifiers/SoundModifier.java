@@ -24,6 +24,7 @@ public class SoundModifier implements ISoundModifier {
 	 * 
 	 * @param original The original sound modifier to clone.
 	 */
+	@SuppressWarnings("unchecked")
 	protected SoundModifier(SoundModifier original) {
 		this.name = original.getName();
 		this.parameters = original.getParameters().clone();
@@ -32,7 +33,7 @@ public class SoundModifier implements ISoundModifier {
 		for (IParameter<?> parameter : parameters)
 			((Parameter<?>) parameter).setSoundModifier(this);
 
-		feedbackParameter = parameters.getParameter(FEEDBACK_PARAMETER_NAME);
+		feedbackParameter = (IParameter<Boolean>) parameters.get(FEEDBACK_PARAMETER_NAME).get();
 	}
 
 	@Override

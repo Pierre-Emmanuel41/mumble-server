@@ -11,7 +11,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
@@ -90,15 +89,6 @@ public abstract class RequestServerManagement {
 	 * @return The server response.
 	 */
 	protected abstract IMumbleMessage soundModifierGet(SoundModifierGetMessageV10 request);
-
-	/**
-	 * Set the sound modifier of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage soundModifierSet(SoundModifierSetMessageV10 request);
 
 	/**
 	 * Get a description of each sound modifier registered in the {@link SoundManager}.
