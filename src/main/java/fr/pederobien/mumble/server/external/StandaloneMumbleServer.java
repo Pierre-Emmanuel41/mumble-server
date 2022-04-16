@@ -14,7 +14,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleGameServer implements IMumbleServer, IEventListener {
+public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 	private static final String GAME_CLIENT = "GameClient";
 	private InternalServer server;
 	private TcpServer tcpServer;
@@ -31,7 +31,7 @@ public class MumbleGameServer implements IMumbleServer, IEventListener {
 	 * @param gameServerPort The port number for the TCP communication between the game server and this server.
 	 * @param path           The folder that contains the server configuration file.
 	 */
-	public MumbleGameServer(String name, int gameServerPort, String path) {
+	public StandaloneMumbleServer(String name, int gameServerPort, String path) {
 		server = new InternalServer(name, path);
 		tcpServer = new TcpServer(String.format("%s%s", name, GAME_CLIENT), gameServerPort, () -> new MessageExtractor());
 		EventManager.registerListener(this);
