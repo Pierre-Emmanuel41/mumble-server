@@ -18,7 +18,7 @@ public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 	private static final String GAME_CLIENT = "GameClient";
 	private InternalServer server;
 	private TcpServer tcpServer;
-	private MumbleGameServerClient client;
+	private StandaloneMumbleClient client;
 	private ITcpConnection connection;
 
 	/**
@@ -93,7 +93,7 @@ public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 		if (client != null)
 			event.getConnection().dispose();
 		else
-			client = new MumbleGameServerClient(server, connection = event.getConnection());
+			client = new StandaloneMumbleClient(server, connection = event.getConnection());
 	}
 
 	@EventHandler
@@ -107,7 +107,7 @@ public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 	/**
 	 * @return The client associated to the game server. It is not null if the server is running.
 	 */
-	public MumbleGameServerClient getGameServerClient() {
+	public StandaloneMumbleClient getGameServerClient() {
 		return client;
 	}
 

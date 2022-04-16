@@ -36,12 +36,18 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleGameServerClient implements IEventListener {
+public class StandaloneMumbleClient implements IEventListener {
 	private ITcpConnection tcpConnection;
 	private MumbleTcpClient tcpClient;
 	private InternalServer server;
 
-	public MumbleGameServerClient(InternalServer internalServer, ITcpConnection tcpConnection) {
+	/**
+	 * Creates a client associated to the external game server.
+	 * 
+	 * @param server        The server associated to this client.
+	 * @param tcpConnection The connection with the external game server in order to send/receive data.
+	 */
+	protected StandaloneMumbleClient(InternalServer internalServer, ITcpConnection tcpConnection) {
 		this.server = internalServer;
 		this.tcpConnection = tcpConnection;
 
