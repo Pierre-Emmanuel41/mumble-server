@@ -5,15 +5,15 @@ import java.util.StringJoiner;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
-public class ServerClosePreEvent extends ServerEvent implements ICancellable {
+public class ServerOpenPreEvent extends ServerEvent implements ICancellable {
 	private boolean isCancelled;
 
 	/**
-	 * Creates an event thrown when a server is about to be closed.
+	 * Creates an event thrown when a server is about to be opened.
 	 * 
-	 * @param server The server that is about to be closed.
+	 * @param server The server that is about to be opened.
 	 */
-	public ServerClosePreEvent(IMumbleServer server) {
+	public ServerOpenPreEvent(IMumbleServer server) {
 		super(server);
 	}
 

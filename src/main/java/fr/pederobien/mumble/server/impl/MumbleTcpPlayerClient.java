@@ -24,7 +24,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleTcpPlayerClient implements IEventListener {
-	private InternalServer server;
+	private AbstractMumbleServer server;
 	private MumblePlayerClient playerClient;
 	private MumbleTcpClient tcpClient;
 	private boolean isJoined;
@@ -36,7 +36,7 @@ public class MumbleTcpPlayerClient implements IEventListener {
 	 * @param playerClient The player client associated to this TCP client.
 	 * @param connection   The TCP connection in order to receive/send request to the remote.
 	 */
-	protected MumbleTcpPlayerClient(InternalServer server, MumblePlayerClient playerClient, ITcpConnection connection) {
+	protected MumbleTcpPlayerClient(AbstractMumbleServer server, MumblePlayerClient playerClient, ITcpConnection connection) {
 		this.server = server;
 		this.playerClient = playerClient;
 

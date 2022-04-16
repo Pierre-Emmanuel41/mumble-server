@@ -12,12 +12,12 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
-import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.SoundManager;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public abstract class RequestServerManagement {
-	private InternalServer server;
+	private IMumbleServer server;
 	private Map<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>> requests;
 
 	/**
@@ -25,7 +25,7 @@ public abstract class RequestServerManagement {
 	 * 
 	 * @param server The server to update.
 	 */
-	public RequestServerManagement(InternalServer server) {
+	public RequestServerManagement(IMumbleServer server) {
 		this.server = server;
 		requests = new HashMap<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>>();
 	}
@@ -59,7 +59,7 @@ public abstract class RequestServerManagement {
 	/**
 	 * @return The server to update.
 	 */
-	protected InternalServer getServer() {
+	protected IMumbleServer getServer() {
 		return server;
 	}
 

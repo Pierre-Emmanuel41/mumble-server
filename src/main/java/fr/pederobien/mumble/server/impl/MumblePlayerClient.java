@@ -6,7 +6,7 @@ import java.util.UUID;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 
 public class MumblePlayerClient {
-	private InternalServer server;
+	private AbstractMumbleServer server;
 	private MumbleTcpPlayerClient playerClient;
 	private Player player;
 	private UUID uuid;
@@ -17,7 +17,7 @@ public class MumblePlayerClient {
 	 * @param server The server associated to this client.
 	 * @param uuid   The client unique identifier.
 	 */
-	protected MumblePlayerClient(InternalServer server, UUID uuid) {
+	protected MumblePlayerClient(AbstractMumbleServer server, UUID uuid) {
 		this.server = server;
 		this.uuid = uuid;
 	}

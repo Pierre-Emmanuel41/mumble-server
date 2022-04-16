@@ -1,0 +1,107 @@
+package fr.pederobien.mumble.server.impl;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import fr.pederobien.communication.impl.TcpServer;
+import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
+import fr.pederobien.mumble.server.impl.request.RequestManager;
+import fr.pederobien.mumble.server.interfaces.IChannelList;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
+import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
+import fr.pederobien.vocal.server.impl.VocalServer;
+import fr.pederobien.vocal.server.interfaces.IVocalServer;
+
+public abstract class AbstractMumbleServer implements IMumbleServer {
+	private String name;
+	private AtomicInteger mumblePort;
+	private IVocalServer vocalServer;
+	private TcpServer tcpServer;
+	private IChannelList channels;
+	private IServerPlayerList players;
+	private RequestManager requestManager;
+
+	/**
+	 * Creates a mumble server with a specific name.
+	 * 
+	 * @param name The server name.
+	 */
+	protected AbstractMumbleServer(String name) {
+		this.name = name;
+
+		mumblePort = new AtomicInteger(-1);
+		channels = new ChannelList(this);
+		players = new ServerPlayerList(this);
+		requestManager = new RequestManager(this);
+
+		registerModifiers();
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public void open() {
+		tcpServer.connect();
+		vocalServer.open();
+	}
+
+	@Override
+	public void close() {
+		tcpServer.disconnect();
+		vocalServer.close();
+	}
+
+	@Override
+	public IServerPlayerList getPlayers() {
+		return players;
+	}
+
+	@Override
+	public IChannelList getChannels() {
+		return channels;
+	}
+
+	/**
+	 * Set the port number on which the server receives configuration requests and on which players talk together. For internal use
+	 * only.
+	 * 
+	 * @param mumblePort The port on which the server receives configuration requests and on which players talk together.
+	 */
+	public void setMumblePort(int mumblePort) {
+		if (!this.mumblePort.compareAndSet(-1, mumblePort))
+			throw new IllegalStateException("The port number has already been set");
+
+		tcpServer = new TcpServer(name, mumblePort, () -> new MessageExtractor());
+		vocalServer = new VocalServer(name, mumblePort);
+	}
+
+	/**
+	 * For internal use only.
+	 * 
+	 * @return The port on which the server receives configuration requests and on which players talk together.
+	 */
+	public int getMumblePort() {
+		return mumblePort.get();
+	}
+
+	/**
+	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
+	 */
+	protected RequestManager getRequestManager() {
+		return requestManager;
+	}
+
+	/**
+	 * @return The TCP server on which configuration request are sent.
+	 */
+	protected TcpServer getTcpServer() {
+		return tcpServer;
+	}
+
+	private void registerModifiers() {
+		SoundManager.add(new LinearCircularSoundModifier());
+	}
+}

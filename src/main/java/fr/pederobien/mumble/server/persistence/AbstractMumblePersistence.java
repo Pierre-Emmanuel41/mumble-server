@@ -3,17 +3,15 @@ package fr.pederobien.mumble.server.persistence;
 import java.io.FileNotFoundException;
 import java.nio.file.FileSystems;
 
-import fr.pederobien.mumble.server.impl.InternalServer;
-import fr.pederobien.mumble.server.impl.SoundManager;
-import fr.pederobien.mumble.server.persistence.loaders.MumbleSerializerV10;
+import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.persistence.exceptions.ExtensionException;
 import fr.pederobien.persistence.impl.Persistences;
 import fr.pederobien.persistence.impl.xml.XmlPersistence;
 import fr.pederobien.persistence.interfaces.IPersistence;
 
-public class MumblePersistence {
+public abstract class AbstractMumblePersistence<T extends AbstractMumbleServer> {
 	private String path;
-	private XmlPersistence<InternalServer> persistence;
+	private XmlPersistence<T> persistence;
 	private boolean loadingSucceed;
 
 	/**
@@ -21,10 +19,9 @@ public class MumblePersistence {
 	 * 
 	 * @param path The folder that contains the server configuration file.
 	 */
-	public MumblePersistence(String path) {
+	protected AbstractMumblePersistence(String path) {
 		this.path = path;
 		persistence = Persistences.xmlPersistence();
-		persistence.register(persistence.adapt(new MumbleSerializerV10()));
 	}
 
 	/**
@@ -35,7 +32,7 @@ public class MumblePersistence {
 	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
 	 *                            persistence.
 	 */
-	public void deserialize(InternalServer element) {
+	public void deserialize(T element) {
 		try {
 			String filePath = path.concat(String.format("%s%s%s", FileSystems.getDefault().getSeparator(), element.getName(), persistence.getExtension()));
 			persistence.deserialize(element, filePath);
@@ -44,8 +41,7 @@ public class MumblePersistence {
 			loadingSucceed = e instanceof FileNotFoundException;
 			if (!loadingSucceed)
 				e.printStackTrace();
-			element.getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
-			element.setPort(28000);
+			onFailToDeserialize(element, loadingSucceed);
 		}
 	}
 
@@ -55,7 +51,7 @@ public class MumblePersistence {
 	 * 
 	 * @param element the element that contains informations to save.
 	 */
-	public void serialize(InternalServer element) {
+	public void serialize(T element) {
 		if (!loadingSucceed)
 			return;
 
@@ -73,4 +69,18 @@ public class MumblePersistence {
 	public String getPath() {
 		return path;
 	}
+
+	/**
+	 * @return The underlying persistence that store the server configuration in XML format.
+	 */
+	public XmlPersistence<T> getPersistence() {
+		return persistence;
+	}
+
+	/**
+	 * Method called when the deserialization fails.
+	 * 
+	 * @param loadingSucceed True if the exception thrown during deserialization is a {@link FileNotFoundException}, false otherwise.
+	 */
+	protected abstract void onFailToDeserialize(T element, boolean loadingSucceed);
 }

@@ -4,14 +4,14 @@ import java.util.StringJoiner;
 
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
-public class ServerClosePostEvent extends ServerEvent {
+public class ServerOpenPostEvent extends ServerEvent {
 
 	/**
-	 * Creates an event thrown when a server has been closed.
+	 * Creates an event when a server has been opened.
 	 * 
-	 * @param server The closed server.
+	 * @param server The opened server.
 	 */
-	public ServerClosePostEvent(IMumbleServer server) {
+	public ServerOpenPostEvent(IMumbleServer server) {
 		super(server);
 	}
 

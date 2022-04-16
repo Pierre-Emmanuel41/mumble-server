@@ -1,86 +1,122 @@
 package fr.pederobien.mumble.server.impl;
 
+import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
-import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
-import fr.pederobien.mumble.server.interfaces.IChannelList;
-import fr.pederobien.mumble.server.interfaces.IMumbleServer;
-import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
+import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.event.ServerClosePreEvent;
+import fr.pederobien.mumble.server.event.ServerOpenPostEvent;
+import fr.pederobien.mumble.server.event.ServerOpenPreEvent;
+import fr.pederobien.mumble.server.persistence.StandaloneMumbleServerPersistence;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
-public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
+public class StandaloneMumbleServer extends AbstractMumbleServer implements IEventListener {
 	private static final String GAME_CLIENT = "GameClient";
-	private InternalServer server;
+	private AtomicInteger externalGameServerPort;
+	private StandaloneMumbleServerPersistence persistence;
 	private TcpServer tcpServer;
 	private StandaloneMumbleClient client;
 	private ITcpConnection connection;
+	private AtomicBoolean isOpened;
 
 	/**
-	 * Creates an external mumble server. This kind of server is used when it should be running outside from the game server. The
-	 * default communication port is 28000. In order to change the port, please turn off the server and change manually the port value
-	 * in the created configuration file.
+	 * Creates an standalone mumble server. This kind of server is used when it should be running outside from the game server. The
+	 * default port number for the server configuration requests and for the audio communication between players is 28000. The default
+	 * port number for the communication with the external game server is 29000. In order to change the port, please turn off the
+	 * server and change manually the port values in the created configuration file.
 	 * 
-	 * @param name           The server name.
-	 * @param address        The server IP address.
-	 * @param gameServerPort The port number for the TCP communication between the game server and this server.
-	 * @param path           The folder that contains the server configuration file.
+	 * @param name The server name.
+	 * @param path The folder that contains the server configuration file.
 	 */
-	public StandaloneMumbleServer(String name, int gameServerPort, String path) {
-		server = new InternalServer(name, path);
-		tcpServer = new TcpServer(String.format("%s%s", name, GAME_CLIENT), gameServerPort, () -> new MessageExtractor());
+	public StandaloneMumbleServer(String name, String path) {
+		super(name);
+
+		externalGameServerPort = new AtomicInteger(-1);
+		isOpened = new AtomicBoolean(false);
+
+		persistence = new StandaloneMumbleServerPersistence(path);
+		persistence.deserialize(this);
+
 		EventManager.registerListener(this);
 	}
 
 	@Override
-	public String getName() {
-		return server.getName();
-	}
-
-	@Override
 	public void open() {
-		server.open();
-		tcpServer.connect();
+		if (!isOpened.compareAndSet(false, true))
+			return;
+
+		Runnable update = () -> {
+			super.open();
+			tcpServer.connect();
+		};
+		EventManager.callEvent(new ServerOpenPreEvent(this), update, new ServerOpenPostEvent(this));
 	}
 
 	@Override
 	public void close() {
-		checkIsOpened();
-		server.close();
-		tcpServer.disconnect();
-		client = null;
+		if (!isOpened.compareAndSet(true, false))
+			return;
+
+		Runnable update = () -> {
+			super.close();
+			tcpServer.disconnect();
+			persistence.serialize(this);
+			client = null;
+		};
+		EventManager.callEvent(new ServerClosePreEvent(this), update, new ServerClosePostEvent(this));
 	}
 
 	@Override
 	public boolean isOpened() {
-		checkIsOpened();
-		return server.isOpened();
-	}
-
-	@Override
-	public IServerPlayerList getPlayers() {
-		checkIsOpened();
-		return server.getPlayers();
-	}
-
-	@Override
-	public IChannelList getChannels() {
-		checkIsOpened();
-		return server.getChannels();
+		return isOpened.get();
 	}
 
 	@Override
 	public String toString() {
-		return server.toString();
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("name=" + getName());
+		joiner.add(String.format("mumble port = %s", getMumblePort()));
+		joiner.add(String.format("game server port = %s", getExternalGameServerPort()));
+		return joiner.toString();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return server.equals(obj);
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof StandaloneMumbleServer))
+			return false;
+
+		StandaloneMumbleServer other = (StandaloneMumbleServer) obj;
+		return getName().equals(other.getName()) && getMumblePort() == other.getMumblePort() && getExternalGameServerPort() == other.getExternalGameServerPort();
+	}
+
+	/**
+	 * Set the port number on which there is the communication with the external game server. For internal use only.
+	 * 
+	 * @param externalGameServerPort The port number on which there is the communication with the external game server.
+	 */
+	public void setExternalGameServerPort(int externalGameServerPort) {
+		if (!this.externalGameServerPort.compareAndSet(-1, externalGameServerPort))
+			throw new IllegalStateException("The port number has already been set");
+
+		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MessageExtractor());
+	}
+
+	/**
+	 * @return The port number on which there is the communication with the external game server.
+	 */
+	public int getExternalGameServerPort() {
+		return externalGameServerPort.get();
 	}
 
 	@EventHandler
@@ -92,7 +128,7 @@ public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 		if (client != null)
 			event.getConnection().dispose();
 		else
-			client = new StandaloneMumbleClient(server, connection = event.getConnection());
+			client = new StandaloneMumbleClient(this, connection = event.getConnection());
 	}
 
 	@EventHandler
@@ -108,10 +144,5 @@ public class StandaloneMumbleServer implements IMumbleServer, IEventListener {
 	 */
 	public StandaloneMumbleClient getGameServerClient() {
 		return client;
-	}
-
-	private void checkIsOpened() {
-		if (!server.isOpened())
-			throw new ServerNotOpenedException();
 	}
 }

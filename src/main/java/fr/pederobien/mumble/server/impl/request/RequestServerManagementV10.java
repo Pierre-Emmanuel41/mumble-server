@@ -43,12 +43,12 @@ import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
-import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
@@ -62,7 +62,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * 
 	 * @param server The server to update.
 	 */
-	public RequestServerManagementV10(InternalServer server) {
+	public RequestServerManagementV10(IMumbleServer server) {
 		super(server);
 
 		// Server info map

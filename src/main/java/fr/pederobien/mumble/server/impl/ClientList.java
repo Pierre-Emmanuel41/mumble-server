@@ -22,30 +22,16 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ClientList implements IEventListener {
-	private InternalServer server;
+	private AbstractMumbleServer server;
 	private List<MumblePlayerClient> clients;
 	private Lock lock;
 
-	public ClientList(InternalServer internalServer) {
+	public ClientList(AbstractMumbleServer internalServer) {
 		this.server = internalServer;
 		clients = new ArrayList<MumblePlayerClient>();
 		lock = new ReentrantLock(true);
 
 		EventManager.registerListener(this);
-	}
-
-	/**
-	 * Get the client associated to the given name.
-	 * 
-	 * @param name The player name.
-	 * 
-	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
-	 */
-	public Optional<MumblePlayerClient> get(String name) {
-		for (MumblePlayerClient client : clients)
-			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
-				return Optional.of(client);
-		return Optional.empty();
 	}
 
 	@EventHandler
@@ -79,6 +65,20 @@ public class ClientList implements IEventListener {
 	private void onServerClosing(ServerClosePostEvent event) {
 		clear();
 		EventManager.unregisterListener(this);
+	}
+
+	/**
+	 * Get the client associated to the given name.
+	 * 
+	 * @param name The player name.
+	 * 
+	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
+	 */
+	private Optional<MumblePlayerClient> get(String name) {
+		for (MumblePlayerClient client : clients)
+			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
+				return Optional.of(client);
+		return Optional.empty();
 	}
 
 	/**

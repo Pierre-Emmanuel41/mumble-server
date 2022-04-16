@@ -1,11 +1,10 @@
 package fr.pederobien.mumble.server.persistence.loaders;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import fr.pederobien.mumble.common.impl.model.ParameterType;
-import fr.pederobien.mumble.server.impl.InternalServer;
+import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
@@ -14,21 +13,12 @@ import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.persistence.EMumbleXmlTag;
 import fr.pederobien.persistence.impl.xml.AbstractXmlSerializer;
 
-public abstract class AbstractXmlMumbleSerializer extends AbstractXmlSerializer<InternalServer> {
+public abstract class AbstractXmlMumbleSerializer<T extends AbstractMumbleServer> extends AbstractXmlSerializer<T> {
+	protected static final String SIMPLE_MUMBLE_SERVER = "simple";
+	protected static final String STANDALONE_MUMBLE_SERVER = "standalone";
 
 	protected AbstractXmlMumbleSerializer(Double version) {
 		super(version);
-	}
-
-	/**
-	 * Set the port used for TCP and UDP communication protocol.
-	 * 
-	 * @param element The element to update.
-	 * @param root    The xml root that contains server's port number.
-	 */
-	protected void setPort(InternalServer element, Element root) {
-		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
-		element.setPort(getIntNodeValue(port.getChildNodes().item(0)));
 	}
 
 	/**
@@ -37,7 +27,7 @@ public abstract class AbstractXmlMumbleSerializer extends AbstractXmlSerializer<
 	 * @param element The element to update.
 	 * @param root    The xml root that contains all server's channel.
 	 */
-	protected void setChannels(InternalServer element, Element root) {
+	protected void setChannels(T element, Element root) {
 		PendingChannelManager pendingChannelManager = new PendingChannelManager();
 
 		NodeList channels = getElementsByTagName(root, EMumbleXmlTag.CHANNEL);
@@ -75,6 +65,21 @@ public abstract class AbstractXmlMumbleSerializer extends AbstractXmlSerializer<
 
 			IChannel ch = element.getChannels().add(channelName, SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 			pendingChannelManager.register(ch, soundModifierName, parameterList);
+		}
+	}
+
+	/**
+	 * Check if the type found in the server configuration file correspond to the type of the running server.
+	 * 
+	 * @param root The xml root that contains the server configuration.
+	 * @param type The type of the running server.
+	 */
+	protected void checkServerType(Element root, String type) {
+		Element typeElement = (Element) getElementsByTagName(root, EMumbleXmlTag.TYPE).item(0);
+		String serverType = typeElement.getChildNodes().item(0).getNodeValue();
+		if (!serverType.equalsIgnoreCase(type)) {
+			String format = "The server type found in the configuration (%s) file does not correspond to the running server type (%s)";
+			throw new IllegalStateException(String.format(format, serverType, type));
 		}
 	}
 }

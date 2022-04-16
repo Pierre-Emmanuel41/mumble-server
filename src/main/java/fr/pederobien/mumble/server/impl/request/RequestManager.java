@@ -5,8 +5,8 @@ import java.util.Map;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
-import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class RequestManager {
 	private Map<Float, RequestServerManagement> requests;
@@ -16,7 +16,7 @@ public class RequestManager {
 	 * 
 	 * @param server The server to update.
 	 */
-	public RequestManager(InternalServer server) {
+	public RequestManager(IMumbleServer server) {
 		requests = new HashMap<Float, RequestServerManagement>();
 
 		requests.put(1.0f, new RequestServerManagementV10(server));

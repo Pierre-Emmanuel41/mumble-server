@@ -28,7 +28,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ServerPlayerList implements IServerPlayerList, IEventListener {
-	private InternalServer server;
+	private IMumbleServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
@@ -37,7 +37,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @param server The server to which this list is attached.
 	 */
-	public ServerPlayerList(InternalServer server) {
+	public ServerPlayerList(IMumbleServer server) {
 		this.server = server;
 
 		players = new HashMap<String, IPlayer>();
