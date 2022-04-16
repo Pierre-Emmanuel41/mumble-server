@@ -12,6 +12,7 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
+import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 
 public class MumbleTcpClient {
 	private ITcpConnection connection;
@@ -58,6 +59,20 @@ public class MumbleTcpClient {
 
 			// Parameter's value
 			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
 		}
 
 		send(Idc.CHANNELS, Oid.ADD, informations.toArray());
@@ -260,7 +275,7 @@ public class MumbleTcpClient {
 		// Number of parameters
 		informations.add(channel.getSoundModifier().getParameters().size());
 		for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
-			// Parmaeter's name
+			// Parameter's name
 			informations.add(parameter.getName());
 
 			// Parameter's type
@@ -268,6 +283,20 @@ public class MumbleTcpClient {
 
 			// Parameter's value
 			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
 		}
 
 		send(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
@@ -276,10 +305,9 @@ public class MumbleTcpClient {
 	/**
 	 * Send a message to the remote in order to update the value of the given parameter.
 	 * 
-	 * @param <T>       The underlying type of the parameter.
 	 * @param parameter The parameter whose the value has changed.
 	 */
-	public <T> void onParameterValueChange(IParameter<T> parameter) {
+	public void onParameterValueChange(IParameter<?> parameter) {
 		List<Object> informations = new ArrayList<Object>();
 
 		// Channel's name
@@ -295,6 +323,29 @@ public class MumbleTcpClient {
 		informations.add(parameter.getValue());
 
 		send(Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the minimum value of the given parameter.
+	 * 
+	 * @param parameter The parameter whose the minimum value has changed.
+	 */
+	public void onParameterMinValueChange(IRangeParameter<?> parameter) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's minimum value
+		informations.add(parameter.getMin());
+
+		send(Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray());
 	}
 
 	/**

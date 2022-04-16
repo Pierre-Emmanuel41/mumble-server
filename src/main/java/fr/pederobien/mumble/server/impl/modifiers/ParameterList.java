@@ -8,8 +8,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IParameterList;
+import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 
 public class ParameterList implements IParameterList {
 	private Map<String, IParameter<?>> parameters;
@@ -50,6 +52,14 @@ public class ParameterList implements IParameterList {
 			IParameter<?> param = parameters.get(parameter.getName());
 			if (param == null)
 				continue;
+
+			if (param instanceof IRangeParameter<?> && parameter instanceof IRangeParameter<?>) {
+				IRangeParameter<?> rangeParam = (IRangeParameter<?>) param;
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+				rangeParam.setMin(rangeParameter.getMin());
+				rangeParam.setMax(rangeParameter.getMax());
+			}
+
 			param.setValue(parameter.getValue());
 		}
 	}
@@ -75,6 +85,21 @@ public class ParameterList implements IParameterList {
 	 * @param parameter The parameter to register.
 	 */
 	public void add(IParameter<?> parameter) {
+		parameters.put(parameter.getName(), parameter);
+	}
+
+	/**
+	 * Registers the given parameter in the list of parameters.
+	 * 
+	 * @param parameter The parameter to register.
+	 */
+	public void add(FullParameterInfo info) {
+		IParameter<?> parameter;
+		if (!info.isRange()) {
+			parameter = Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue());
+		} else
+			parameter = RangeParameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());
+
 		parameters.put(parameter.getName(), parameter);
 	}
 

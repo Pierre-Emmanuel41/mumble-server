@@ -3,9 +3,13 @@ package fr.pederobien.mumble.server.impl.modifiers;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.common.impl.model.ParameterType;
+import fr.pederobien.mumble.server.event.ParameterMinValueChangePostEvent;
+import fr.pederobien.mumble.server.event.ParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventManager;
 
-public class RangeParameter<T> extends Parameter<T> {
+public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T> {
 	private T min, max;
 
 	/**
@@ -126,18 +130,42 @@ public class RangeParameter<T> extends Parameter<T> {
 		return new RangeParameter<T>(this);
 	}
 
-	/**
-	 * @return The minimum parameter value.
-	 */
+	@Override
 	public T getMin() {
 		return min;
 	}
 
-	/**
-	 * @return The maximum parameter value.
-	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setMin(Object min) {
+		if (this.min.equals(min))
+			return;
+
+		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
+		Comparable<? super Number> comparableValue = (Comparable<? super Number>) getValue();
+
+		Runnable update = () -> {
+			if (comparableMin.compareTo((Number) comparableValue) > 0)
+				setValue(min);
+			this.min = getType().cast(min);
+		};
+
+		if (!isAttached())
+			update.run();
+		else {
+			T oldMin = this.min;
+			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, min), update, new ParameterMinValueChangePostEvent(this, oldMin));
+		}
+	}
+
+	@Override
 	public T getMax() {
 		return max;
+	}
+
+	@Override
+	public void setMax(Object max) {
+
 	}
 
 	@SuppressWarnings("unchecked")

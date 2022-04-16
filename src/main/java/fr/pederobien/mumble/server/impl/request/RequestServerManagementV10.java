@@ -16,6 +16,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterMinValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
@@ -36,7 +37,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
-import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
+import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
@@ -44,13 +45,13 @@ import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelExcept
 import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.SoundManager;
-import fr.pederobien.mumble.server.impl.modifiers.Parameter;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
+import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
 public class RequestServerManagementV10 extends RequestServerManagement {
@@ -142,6 +143,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
+
+		// Parameter min value map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterMinValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		parameterMinValueMap.put(Oid.SET, request -> setParameterMinValue((ParameterMinValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_MIN_VALUE, parameterMinValueMap);
 
 		// Sound modifier map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -327,19 +333,18 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 				// Parameter's type
 				informations.add(parameter.getType());
 
-				// isRangeParameter
-				boolean isRange = parameter instanceof RangeParameter;
-				informations.add(isRange);
-
 				// Parameter's default value
 				informations.add(parameter.getDefaultValue());
 
 				// Parameter's value
 				informations.add(parameter.getValue());
 
-				// Parameter's range value
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
 				if (isRange) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
 					informations.add(rangeParameter.getMin());
 					informations.add(rangeParameter.getMax());
 				}
@@ -365,8 +370,21 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 				// Parameter's type
 				informations.add(parameter.getType());
 
+				// Parameter's default value
+				informations.add(parameter.getDefaultValue());
+
 				// Parameter's value
 				informations.add(parameter.getValue());
+
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
+				if (isRange) {
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+					informations.add(rangeParameter.getMin());
+					informations.add(rangeParameter.getMax());
+				}
 			}
 
 			// Number of players
@@ -409,8 +427,21 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 				// Parameter's type
 				informations.add(parameter.getType());
 
+				// Parameter's default value
+				informations.add(parameter.getDefaultValue());
+
 				// Parameter's value
 				informations.add(parameter.getValue());
+
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
+				if (isRange) {
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+					informations.add(rangeParameter.getMin());
+					informations.add(rangeParameter.getMax());
+				}
 			}
 
 			// Number of players
@@ -446,8 +477,8 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
 		ParameterList parameterList = new ParameterList();
-		for (LazyParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo())
-			parameterList.add(Parameter.fromType(parameterInfo.getType(), parameterInfo.getName(), parameterInfo.getValue(), parameterInfo.getValue()));
+		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
+			parameterList.add(parameterInfo);
 
 		IChannel channel = getServer().getChannels().add(request.getChannelInfo().getName(), request.getChannelInfo().getSoundModifierInfo().getName());
 		if (channel == null)
@@ -865,5 +896,33 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
 
 		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewValue());
+	}
+
+	/**
+	 * Update the value of a parameter of a sound modifier associated to a a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the value of a parameter
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setParameterMinValue(ParameterMinValueSetMessageV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+
+		if (!(optParameter.get() instanceof IRangeParameter<?>))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_WITHOUT_MIN);
+
+		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
+		range.setMin(request.getNewMinValue());
+		if (range.getMin() != request.getNewMinValue())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(),
+				request.getNewMinValue());
 	}
 }

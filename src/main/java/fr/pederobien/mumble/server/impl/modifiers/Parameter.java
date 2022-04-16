@@ -140,7 +140,7 @@ public class Parameter<T> implements IParameter<T> {
 		if (this.value.equals(value))
 			return;
 
-		if (soundModifier.getChannel() == null)
+		if (!isAttached())
 			this.value = type.cast(value);
 		else {
 			T oldValue = this.value;
@@ -186,5 +186,12 @@ public class Parameter<T> implements IParameter<T> {
 	@Override
 	public Parameter<T> clone() {
 		return new Parameter<T>(this);
+	}
+
+	/**
+	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
+	 */
+	protected boolean isAttached() {
+		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 }
