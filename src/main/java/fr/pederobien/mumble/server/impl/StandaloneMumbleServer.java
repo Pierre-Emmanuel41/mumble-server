@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.server.external;
+package fr.pederobien.mumble.server.impl;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
@@ -6,7 +6,6 @@ import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.exceptions.ServerNotOpenedException;
-import fr.pederobien.mumble.server.impl.InternalServer;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;

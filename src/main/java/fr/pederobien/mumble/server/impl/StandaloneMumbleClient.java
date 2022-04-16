@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.server.external;
+package fr.pederobien.mumble.server.impl;
 
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
@@ -28,9 +28,6 @@ import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.impl.InternalServer;
-import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
-import fr.pederobien.mumble.server.impl.MumbleTcpClient;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -90,76 +87,121 @@ public class StandaloneMumbleClient implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+		if (!event.getList().getServer().equals(server))
+			return;
+
 		tcpClient.onServerPlayerRemove(event.getPlayer().getName());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerNameChange(event.getOldName(), event.getPlayer().getName());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerOnlineChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerGameAddressChange(PlayerGameAddressChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerGameAddressChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerAdminChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerMuteChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getSource());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerDeafenChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerKick(PlayerKickPostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerKick(event.getPlayer(), event.getKickingPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onPlayerPositionChange(event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+		if (!server.getPlayers().toList().contains(event.getPlayer()))
+			return;
+
 		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePostEvent event) {
+		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+			return;
+
 		tcpClient.onParameterValueChange(event.getParameter());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMinValueChange(ParameterMinValueChangePostEvent event) {
+		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+			return;
+
 		tcpClient.onParameterMinValueChange(event.getParameter());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMaxValueChange(ParameterMaxValueChangePostEvent event) {
+		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+			return;
+
 		tcpClient.onParameterMaxValueChange(event.getParameter());
 	}
 
