@@ -349,6 +349,29 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to update the maximum value of the given parameter.
+	 * 
+	 * @param parameter The parameter whose the maximum value has changed.
+	 */
+	public void onParameterMaxValueChange(IRangeParameter<?> parameter) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's maximum value
+		informations.add(parameter.getMax());
+
+		send(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
+	}
+
+	/**
 	 * Send the given message to the remote.
 	 * 
 	 * @param message The message to send.

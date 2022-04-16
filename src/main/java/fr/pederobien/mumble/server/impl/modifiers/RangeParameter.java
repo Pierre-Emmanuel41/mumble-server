@@ -3,6 +3,8 @@ package fr.pederobien.mumble.server.impl.modifiers;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.common.impl.model.ParameterType;
+import fr.pederobien.mumble.server.event.ParameterMaxValueChangePostEvent;
+import fr.pederobien.mumble.server.event.ParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.server.event.ParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.server.event.ParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
@@ -164,8 +166,26 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void setMax(Object max) {
+		if (this.max.equals(max))
+			return;
 
+		Comparable<? super Number> comparableMax = (Comparable<? super Number>) max;
+		Comparable<? super Number> comparableValue = (Comparable<? super Number>) getValue();
+
+		Runnable update = () -> {
+			if (comparableMax.compareTo((Number) comparableValue) < 0)
+				setValue(max);
+			this.max = getType().cast(max);
+		};
+
+		if (!isAttached())
+			update.run();
+		else {
+			T oldMax = this.max;
+			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, max), update, new ParameterMaxValueChangePostEvent(this, oldMax));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

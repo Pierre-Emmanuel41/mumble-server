@@ -16,6 +16,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterMaxValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterMinValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
@@ -144,10 +145,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
 
-		// Parameter min value map
+		// Parameter minimum value map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterMinValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
 		parameterMinValueMap.put(Oid.SET, request -> setParameterMinValue((ParameterMinValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_MIN_VALUE, parameterMinValueMap);
+
+		// Parameter maximum value map
+		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterMaxValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
+		parameterMaxValueMap.put(Oid.SET, request -> setParameterMaxValue((ParameterMaxValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_MAX_VALUE, parameterMaxValueMap);
 
 		// Sound modifier map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -899,9 +905,9 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	}
 
 	/**
-	 * Update the value of a parameter of a sound modifier associated to a a channel.
+	 * Update the minimum value of a parameter of a sound modifier associated to a a channel.
 	 * 
-	 * @param request The request sent by the remote in order to update the value of a parameter
+	 * @param request The request sent by the remote in order to update the minimum value of a parameter
 	 * 
 	 * @return The server answer.
 	 */
@@ -924,5 +930,33 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(),
 				request.getNewMinValue());
+	}
+
+	/**
+	 * Update the maximum value of a parameter of a sound modifier associated to a a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the maximum value of a parameter
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setParameterMaxValue(ParameterMaxValueSetMessageV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+
+		if (!(optParameter.get() instanceof IRangeParameter<?>))
+			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_WITHOUT_MAX);
+
+		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
+		range.setMax(request.getNewMaxValue());
+		if (range.getMax() != request.getNewMaxValue())
+			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+
+		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(),
+				request.getNewMaxValue());
 	}
 }
