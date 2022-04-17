@@ -55,14 +55,14 @@ import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
-public class RequestServerManagementV10 extends RequestServerManagement {
+public class RequestManagerV10 extends RequestManager {
 
 	/**
 	 * Creates a request management in order to modify the given getServer() and answer to remote getRequests().
 	 * 
 	 * @param server The server to update.
 	 */
-	public RequestServerManagementV10(IMumbleServer server) {
+	public RequestManagerV10(IMumbleServer server) {
 		super(server);
 
 		// Server info map

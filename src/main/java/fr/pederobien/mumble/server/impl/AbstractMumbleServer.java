@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
-import fr.pederobien.mumble.server.impl.request.RequestManager;
+import fr.pederobien.mumble.server.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
@@ -19,7 +19,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	private TcpServer tcpServer;
 	private IChannelList channels;
 	private IServerPlayerList players;
-	private RequestManager requestManager;
+	private ServerRequestManager serverRequestManager;
 
 	/**
 	 * Creates a mumble server with a specific name.
@@ -32,7 +32,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		mumblePort = new AtomicInteger(-1);
 		channels = new ChannelList(this);
 		players = new ServerPlayerList(this);
-		requestManager = new RequestManager(this);
+		serverRequestManager = new ServerRequestManager(this);
 
 		registerModifiers();
 	}
@@ -90,8 +90,8 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	/**
 	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
 	 */
-	protected RequestManager getRequestManager() {
-		return requestManager;
+	protected ServerRequestManager getRequestManager() {
+		return serverRequestManager;
 	}
 
 	/**
