@@ -6,7 +6,6 @@ import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
@@ -205,9 +204,9 @@ public class StandaloneMumbleClient implements IEventListener {
 		tcpClient.onParameterMaxValueChange(event.getParameter());
 	}
 
-	@EventHandler
-	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		send(MumbleServerMessageFactory.create(Idc.SOUND_MODIFIER, Oid.SET, event.getChannel().getName(), event.getChannel().getSoundModifier().getName()));
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
+		tcpClient.onChannelSoundModifierChange(event.getChannel());
 	}
 
 	@EventHandler
@@ -217,7 +216,7 @@ public class StandaloneMumbleClient implements IEventListener {
 
 		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
 
-		if (checkPermission(request))
+		if (request.getHeader().getIdc() != Idc.UNKNOWN)
 			send(server.getRequestManager().answer(request));
 		else
 			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
@@ -237,30 +236,5 @@ public class StandaloneMumbleClient implements IEventListener {
 			return;
 
 		tcpConnection.send(new MumbleCallbackMessage(message, null));
-	}
-
-	private boolean checkPermission(IMumbleMessage request) {
-		switch (request.getHeader().getIdc()) {
-		case SERVER_INFO:
-		case CHANNELS:
-		case PLAYER:
-		case PLAYER_NAME:
-		case PLAYER_ONLINE:
-		case PLAYER_GAME_ADDRESS:
-		case PLAYER_ADMIN:
-		case PLAYER_MUTE:
-		case PLAYER_DEAFEN:
-		case PLAYER_MUTE_BY:
-		case CHANNELS_PLAYER:
-		case PARAMETER_VALUE:
-		case PARAMETER_MIN_VALUE:
-		case PARAMETER_MAX_VALUE:
-		case SOUND_MODIFIER:
-		case PLAYER_KICK:
-		case PLAYER_POSITION:
-			return true;
-		default:
-			return false;
-		}
 	}
 }

@@ -259,50 +259,6 @@ public class MumbleTcpClient {
 	}
 
 	/**
-	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
-	 * 
-	 * @param channel The channel whose the sound modifier has changed.
-	 */
-	public void onSoundModifierChange(IChannel channel) {
-		List<Object> informations = new ArrayList<Object>();
-
-		// Channel's name
-		informations.add(channel.getName());
-
-		// Modifier's name
-		informations.add(channel.getSoundModifier().getName());
-
-		// Number of parameters
-		informations.add(channel.getSoundModifier().getParameters().size());
-		for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
-			// Parameter's name
-			informations.add(parameter.getName());
-
-			// Parameter's type
-			informations.add(parameter.getType());
-
-			// Parameter's value
-			informations.add(parameter.getValue());
-
-			// Parameter's range
-			boolean isRange = parameter instanceof IRangeParameter<?>;
-			informations.add(isRange);
-
-			if (isRange) {
-				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
-
-				// Parameter's minimum value
-				informations.add(rangeParameter.getMin());
-
-				// Parameter's maximum value
-				informations.add(rangeParameter.getMax());
-			}
-		}
-
-		send(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
-	}
-
-	/**
 	 * Send a message to the remote in order to update the value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the value has changed.
@@ -369,6 +325,53 @@ public class MumbleTcpClient {
 		informations.add(parameter.getMax());
 
 		send(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
+	}
+
+	/**
+	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
+	 * 
+	 * @param channel The channel whose the sound modifier has changed.
+	 */
+	public void onChannelSoundModifierChange(IChannel channel) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(channel.getName());
+
+		// Modifier's name
+		informations.add(channel.getSoundModifier().getName());
+
+		// Number of parameters
+		informations.add(channel.getSoundModifier().getParameters().size());
+		for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		send(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
 	}
 
 	/**

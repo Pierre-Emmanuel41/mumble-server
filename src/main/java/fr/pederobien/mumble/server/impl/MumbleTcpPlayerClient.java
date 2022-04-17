@@ -110,8 +110,8 @@ public class MumbleTcpPlayerClient implements IEventListener {
 	}
 
 	@EventHandler
-	private void onSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		doIfPlayerJoined(() -> tcpClient.onSoundModifierChange(event.getChannel()));
+	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
+		doIfPlayerJoined(() -> tcpClient.onChannelSoundModifierChange(event.getChannel()));
 	}
 
 	@EventHandler
