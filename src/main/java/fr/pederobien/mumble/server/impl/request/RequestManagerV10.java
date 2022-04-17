@@ -263,6 +263,264 @@ public class RequestManagerV10 extends RequestManager {
 		return MumbleServerMessageFactory.answer(request, informations.toArray());
 	}
 
+	@Override
+	public IMumbleMessage onChannelAdd(IChannel channel) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(channel.getName());
+
+		// Modifier's name
+		informations.add(channel.getSoundModifier().getName());
+
+		// Number of parameters
+		informations.add(channel.getSoundModifier().getParameters().size());
+
+		for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		return create(Idc.CHANNELS, Oid.ADD, informations.toArray());
+	}
+
+	@Override
+	public IMumbleMessage onChannelRemove(IChannel channel) {
+		return create(Idc.CHANNELS, Oid.REMOVE, channel.getName());
+	}
+
+	@Override
+	public IMumbleMessage onChannelNameChange(IChannel channel, String oldName) {
+		return create(Idc.CHANNELS, Oid.SET, oldName, channel.getName());
+	}
+
+	@Override
+	public IMumbleMessage onServerPlayerAdd(IPlayer player) {
+		List<Object> properties = new ArrayList<Object>();
+
+		// Player's name
+		properties.add(player.getName());
+
+		// Player's game address
+		properties.add(player.getGameAddress().getAddress().getHostAddress());
+
+		// Player's gamePort
+		properties.add(player.getGameAddress().getPort());
+
+		// Player's identifier
+		properties.add(player.getIdentifier());
+
+		// Player's administrator status
+		properties.add(player.isAdmin());
+
+		// Player's mute status
+		properties.add(player.isMute());
+
+		// Player's deafen status
+		properties.add(player.isDeafen());
+
+		// Player's x coordinate
+		properties.add(player.getPosition().getX());
+
+		// Player's y coordinate
+		properties.add(player.getPosition().getY());
+
+		// Player's z coordinate
+		properties.add(player.getPosition().getZ());
+
+		// Player's yaw angle
+		properties.add(player.getPosition().getYaw());
+
+		// Player's pitch
+		properties.add(player.getPosition().getPitch());
+
+		return create(Idc.PLAYER, Oid.ADD, properties.toArray());
+	}
+
+	@Override
+	public IMumbleMessage onServerPlayerRemove(String name) {
+		return create(Idc.PLAYER, Oid.REMOVE, name);
+	}
+
+	@Override
+	public IMumbleMessage onPlayerNameChange(String oldName, String newName) {
+		return create(Idc.PLAYER_NAME, Oid.SET, oldName, newName);
+	}
+
+	@Override
+	public IMumbleMessage onPlayerOnlineChange(IPlayer player) {
+		return create(Idc.PLAYER_ONLINE, Oid.SET, player.getName(), player.isOnline());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerGameAddressChange(IPlayer player) {
+		return create(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(), player.getGameAddress().getPort());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerAdminChange(IPlayer player) {
+		return create(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerMuteChange(IPlayer player) {
+		return create(Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerMuteByChange(IPlayer target, IPlayer source) {
+		return create(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), target.isMuteBy(source));
+	}
+
+	@Override
+	public IMumbleMessage onPlayerDeafenChange(IPlayer player) {
+		return create(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerKick(IPlayer kicked, IPlayer kicking) {
+		return create(Idc.PLAYER_KICK, Oid.SET, kicked.getName(), kicking.getName());
+	}
+
+	@Override
+	public IMumbleMessage onPlayerPositionChange(IPlayer player) {
+		return create(Idc.PLAYER_POSITION, Oid.SET, player.getName(), player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ(),
+				player.getPosition().getYaw(), player.getPosition().getPitch());
+	}
+
+	@Override
+	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
+		return create(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName());
+	}
+
+	@Override
+	public IMumbleMessage onChannelPlayerRemove(IChannel channel, IPlayer player) {
+		return create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName());
+	}
+
+	@Override
+	public IMumbleMessage onParameterValueChange(IParameter<?> parameter) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's value
+		informations.add(parameter.getValue());
+
+		return create(Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
+	}
+
+	@Override
+	public IMumbleMessage onParameterMinValueChange(IRangeParameter<?> parameter) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's minimum value
+		informations.add(parameter.getMin());
+
+		return create(Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray());
+	}
+
+	@Override
+	public IMumbleMessage onParameterMaxValueChange(IRangeParameter<?> parameter) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's maximum value
+		informations.add(parameter.getMax());
+
+		return create(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
+	}
+
+	@Override
+	public IMumbleMessage onChannelSoundModifierChange(IChannel channel) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(channel.getName());
+
+		// Modifier's name
+		informations.add(channel.getSoundModifier().getName());
+
+		// Number of parameters
+		informations.add(channel.getSoundModifier().getParameters().size());
+		for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		return create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
+	}
+
 	/**
 	 * Creates a message that contains the current server configuration.
 	 * 

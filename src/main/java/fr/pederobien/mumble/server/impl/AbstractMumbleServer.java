@@ -9,6 +9,8 @@ import fr.pederobien.mumble.server.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
+import fr.pederobien.mumble.server.interfaces.IServerRequestManager;
+import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.vocal.server.impl.VocalServer;
 import fr.pederobien.vocal.server.interfaces.IVocalServer;
 
@@ -19,7 +21,8 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	private TcpServer tcpServer;
 	private IChannelList channels;
 	private IServerPlayerList players;
-	private ServerRequestManager serverRequestManager;
+	private IServerRequestManager serverRequestManager;
+	private ClientList clients;
 
 	/**
 	 * Creates a mumble server with a specific name.
@@ -33,6 +36,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		channels = new ChannelList(this);
 		players = new ServerPlayerList(this);
 		serverRequestManager = new ServerRequestManager(this);
+		clients = new ClientList(this);
 
 		registerModifiers();
 	}
@@ -52,6 +56,8 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	public void close() {
 		tcpServer.disconnect();
 		vocalServer.close();
+		clients.clear();
+		EventManager.unregisterListener(clients);
 	}
 
 	@Override
@@ -90,7 +96,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	/**
 	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
 	 */
-	protected ServerRequestManager getRequestManager() {
+	protected IServerRequestManager getRequestManager() {
 		return serverRequestManager;
 	}
 

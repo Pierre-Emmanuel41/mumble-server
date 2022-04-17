@@ -15,8 +15,9 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
+import fr.pederobien.mumble.server.interfaces.IRequestManager;
 
-public abstract class RequestManager {
+public abstract class RequestManager implements IRequestManager {
 	private IMumbleServer server;
 	private Map<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>> requests;
 
@@ -61,6 +62,39 @@ public abstract class RequestManager {
 	 */
 	protected IMumbleServer getServer() {
 		return server;
+	}
+
+	/**
+	 * Send a message based on the given parameter to the remote.
+	 * 
+	 * @param idc       The message idc.
+	 * @param oid       The message oid.
+	 * @param errorCode The message errorCode.
+	 * @param payload   The message payload.
+	 */
+	protected IMumbleMessage create(Idc idc, Oid oid, ErrorCode errorCode, Object... payload) {
+		return MumbleServerMessageFactory.create(idc, oid, errorCode, payload);
+	}
+
+	/**
+	 * Send a message based on the given parameter to the remote.
+	 * 
+	 * @param idc     The message idc.
+	 * @param oid     The message oid.
+	 * @param payload The message payload.
+	 */
+	protected IMumbleMessage create(Idc idc, Oid oid, Object... payload) {
+		return create(idc, oid, ErrorCode.NONE, payload);
+	}
+
+	/**
+	 * Send a message based on the given parameter to the remote.
+	 * 
+	 * @param idc     The message idc.
+	 * @param payload The message payload.
+	 */
+	protected IMumbleMessage send(Idc idc, Object... payload) {
+		return create(idc, Oid.GET, payload);
 	}
 
 	/**

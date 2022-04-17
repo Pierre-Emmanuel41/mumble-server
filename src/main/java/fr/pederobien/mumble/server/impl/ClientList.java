@@ -14,11 +14,11 @@ import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
 import fr.pederobien.mumble.server.event.ServerClientAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerClientAddPostEvent.Origin;
 import fr.pederobien.mumble.server.event.ServerClientRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ClientList implements IEventListener {
@@ -34,7 +34,7 @@ public class ClientList implements IEventListener {
 		EventManager.registerListener(this);
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onNewClient(NewTcpClientEvent event) {
 		if (!event.getServer().equals(server.getTcpServer()))
 			return;
@@ -42,29 +42,32 @@ public class ClientList implements IEventListener {
 		createClient(event.getConnection());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onClientDisconnected(ClientDisconnectPostEvent event) {
+		if (!clients.contains(event.getClient()))
+			return;
+
 		garbage(event.getClient());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		MumblePlayerClient client = getOrCreateClientByGame(event.getPlayer().getGameAddress());
 		client.setPlayer((Player) event.getPlayer());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		Optional<MumblePlayerClient> optClient = get(event.getPlayer().getName());
 		optClient.get().setPlayer(null);
 		event.getPlayer().setOnline(false);
 		garbage(optClient.get());
-	}
-
-	@EventHandler
-	private void onServerClosing(ServerClosePostEvent event) {
-		clear();
-		EventManager.unregisterListener(this);
 	}
 
 	/**

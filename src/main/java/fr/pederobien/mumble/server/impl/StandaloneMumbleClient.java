@@ -33,8 +33,8 @@ import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class StandaloneMumbleClient implements IEventListener {
+	private float version;
 	private ITcpConnection tcpConnection;
-	private MumbleTcpClient tcpClient;
 	private StandaloneMumbleServer server;
 
 	/**
@@ -47,8 +47,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		this.server = internalServer;
 		this.tcpConnection = tcpConnection;
 
-		tcpClient = new MumbleTcpClient(tcpConnection);
-
+		version = 1.0f;
 		EventManager.registerListener(this);
 	}
 
@@ -57,15 +56,15 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!event.getServer().equals(server))
 			return;
 
-		tcpClient.onChannelAdd(event.getChannel());
+		send(server.getRequestManager().onChannelAdd(version, event.getChannel()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelRemoved(ServerChannelRemovePostEvent event) {
+	private void onChannelRemove(ServerChannelRemovePostEvent event) {
 		if (!event.getServer().equals(server))
 			return;
 
-		tcpClient.onChannelRemove(event.getChannel());
+		send(server.getRequestManager().onChannelRemove(version, event.getChannel()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -73,7 +72,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!event.getChannel().getServer().equals(server))
 			return;
 
-		tcpClient.onChannelNameChange(event.getChannel(), event.getOldName());
+		send(server.getRequestManager().onChannelNameChange(version, event.getChannel(), event.getOldName()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -81,7 +80,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!event.getList().getServer().equals(server))
 			return;
 
-		tcpClient.onServerPlayerAdd(event.getPlayer());
+		send(server.getRequestManager().onServerPlayerAdd(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -89,7 +88,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!event.getList().getServer().equals(server))
 			return;
 
-		tcpClient.onServerPlayerRemove(event.getPlayer().getName());
+		send(server.getRequestManager().onServerPlayerRemove(version, event.getPlayer().getName()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -97,7 +96,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerNameChange(event.getOldName(), event.getPlayer().getName());
+		send(server.getRequestManager().onPlayerNameChange(version, event.getOldName(), event.getPlayer().getName()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -105,7 +104,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerOnlineChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerOnlineChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -113,7 +112,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerGameAddressChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerGameAddressChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -121,7 +120,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerAdminChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerAdminChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -129,7 +128,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerMuteChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerMuteChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -137,7 +136,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getSource());
+		send(server.getRequestManager().onPlayerMuteByChange(version, event.getPlayer(), event.getSource()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -145,7 +144,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerDeafenChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerDeafenChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -153,7 +152,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerKick(event.getPlayer(), event.getKickingPlayer());
+		send(server.getRequestManager().onPlayerKick(version, event.getPlayer(), event.getKickingPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -161,7 +160,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onPlayerPositionChange(event.getPlayer());
+		send(server.getRequestManager().onPlayerPositionChange(version, event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -169,7 +168,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer());
+		send(server.getRequestManager().onChannelPlayerAdd(version, event.getList().getChannel(), event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -177,7 +176,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer());
+		send(server.getRequestManager().onChannelPlayerRemove(version, event.getList().getChannel(), event.getPlayer()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -185,7 +184,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		tcpClient.onParameterValueChange(event.getParameter());
+		send(server.getRequestManager().onParameterValueChange(version, event.getParameter()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -193,7 +192,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		tcpClient.onParameterMinValueChange(event.getParameter());
+		send(server.getRequestManager().onParameterMinValueChange(version, event.getParameter()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -201,12 +200,15 @@ public class StandaloneMumbleClient implements IEventListener {
 		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		tcpClient.onParameterMaxValueChange(event.getParameter());
+		send(server.getRequestManager().onParameterMaxValueChange(version, event.getParameter()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		tcpClient.onChannelSoundModifierChange(event.getChannel());
+		if (!server.getChannels().toList().contains(event.getChannel()))
+			return;
+
+		send(server.getRequestManager().onChannelSoundModifierChange(version, event.getChannel()));
 	}
 
 	@EventHandler
