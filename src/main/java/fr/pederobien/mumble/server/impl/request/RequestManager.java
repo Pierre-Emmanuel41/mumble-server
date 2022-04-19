@@ -18,17 +18,25 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IRequestManager;
 
 public abstract class RequestManager implements IRequestManager {
+	private float version;
 	private IMumbleServer server;
 	private Map<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>> requests;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
 	 * 
-	 * @param server The server to update.
+	 * @param server  The server to update.
+	 * @param version The version of the communication protocol associated to this requests manager.
 	 */
-	public RequestManager(IMumbleServer server) {
+	public RequestManager(IMumbleServer server, float version) {
 		this.server = server;
+		this.version = version;
 		requests = new HashMap<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>>();
+	}
+
+	@Override
+	public float getVersion() {
+		return version;
 	}
 
 	/**
@@ -38,6 +46,7 @@ public abstract class RequestManager implements IRequestManager {
 	 * 
 	 * @return The server response.
 	 */
+	@Override
 	public IMumbleMessage answer(IMumbleMessage request) {
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> map = requests.get(request.getHeader().getIdc());
 		if (map == null)
@@ -67,34 +76,40 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * Send a message based on the given parameter to the remote.
 	 * 
-	 * @param idc       The message idc.
-	 * @param oid       The message oid.
-	 * @param errorCode The message errorCode.
-	 * @param payload   The message payload.
-	 */
-	protected IMumbleMessage create(Idc idc, Oid oid, ErrorCode errorCode, Object... payload) {
-		return MumbleServerMessageFactory.create(idc, oid, errorCode, payload);
-	}
-
-	/**
-	 * Send a message based on the given parameter to the remote.
-	 * 
 	 * @param idc     The message idc.
 	 * @param oid     The message oid.
 	 * @param payload The message payload.
 	 */
-	protected IMumbleMessage create(Idc idc, Oid oid, Object... payload) {
-		return create(idc, oid, ErrorCode.NONE, payload);
+	protected IMumbleMessage create(float version, Idc idc, Oid oid, Object... payload) {
+		return MumbleServerMessageFactory.create(version, idc, oid, payload);
 	}
 
 	/**
-	 * Send a message based on the given parameter to the remote.
+	 * Creates a new message corresponding to the answer of the <code>message</code>. Neither the identifier nor the header are
+	 * modified. A specific version of the communication protocol is used to create the returned message.
 	 * 
-	 * @param idc     The message idc.
-	 * @param payload The message payload.
+	 * @param version    The protocol version to use for the returned message.
+	 * @param message    The message to answer.
+	 * @param properties The response properties.
+	 * 
+	 * @return A new message.
 	 */
-	protected IMumbleMessage send(Idc idc, Object... payload) {
-		return create(idc, Oid.GET, payload);
+	protected IMumbleMessage answer(float version, IMumbleMessage message, Object... properties) {
+		return MumbleServerMessageFactory.answer(version, message, properties);
+	}
+
+	/**
+	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented. A specific
+	 * version of the communication protocol is used to create the answer.
+	 * 
+	 * @param version   The protocol version to use for the returned message.
+	 * @param request   The request to answer.
+	 * @param errorCode The error code of the response.
+	 * 
+	 * @return The message associated to the answer.
+	 */
+	protected IMumbleMessage answer(float version, IMumbleMessage message, ErrorCode errorCode) {
+		return MumbleServerMessageFactory.answer(version, message, errorCode);
 	}
 
 	/**

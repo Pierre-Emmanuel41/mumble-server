@@ -1,11 +1,20 @@
 package fr.pederobien.mumble.server.impl;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+
+import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
+import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolSetMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
@@ -31,6 +40,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.utils.event.LogEvent;
 
 public class StandaloneMumbleClient implements IEventListener {
 	private float version;
@@ -47,8 +57,7 @@ public class StandaloneMumbleClient implements IEventListener {
 		this.server = internalServer;
 		this.tcpConnection = tcpConnection;
 
-		version = 1.0f;
-		EventManager.registerListener(this);
+		establishCommunicationProtocolVersion();
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -217,11 +226,15 @@ public class StandaloneMumbleClient implements IEventListener {
 			return;
 
 		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
-
-		if (request.getHeader().getIdc() != Idc.UNKNOWN)
-			send(server.getRequestManager().answer(request));
-		else
-			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+		if (version != -1 && version != request.getHeader().getVersion()) {
+			String format = "Receiving message with unexpected version of the communication protocol, expected=v%s, actual=v%s";
+			EventManager.callEvent(new LogEvent(format, version, request.getHeader().getVersion()));
+		} else {
+			if (request.getHeader().getIdc() != Idc.UNKNOWN)
+				send(server.getRequestManager().answer(request));
+			else
+				send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+		}
 	}
 
 	@EventHandler
@@ -233,10 +246,81 @@ public class StandaloneMumbleClient implements IEventListener {
 		EventManager.unregisterListener(this);
 	}
 
+	private void establishCommunicationProtocolVersion() {
+		Lock lock = new ReentrantLock(true);
+		Condition received = lock.newCondition();
+
+		version = -1;
+		getCommunicationProtocolVersion(lock, received);
+
+		lock.lock();
+		try {
+			if (!received.await(5000, TimeUnit.MILLISECONDS) || version == -1)
+				tcpConnection.dispose();
+			else
+				EventManager.registerListener(this);
+		} catch (InterruptedException e) {
+			// Do nothing
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private void getCommunicationProtocolVersion(Lock lock, Condition received) {
+		// Step 1: Asking the latest version of the communication protocol supported by the remote
+		send(server.getRequestManager().getCommunicationProtocolVersion(), args -> {
+			if (args.isTimeout())
+				// No need to wait more
+				exit(lock, received);
+			else {
+				CommunicationProtocolGetMessageV10 message = (CommunicationProtocolGetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+				setCommunicationProtocolVersion(lock, received, findHighestVersion(message.getVersions()));
+			}
+		});
+	}
+
+	private void setCommunicationProtocolVersion(Lock lock, Condition received, float version) {
+		// Step 2: Setting a specific version of the communication protocol to use for the client-server communication.
+		send(server.getRequestManager().setCommunicationProtocolVersion(version), args -> {
+			if (!args.isTimeout()) {
+				CommunicationProtocolSetMessageV10 message = (CommunicationProtocolSetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+				if (message.getVersion() == version)
+					this.version = version;
+			}
+
+			exit(lock, received);
+		});
+	}
+
+	private void exit(Lock lock, Condition received) {
+		lock.lock();
+		try {
+			received.signal();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private float findHighestVersion(float[] versions) {
+		float version = -1;
+		for (int i = versions.length - 1; 0 < i; i--) {
+			if (server.getRequestManager().isSupported(versions[i])) {
+				version = versions[i];
+				break;
+			}
+		}
+
+		return version == -1 ? 1.0f : version;
+	}
+
 	private void send(IMumbleMessage message) {
+		send(message, null);
+	}
+
+	private void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback) {
 		if (tcpConnection.isDisposed())
 			return;
 
-		tcpConnection.send(new MumbleCallbackMessage(message, null));
+		tcpConnection.send(new MumbleCallbackMessage(message, callback));
 	}
 }

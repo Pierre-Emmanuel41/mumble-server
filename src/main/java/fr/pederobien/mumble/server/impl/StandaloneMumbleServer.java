@@ -25,7 +25,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	private TcpServer tcpServer;
 	private StandaloneMumbleClient client;
 	private ITcpConnection connection;
-	private AtomicBoolean isOpened;
+	private AtomicBoolean isOpened, canConnect;
 
 	/**
 	 * Creates an standalone mumble server. This kind of server is used when it should be running outside from the game server. The
@@ -41,6 +41,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 
 		externalGameServerPort = new AtomicInteger(-1);
 		isOpened = new AtomicBoolean(false);
+		canConnect = new AtomicBoolean(true);
 
 		persistence = new StandaloneMumbleServerPersistence(path);
 		persistence.deserialize(this);
@@ -125,7 +126,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 			return;
 
 		// Only one game server can be connected to this mumble server.
-		if (client != null)
+		if (!canConnect.compareAndSet(true, false))
 			event.getConnection().dispose();
 		else
 			client = new StandaloneMumbleClient(this, connection = event.getConnection());
@@ -136,7 +137,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 		if (!event.getConnection().equals(connection))
 			return;
 
-		client = null;
+		canConnect.set(true);
 	}
 
 	/**

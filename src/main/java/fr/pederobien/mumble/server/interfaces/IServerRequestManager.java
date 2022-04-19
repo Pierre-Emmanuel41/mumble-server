@@ -5,6 +5,20 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 public interface IServerRequestManager {
 
 	/**
+	 * @return The latest version of the communication protocol.
+	 */
+	float getVersion();
+
+	/**
+	 * Check if the given version of the communication protocol is supported by this server.
+	 * 
+	 * @param version The version to check.
+	 * 
+	 * @return True if supported, false otherwise.
+	 */
+	boolean isSupported(float version);
+
+	/**
 	 * Performs server configuration update according to the given request.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
@@ -15,7 +29,23 @@ public interface IServerRequestManager {
 	IMumbleMessage answer(IMumbleMessage request);
 
 	/**
-	 * Send a message to the remote in order to add a channel to the server.
+	 * Creates a message in order to get the latest version of the communication protocol supported by the remote.
+	 * 
+	 * @return The message to send to the remote in order to get the latest version of the communication protocol.
+	 */
+	IMumbleMessage getCommunicationProtocolVersion();
+
+	/**
+	 * Creates a message in order to set a specific version of the communication protocol.
+	 * 
+	 * @param version The version of the communication protocol to use.
+	 * 
+	 * @return The message to send to the remote in order to get the latest version of the communication protocol.
+	 */
+	IMumbleMessage setCommunicationProtocolVersion(float version);
+
+	/**
+	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The added channel.
@@ -25,7 +55,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onChannelAdd(float version, IChannel channel);
 
 	/**
-	 * Send a message to the remote in order to remove a channel from the server.
+	 * Creates a message in order to remove a channel from the server.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The removed channel.
@@ -35,7 +65,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onChannelRemove(float version, IChannel channel);
 
 	/**
-	 * Send a message to the remote in order to update the channel name.
+	 * Creates a message in order to update the channel name.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The channel whose the name has changed.
@@ -46,7 +76,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onChannelNameChange(float version, IChannel channel, String oldName);
 
 	/**
-	 * Send a message to the remote in order to register a new player.
+	 * Creates a message in order to register a new player.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  the added player.
@@ -56,7 +86,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onServerPlayerAdd(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to remove a player from the server.
+	 * Creates a message in order to remove a player from the server.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param name    The name of the player to remove.
@@ -66,7 +96,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onServerPlayerRemove(float version, String name);
 
 	/**
-	 * Send a message to the remote in order to rename a player.
+	 * Creates a message in order to rename a player.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param oldName The name of the player to rename.
@@ -77,7 +107,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerNameChange(float version, String oldName, String newName);
 
 	/**
-	 * Send a message to the remote in order to update the player online status.
+	 * Creates a message in order to update the player online status.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the online status has changed.
@@ -87,7 +117,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerOnlineChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player game address.
+	 * Creates a message in order to update the player game address.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the game address has changed.
@@ -97,7 +127,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerGameAddressChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player administrator status.
+	 * Creates a message in order to update the player administrator status.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the administrator status has changed.
@@ -107,7 +137,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerAdminChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player mute status.
+	 * Creates a message in order to update the player mute status.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the mute status has changed.
@@ -117,7 +147,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerMuteChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to mute or unmute a target player for a source player.
+	 * Creates a message in order to mute or unmute a target player for a source player.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param target  The target player to mute or unmute for a source player.
@@ -128,7 +158,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerMuteByChange(float version, IPlayer target, IPlayer source);
 
 	/**
-	 * Send a message to the remote in order to update the player deafen status.
+	 * Creates a message in order to update the player deafen status.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the deafen status has changed.
@@ -138,7 +168,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerDeafenChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to kick a player from a channel.
+	 * Creates a message in order to kick a player from a channel.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param kicked  The player that has been kicked by another player.
@@ -149,7 +179,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerKick(float version, IPlayer kicked, IPlayer kicking);
 
 	/**
-	 * Send a message to the remote in order to update the position of a player.
+	 * Creates a message in order to update the position of a player.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param player  The player whose the position has changed.
@@ -159,7 +189,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onPlayerPositionChange(float version, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to add a player to a channel.
+	 * Creates a message in order to add a player to a channel.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The channel to which a player has been added.
@@ -170,7 +200,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to remove a player from a channel.
+	 * Creates a message in order to remove a player from a channel.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The channel from which a player has been removed.
@@ -181,7 +211,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onChannelPlayerRemove(float version, IChannel channel, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the value of the given parameter.
+	 * Creates a message in order to update the value of the given parameter.
 	 * 
 	 * @param version   The protocol version to use to create a mumble message.
 	 * @param parameter The parameter whose the value has changed.
@@ -191,7 +221,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onParameterValueChange(float version, IParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the minimum value of the given parameter.
+	 * Creates a message in order to update the minimum value of the given parameter.
 	 * 
 	 * @param version   The protocol version to use to create a mumble message.
 	 * @param parameter The parameter whose the minimum value has changed.
@@ -201,7 +231,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onParameterMinValueChange(float version, IRangeParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the maximum value of the given parameter.
+	 * Creates a message in order to update the maximum value of the given parameter.
 	 * 
 	 * @param version   The protocol version to use to create a mumble message.
 	 * @param parameter The parameter whose the maximum value has changed.
@@ -211,7 +241,7 @@ public interface IServerRequestManager {
 	IMumbleMessage onParameterMaxValueChange(float version, IRangeParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
+	 * Creates a message in order to update the sound modifier associated to the given channel.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.
 	 * @param channel The channel whose the sound modifier has changed.

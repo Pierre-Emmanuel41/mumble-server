@@ -5,6 +5,11 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 public interface IRequestManager {
 
 	/**
+	 * @return The version of the communication protocol associated to this requests manager.
+	 */
+	float getVersion();
+
+	/**
 	 * Performs server configuration update according to the given request.
 	 * 
 	 * @param request The request sent by the remote.
@@ -14,7 +19,21 @@ public interface IRequestManager {
 	IMumbleMessage answer(IMumbleMessage request);
 
 	/**
-	 * Send a message to the remote in order to add a channel to the server.
+	 * @return The message to send to the remote in order to get the latest version of the communication protocol.
+	 */
+	IMumbleMessage getCommunicationProtocolVersion();
+
+	/**
+	 * Creates a message in order to set a specific version of the communication protocol.
+	 * 
+	 * @param version The version to use between the client and the remote.
+	 * 
+	 * @return The message to send to the remote in order to get the latest version of the communication protocol.
+	 */
+	IMumbleMessage setCommunicationProtocolVersion(float version);
+
+	/**
+	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param channel The added channel.
 	 * 
@@ -23,7 +42,7 @@ public interface IRequestManager {
 	IMumbleMessage onChannelAdd(IChannel channel);
 
 	/**
-	 * Send a message to the remote in order to remove a channel from the server.
+	 * Creates a message in order to remove a channel from the server.
 	 * 
 	 * @param channel The removed channel.
 	 * 
@@ -32,7 +51,7 @@ public interface IRequestManager {
 	IMumbleMessage onChannelRemove(IChannel channel);
 
 	/**
-	 * Send a message to the remote in order to update the channel name.
+	 * Creates a message in order to update the channel name.
 	 * 
 	 * @param channel The channel whose the name has changed.
 	 * @param oldName The old channel name.
@@ -42,7 +61,7 @@ public interface IRequestManager {
 	IMumbleMessage onChannelNameChange(IChannel channel, String oldName);
 
 	/**
-	 * Send a message to the remote in order to register a new player.
+	 * Creates a message in order to register a new player.
 	 * 
 	 * @param player the added player.
 	 * 
@@ -51,7 +70,7 @@ public interface IRequestManager {
 	IMumbleMessage onServerPlayerAdd(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to remove a player from the server.
+	 * Creates a message in order to remove a player from the server.
 	 * 
 	 * @param name The name of the player to remove.
 	 * 
@@ -60,7 +79,7 @@ public interface IRequestManager {
 	IMumbleMessage onServerPlayerRemove(String name);
 
 	/**
-	 * Send a message to the remote in order to rename a player.
+	 * Creates a message in order to rename a player.
 	 * 
 	 * @param oldName The name of the player to rename.
 	 * @param newName The new player's name.
@@ -70,7 +89,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerNameChange(String oldName, String newName);
 
 	/**
-	 * Send a message to the remote in order to update the player online status.
+	 * Creates a message in order to update the player online status.
 	 * 
 	 * @param player The player whose the online status has changed.
 	 * 
@@ -79,7 +98,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerOnlineChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player game address.
+	 * Creates a message in order to update the player game address.
 	 * 
 	 * @param player The player whose the game address has changed.
 	 * 
@@ -88,7 +107,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerGameAddressChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player administrator status.
+	 * Creates a message in order to update the player administrator status.
 	 * 
 	 * @param player The player whose the administrator status has changed.
 	 * 
@@ -97,7 +116,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerAdminChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the player mute status.
+	 * Creates a message in order to update the player mute status.
 	 * 
 	 * @param player The player whose the mute status has changed.
 	 * 
@@ -106,7 +125,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerMuteChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to mute or unmute a target player for a source player.
+	 * Creates a message in order to mute or unmute a target player for a source player.
 	 * 
 	 * @param target The target player to mute or unmute for a source player.
 	 * @param source The source player for which a target player is mute or unmute.
@@ -116,7 +135,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerMuteByChange(IPlayer target, IPlayer source);
 
 	/**
-	 * Send a message to the remote in order to update the player deafen status.
+	 * Creates a message in order to update the player deafen status.
 	 * 
 	 * @param player The player whose the deafen status has changed.
 	 * 
@@ -125,7 +144,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerDeafenChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to kick a player from a channel.
+	 * Creates a message in order to kick a player from a channel.
 	 * 
 	 * @param kicked  The player that has been kicked by another player.
 	 * @param kicking The player that has kicked another player.
@@ -135,7 +154,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerKick(IPlayer kicked, IPlayer kicking);
 
 	/**
-	 * Send a message to the remote in order to update the position of a player.
+	 * Creates a message in order to update the position of a player.
 	 * 
 	 * @param player The player whose the position has changed.
 	 * 
@@ -144,7 +163,7 @@ public interface IRequestManager {
 	IMumbleMessage onPlayerPositionChange(IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to add a player to a channel.
+	 * Creates a message in order to add a player to a channel.
 	 * 
 	 * @param channel The channel to which a player has been added.
 	 * @param player  The added player.
@@ -154,7 +173,7 @@ public interface IRequestManager {
 	IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to remove a player from a channel.
+	 * Creates a message in order to remove a player from a channel.
 	 * 
 	 * @param channel The channel from which a player has been removed.
 	 * @param player  The removed player.
@@ -164,7 +183,7 @@ public interface IRequestManager {
 	IMumbleMessage onChannelPlayerRemove(IChannel channel, IPlayer player);
 
 	/**
-	 * Send a message to the remote in order to update the value of the given parameter.
+	 * Creates a message in order to update the value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the value has changed.
 	 * 
@@ -173,7 +192,7 @@ public interface IRequestManager {
 	IMumbleMessage onParameterValueChange(IParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the minimum value of the given parameter.
+	 * Creates a message in order to update the minimum value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the minimum value has changed.
 	 * 
@@ -182,7 +201,7 @@ public interface IRequestManager {
 	IMumbleMessage onParameterMinValueChange(IRangeParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the maximum value of the given parameter.
+	 * Creates a message in order to update the maximum value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the maximum value has changed.
 	 * 
@@ -191,7 +210,7 @@ public interface IRequestManager {
 	IMumbleMessage onParameterMaxValueChange(IRangeParameter<?> parameter);
 
 	/**
-	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
+	 * Creates a message in order to update the sound modifier associated to the given channel.
 	 * 
 	 * @param channel The channel whose the sound modifier has changed.
 	 * 

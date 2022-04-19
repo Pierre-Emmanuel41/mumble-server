@@ -1,7 +1,8 @@
 package fr.pederobien.mumble.server.impl.request;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.function.Function;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
@@ -15,7 +16,7 @@ import fr.pederobien.mumble.server.interfaces.IRequestManager;
 import fr.pederobien.mumble.server.interfaces.IServerRequestManager;
 
 public class ServerRequestManager implements IServerRequestManager {
-	private Map<Float, IRequestManager> managers;
+	private NavigableMap<Float, IRequestManager> managers;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
@@ -23,8 +24,18 @@ public class ServerRequestManager implements IServerRequestManager {
 	 * @param server The server to update.
 	 */
 	public ServerRequestManager(IMumbleServer server) {
-		managers = new HashMap<Float, IRequestManager>();
-		managers.put(1.0f, new RequestManagerV10(server));
+		managers = new TreeMap<Float, IRequestManager>();
+		register(new RequestManagerV10(server));
+	}
+
+	@Override
+	public float getVersion() {
+		return managers.lastKey();
+	}
+
+	@Override
+	public boolean isSupported(float version) {
+		return managers.containsKey(version);
 	}
 
 	/**
@@ -45,102 +56,132 @@ public class ServerRequestManager implements IServerRequestManager {
 	}
 
 	@Override
+	public IMumbleMessage getCommunicationProtocolVersion() {
+		return findManagerAndApply(1.0f, manager -> manager.getCommunicationProtocolVersion());
+	}
+
+	@Override
+	public IMumbleMessage setCommunicationProtocolVersion(float version) {
+		return findManagerAndApply(1.0f, manager -> manager.setCommunicationProtocolVersion(version));
+	}
+
+	@Override
 	public IMumbleMessage onChannelAdd(float version, IChannel channel) {
-		return managers.get(version).onChannelAdd(channel);
+		return findManagerAndApply(version, manager -> manager.onChannelAdd(channel));
 	}
 
 	@Override
 	public IMumbleMessage onChannelRemove(float version, IChannel channel) {
-		return managers.get(version).onChannelRemove(channel);
+		return findManagerAndApply(version, manager -> manager.onChannelRemove(channel));
 	}
 
 	@Override
 	public IMumbleMessage onChannelNameChange(float version, IChannel channel, String oldName) {
-		return managers.get(version).onChannelNameChange(channel, oldName);
+		return findManagerAndApply(version, manager -> manager.onChannelNameChange(channel, oldName));
 	}
 
 	@Override
 	public IMumbleMessage onServerPlayerAdd(float version, IPlayer player) {
-		return managers.get(version).onServerPlayerAdd(player);
+		return findManagerAndApply(version, manager -> manager.onServerPlayerAdd(player));
 	}
 
 	@Override
 	public IMumbleMessage onServerPlayerRemove(float version, String name) {
-		return managers.get(version).onServerPlayerRemove(name);
+		return findManagerAndApply(version, manager -> manager.onServerPlayerRemove(name));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerNameChange(float version, String oldName, String newName) {
-		return managers.get(version).onPlayerNameChange(oldName, newName);
+		return findManagerAndApply(version, manager -> manager.onPlayerNameChange(oldName, newName));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerOnlineChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerOnlineChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerOnlineChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerGameAddressChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerGameAddressChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerGameAddressChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerAdminChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerAdminChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerAdminChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerMuteChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerMuteChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteByChange(float version, IPlayer target, IPlayer source) {
-		return managers.get(version).onPlayerMuteByChange(target, source);
+		return findManagerAndApply(version, manager -> manager.onPlayerMuteByChange(target, source));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerDeafenChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerDeafenChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerDeafenChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerKick(float version, IPlayer kicked, IPlayer kicking) {
-		return managers.get(version).onPlayerKick(kicked, kicking);
+		return findManagerAndApply(version, manager -> manager.onPlayerKick(kicked, kicking));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerPositionChange(float version, IPlayer player) {
-		return managers.get(version).onPlayerPositionChange(player);
+		return findManagerAndApply(version, manager -> manager.onPlayerPositionChange(player));
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player) {
-		return managers.get(version).onChannelPlayerAdd(channel, player);
+		return findManagerAndApply(version, manager -> manager.onChannelPlayerAdd(channel, player));
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerRemove(float version, IChannel channel, IPlayer player) {
-		return managers.get(version).onChannelPlayerRemove(channel, player);
+		return findManagerAndApply(version, manager -> manager.onChannelPlayerRemove(channel, player));
 	}
 
 	@Override
 	public IMumbleMessage onParameterValueChange(float version, IParameter<?> parameter) {
-		return managers.get(version).onParameterValueChange(parameter);
+		return findManagerAndApply(version, manager -> manager.onParameterValueChange(parameter));
 	}
 
 	@Override
 	public IMumbleMessage onParameterMinValueChange(float version, IRangeParameter<?> parameter) {
-		return managers.get(version).onParameterMinValueChange(parameter);
+		return findManagerAndApply(version, manager -> manager.onParameterMinValueChange(parameter));
 	}
 
 	@Override
 	public IMumbleMessage onParameterMaxValueChange(float version, IRangeParameter<?> parameter) {
-		return managers.get(version).onParameterMaxValueChange(parameter);
+		return findManagerAndApply(version, manager -> manager.onParameterMaxValueChange(parameter));
 	}
 
 	@Override
 	public IMumbleMessage onChannelSoundModifierChange(float version, IChannel channel) {
-		return managers.get(version).onChannelSoundModifierChange(channel);
+		return findManagerAndApply(version, manager -> manager.onChannelSoundModifierChange(channel));
+	}
+
+	private void register(IRequestManager manager) {
+		managers.put(manager.getVersion(), manager);
+	}
+
+	/**
+	 * Apply the function of the manager associated to the given version if registered.
+	 * 
+	 * @param version  The version of the manager.
+	 * @param function The function to apply.
+	 * 
+	 * @return The created message.
+	 */
+	private IMumbleMessage findManagerAndApply(float version, Function<IRequestManager, IMumbleMessage> function) {
+		IRequestManager manager = managers.get(version);
+		if (manager == null)
+			return null;
+
+		return function.apply(manager);
 	}
 }

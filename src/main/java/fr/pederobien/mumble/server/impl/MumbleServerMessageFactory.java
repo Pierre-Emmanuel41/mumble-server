@@ -14,34 +14,7 @@ public class MumbleServerMessageFactory {
 	}
 
 	/**
-	 * Create a message based on the given parameters.
-	 * 
-	 * @param idc       The message idc.
-	 * @param oid       The message oid.
-	 * @param errorCode The message errorCode.
-	 * @param payload   The message payload.
-	 * 
-	 * @return The created message.
-	 */
-	public static IMumbleMessage create(Idc idc, Oid oid, ErrorCode errorCode, Object... payload) {
-		return FACTORY.create(idc, oid, errorCode, payload);
-	}
-
-	/**
-	 * Create a message based on the given parameters.
-	 * 
-	 * @param idc     The message idc.
-	 * @param oid     The message oid.
-	 * @param payload The message payload.
-	 * 
-	 * @return The created message.
-	 */
-	public static IMumbleMessage create(Idc idc, Oid oid, Object... payload) {
-		return create(idc, oid, ErrorCode.NONE, payload);
-	}
-
-	/**
-	 * Create a message based on the given parameters.
+	 * Creates a message based on the given parameters associated to the latest version of the communication protocol.
 	 * 
 	 * @param idc     The message idc.
 	 * @param payload The message payload.
@@ -49,7 +22,20 @@ public class MumbleServerMessageFactory {
 	 * @return The created message.
 	 */
 	public static IMumbleMessage create(Idc idc, Object... payload) {
-		return create(idc, Oid.GET, payload);
+		return FACTORY.create(idc, Oid.GET, ErrorCode.NONE, payload);
+	}
+
+	/**
+	 * Creates a message based on the given parameters associated to a specific version of the communication protocol.
+	 * 
+	 * @param version The protocol version to use for the returned message.
+	 * @param idc     The message idc.
+	 * @param payload The message payload.
+	 * 
+	 * @return The created message.
+	 */
+	public static IMumbleMessage create(float version, Idc idc, Oid oid, Object... payload) {
+		return FACTORY.create(version, idc, oid, ErrorCode.NONE, payload);
 	}
 
 	/**
@@ -65,7 +51,7 @@ public class MumbleServerMessageFactory {
 
 	/**
 	 * Creates a new message corresponding to the answer of the <code>message</code>. Neither the identifier nor the header are
-	 * modified.
+	 * modified. The latest version of the communication protocol is used to create the returned message.
 	 * 
 	 * @param message    The message to answer.
 	 * @param properties The response properties.
@@ -77,49 +63,22 @@ public class MumbleServerMessageFactory {
 	}
 
 	/**
-	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented.
+	 * Creates a new message corresponding to the answer of the <code>message</code>. Neither the identifier nor the header are
+	 * modified. A specific version of the communication protocol is used to create the returned message.
 	 * 
+	 * @param version    The protocol version to use for the returned message.
 	 * @param message    The message to answer.
-	 * @param idc        The response IDC.
-	 * @param oid        The response OID.
-	 * @param errorCode  The response ErrorCode.
 	 * @param properties The response properties.
 	 * 
-	 * @return The message associated to the answer.
+	 * @return A new message.
 	 */
-	public static IMumbleMessage answer(IMumbleMessage message, Idc idc, Oid oid, ErrorCode errorCode, Object... properties) {
-		return FACTORY.answer(message, idc, oid, errorCode, properties);
+	public static IMumbleMessage answer(float version, IMumbleMessage message, Object... properties) {
+		return FACTORY.answer(version, message, properties);
 	}
 
 	/**
-	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented.
-	 * 
-	 * @param message    The message to answer.
-	 * @param idc        The response IDC.
-	 * @param oid        The response OID.
-	 * @param properties The response properties.
-	 * 
-	 * @return The message associated to the answer.
-	 */
-	public static IMumbleMessage answer(IMumbleMessage message, Idc idc, Oid oid, Object... properties) {
-		return answer(message, idc, oid, ErrorCode.NONE, properties);
-	}
-
-	/**
-	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented.
-	 * 
-	 * @param message    The message to answer.
-	 * @param idc        The response IDC.
-	 * @param properties The response properties.
-	 * 
-	 * @return The message associated to the answer.
-	 */
-	public static IMumbleMessage answer(IMumbleMessage message, Idc idc, Object... properties) {
-		return answer(message, idc, Oid.GET, properties);
-	}
-
-	/**
-	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented.
+	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented. The latest
+	 * version of the communication protocol is used to create the answer.
 	 * 
 	 * @param request   The request to answer.
 	 * @param errorCode The error code of the response.
@@ -127,6 +86,20 @@ public class MumbleServerMessageFactory {
 	 * @return The message associated to the answer.
 	 */
 	public static IMumbleMessage answer(IMumbleMessage message, ErrorCode errorCode) {
-		return answer(message, message.getHeader().getIdc(), message.getHeader().getOid(), errorCode);
+		return FACTORY.answer(message, message.getHeader().getIdc(), message.getHeader().getOid(), errorCode);
+	}
+
+	/**
+	 * Creates a new message corresponding to the answer of the <code>message</code>. The identifier is not incremented. A specific
+	 * version of the communication protocol is used to create the answer.
+	 * 
+	 * @param version   The protocol version to use for the returned message.
+	 * @param request   The request to answer.
+	 * @param errorCode The error code of the response.
+	 * 
+	 * @return The message associated to the answer.
+	 */
+	public static IMumbleMessage answer(float version, IMumbleMessage message, ErrorCode errorCode) {
+		return FACTORY.answer(version, message, message.getHeader().getIdc(), message.getHeader().getOid(), errorCode);
 	}
 }

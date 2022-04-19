@@ -44,7 +44,6 @@ import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
-import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
@@ -64,7 +63,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param server The server to update.
 	 */
 	public RequestManagerV10(IMumbleServer server) {
-		super(server);
+		super(server, 1.0f);
 
 		// Server info map
 		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> serverInfoMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
@@ -168,8 +167,8 @@ public class RequestManagerV10 extends RequestManager {
 	protected IMumbleMessage playerInfoGet(PlayerGetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
 		if (optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, optPlayer.get().isOnline(), optPlayer.get().getName(), optPlayer.get().isAdmin());
-		return MumbleServerMessageFactory.answer(request, false);
+			return answer(getVersion(), request, optPlayer.get().isOnline(), optPlayer.get().getName(), optPlayer.get().isAdmin());
+		return answer(getVersion(), request, false);
 	}
 
 	@Override
@@ -178,10 +177,9 @@ public class RequestManagerV10 extends RequestManager {
 		 * if (request.getPlayerInfo().isOnline()) { String address = request.getPlayerInfo().getGameAddress(); int port =
 		 * request.getPlayerInfo().getGamePort(); boolean isAdmin = request.getPlayerInfo().isAdmin(); try {
 		 * getServer().getClients().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port),
-		 * request.getPlayerInfo().getName(), isAdmin); } catch (UnknownHostException e) { return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR); } } else
-		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
-		 * request.getProperties());
+		 * request.getPlayerInfo().getName(), isAdmin); } catch (UnknownHostException e) { return answer(getVersion(), request,
+		 * ErrorCode.UNEXPECTED_ERROR); } } else getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return
+		 * answer(getVersion(), request, request.getProperties());
 		 */
 		return null;
 	}
@@ -193,7 +191,7 @@ public class RequestManagerV10 extends RequestManager {
 		// channel's name
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		// channel's name
 		informations.add(optChannel.get().getName());
@@ -214,7 +212,7 @@ public class RequestManagerV10 extends RequestManager {
 			// Parameter's value
 			informations.add(parameter.getValue());
 		}
-		return MumbleServerMessageFactory.answer(request, informations.toArray());
+		return answer(getVersion(), request, informations.toArray());
 	}
 
 	@Override
@@ -260,7 +258,17 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return MumbleServerMessageFactory.answer(request, informations.toArray());
+		return answer(getVersion(), request, informations.toArray());
+	}
+
+	@Override
+	public IMumbleMessage getCommunicationProtocolVersion() {
+		return create(getVersion(), Idc.COMMUNICATION_PROTOCOL_VERSION, Oid.GET);
+	}
+
+	@Override
+	public IMumbleMessage setCommunicationProtocolVersion(float version) {
+		return create(getVersion(), Idc.COMMUNICATION_PROTOCOL_VERSION, Oid.SET, version);
 	}
 
 	@Override
@@ -304,17 +312,17 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(Idc.CHANNELS, Oid.ADD, informations.toArray());
+		return create(getVersion(), Idc.CHANNELS, Oid.ADD, informations.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onChannelRemove(IChannel channel) {
-		return create(Idc.CHANNELS, Oid.REMOVE, channel.getName());
+		return create(getVersion(), Idc.CHANNELS, Oid.REMOVE, channel.getName());
 	}
 
 	@Override
 	public IMumbleMessage onChannelNameChange(IChannel channel, String oldName) {
-		return create(Idc.CHANNELS, Oid.SET, oldName, channel.getName());
+		return create(getVersion(), Idc.CHANNELS, Oid.SET, oldName, channel.getName());
 	}
 
 	@Override
@@ -357,68 +365,69 @@ public class RequestManagerV10 extends RequestManager {
 		// Player's pitch
 		properties.add(player.getPosition().getPitch());
 
-		return create(Idc.PLAYER, Oid.ADD, properties.toArray());
+		return create(getVersion(), Idc.PLAYER, Oid.ADD, properties.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onServerPlayerRemove(String name) {
-		return create(Idc.PLAYER, Oid.REMOVE, name);
+		return create(getVersion(), Idc.PLAYER, Oid.REMOVE, name);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerNameChange(String oldName, String newName) {
-		return create(Idc.PLAYER_NAME, Oid.SET, oldName, newName);
+		return create(getVersion(), Idc.PLAYER_NAME, Oid.SET, oldName, newName);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerOnlineChange(IPlayer player) {
-		return create(Idc.PLAYER_ONLINE, Oid.SET, player.getName(), player.isOnline());
+		return create(getVersion(), Idc.PLAYER_ONLINE, Oid.SET, player.getName(), player.isOnline());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerGameAddressChange(IPlayer player) {
-		return create(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(), player.getGameAddress().getPort());
+		return create(getVersion(), Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(),
+				player.getGameAddress().getPort());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerAdminChange(IPlayer player) {
-		return create(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
+		return create(getVersion(), Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteChange(IPlayer player) {
-		return create(Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
+		return create(getVersion(), Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteByChange(IPlayer target, IPlayer source) {
-		return create(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), target.isMuteBy(source));
+		return create(getVersion(), Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), target.isMuteBy(source));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerDeafenChange(IPlayer player) {
-		return create(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
+		return create(getVersion(), Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerKick(IPlayer kicked, IPlayer kicking) {
-		return create(Idc.PLAYER_KICK, Oid.SET, kicked.getName(), kicking.getName());
+		return create(getVersion(), Idc.PLAYER_KICK, Oid.SET, kicked.getName(), kicking.getName());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerPositionChange(IPlayer player) {
-		return create(Idc.PLAYER_POSITION, Oid.SET, player.getName(), player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ(),
+		return create(getVersion(), Idc.PLAYER_POSITION, Oid.SET, player.getName(), player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ(),
 				player.getPosition().getYaw(), player.getPosition().getPitch());
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
-		return create(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName());
+		return create(getVersion(), Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName());
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerRemove(IChannel channel, IPlayer player) {
-		return create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName());
+		return create(getVersion(), Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName());
 	}
 
 	@Override
@@ -437,7 +446,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's value
 		informations.add(parameter.getValue());
 
-		return create(Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
 	}
 
 	@Override
@@ -456,7 +465,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's minimum value
 		informations.add(parameter.getMin());
 
-		return create(Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray());
 	}
 
 	@Override
@@ -475,7 +484,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's maximum value
 		informations.add(parameter.getMax());
 
-		return create(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
 	}
 
 	@Override
@@ -518,7 +527,7 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
+		return create(getVersion(), Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
 	}
 
 	/**
@@ -659,7 +668,7 @@ public class RequestManagerV10 extends RequestManager {
 				// Player name
 				informations.add(player.getName());
 		}
-		return MumbleServerMessageFactory.answer(request, informations.toArray());
+		return answer(getVersion(), request, informations.toArray());
 	}
 
 	/**
@@ -723,7 +732,7 @@ public class RequestManagerV10 extends RequestManager {
 				informations.add(player.isDeafen());
 			}
 		}
-		return MumbleServerMessageFactory.answer(request, informations.toArray());
+		return answer(getVersion(), request, informations.toArray());
 	}
 
 	/**
@@ -735,11 +744,11 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private IMumbleMessage addChannel(ChannelsAddMessageV10 request) {
 		if (getServer().getChannels().get(request.getChannelInfo().getName()).isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_ALREADY_EXISTS);
 
 		Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getChannelInfo().getSoundModifierInfo().getName());
 		if (!optModifier.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
+			return answer(getVersion(), request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
 		ParameterList parameterList = new ParameterList();
 		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
@@ -747,10 +756,10 @@ public class RequestManagerV10 extends RequestManager {
 
 		IChannel channel = getServer().getChannels().add(request.getChannelInfo().getName(), request.getChannelInfo().getSoundModifierInfo().getName());
 		if (channel == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
 		channel.getSoundModifier().getParameters().update(parameterList);
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -763,12 +772,12 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage removeChannel(ChannelsRemoveMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		if (getServer().getChannels().remove(request.getChannelName()) == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -781,17 +790,17 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage renameChannel(ChannelsSetMessageV10 request) {
 		Optional<IChannel> optOldChannel = getServer().getChannels().get(request.getOldName());
 		if (!optOldChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<IChannel> optNewChannel = getServer().getChannels().get(request.getNewName());
 		if (optNewChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_ALREADY_EXISTS);
 
 		optOldChannel.get().setName(request.getNewName());
 		if (!optOldChannel.get().getName().equals(request.getNewName()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -804,15 +813,15 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage addPlayer(PlayerAddMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
 		if (optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_REGISTERED);
 
 		FullPlayerInfo info = request.getPlayerInfo();
 		IPlayer player = getServer().getPlayers().add(info.getName(), info.getGameAddress(), info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(),
 				info.getPitch());
 		if (player == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -825,13 +834,13 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage removePlayer(PlayerRemoveMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
 		if (player == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -844,17 +853,17 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage renamePlayer(PlayerNameSetMessageV10 request) {
 		Optional<IPlayer> optOldPlayer = getServer().getPlayers().get(request.getOldName());
 		if (!optOldPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		Optional<IPlayer> optNewPlayer = getServer().getPlayers().get(request.getNewName());
 		if (optNewPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_EXISTS);
+			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_EXISTS);
 
 		optOldPlayer.get().setName(request.getNewName());
 		if (!optOldPlayer.get().getName().equals(request.getNewName()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -867,9 +876,9 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage getPlayerOnlineStatus(PlayerOnlineGetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
-		return MumbleServerMessageFactory.answer(request, request.getPlayerName(), optPlayer.get().isOnline());
+		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isOnline());
 	}
 
 	/**
@@ -882,13 +891,13 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerOnlineStatus(PlayerOnlineSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().setOnline(request.isOnline());
 		if (optPlayer.get().isOnline() != request.isOnline())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -901,11 +910,11 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage getPlayerGameAddress(PlayerGameAddressGetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		String gameAddress = optPlayer.get().getGameAddress().getAddress().getHostAddress();
 		int gamePort = optPlayer.get().getGameAddress().getPort();
-		return MumbleServerMessageFactory.answer(request, request.getPlayerName(), gameAddress, gamePort);
+		return answer(getVersion(), request, request.getPlayerName(), gameAddress, gamePort);
 	}
 
 	/**
@@ -918,13 +927,13 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().setGameAddress(request.getGameAddress());
 		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -937,18 +946,18 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerAdmin(PlayerAdminSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setAdmin(request.isAdmin());
 		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
 		}
 
 		if (optPlayer.get().isAdmin() != request.isAdmin())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -961,18 +970,18 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerMute(PlayerMuteSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setMute(request.isMute());
 		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
 		}
 
 		if (optPlayer.get().isMute() != request.isMute())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -985,18 +994,18 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerDeafen(PlayerDeafenSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optPlayer.get().setDeafen(request.isDeafen());
 		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
 		}
 
 		if (optPlayer.get().isDeafen() != request.isDeafen())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1009,17 +1018,17 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
 		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
 		if (!optTarget.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
 		if (!optSource.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optTarget.get().setMuteBy(optSource.get(), request.isMute());
 		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1032,20 +1041,20 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayer.get()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_ALREADY_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_REGISTERED);
 
 		optChannel.get().getPlayers().add(optPlayer.get());
 		if (!optChannel.get().getPlayers().toList().contains(optPlayer.get()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1058,17 +1067,17 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optChannel.get().getPlayers().remove(optPlayer.get());
 		if (optChannel.get().getPlayers().toList().contains(optPlayer.get()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1081,24 +1090,24 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage kickPlayerFromChannel(PlayerKickSetMessageV10 request) {
 		Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKicked());
 		if (!optKickedPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		Optional<IPlayer> optKickingPlayer = getServer().getPlayers().get(request.getKicking());
 		if (!optKickingPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
 			optKickedPlayer.get().kick(optKickingPlayer.get());
 		} catch (PlayerNotAdministratorException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED);
+			return answer(getVersion(), request, ErrorCode.PERMISSION_REFUSED);
 		} catch (PlayerNotRegisteredInChannelException e) {
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
 		}
 
 		if (optKickedPlayer.get().getChannel() != null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1113,10 +1122,10 @@ public class RequestManagerV10 extends RequestManager {
 
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		IPosition position = optPlayer.get().getPosition();
-		return MumbleServerMessageFactory.answer(request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
+		return answer(getVersion(), request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
 	}
 
 	/**
@@ -1129,15 +1138,15 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setPlayerPosition(PlayerPositionSetMessageV10 request) {
 		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
 		if (!optPlayer.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
 		if (optPlayer.get().getPosition().getX() != request.getX() || optPlayer.get().getPosition().getY() != request.getY()
 				|| optPlayer.get().getPosition().getZ() != request.getZ() || optPlayer.get().getPosition().getYaw() != request.getYaw()
 				|| optPlayer.get().getPosition().getPitch() != request.getPitch())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 
 	/**
@@ -1150,17 +1159,17 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setParameterValue(ParameterValueSetMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
 		if (!optParameter.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
 
 		optParameter.get().setValue(request.getNewValue());
 		if (optParameter.get().getValue() != request.getNewValue())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewValue());
+		return answer(getVersion(), request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewValue());
 	}
 
 	/**
@@ -1173,22 +1182,21 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setParameterMinValue(ParameterMinValueSetMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
 		if (!optParameter.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
 
 		if (!(optParameter.get() instanceof IRangeParameter<?>))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_WITHOUT_MIN);
+			return answer(getVersion(), request, ErrorCode.PARAMETER_WITHOUT_MIN);
 
 		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
 		range.setMin(request.getNewMinValue());
 		if (range.getMin() != request.getNewMinValue())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(),
-				request.getNewMinValue());
+		return answer(getVersion(), request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewMinValue());
 	}
 
 	/**
@@ -1201,22 +1209,21 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setParameterMaxValue(ParameterMaxValueSetMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
 		if (!optParameter.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
 
 		if (!(optParameter.get() instanceof IRangeParameter<?>))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.PARAMETER_WITHOUT_MAX);
+			return answer(getVersion(), request, ErrorCode.PARAMETER_WITHOUT_MAX);
 
 		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
 		range.setMax(request.getNewMaxValue());
 		if (range.getMax() != request.getNewMaxValue())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(),
-				request.getNewMaxValue());
+		return answer(getVersion(), request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), request.getNewMaxValue());
 	}
 
 	/**
@@ -1229,11 +1236,11 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage setChannelSoundModifier(SoundModifierSetMessageV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelInfo().getName());
 		if (!optChannel.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
 		Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getChannelInfo().getSoundModifierInfo().getName());
 		if (!optModifier.isPresent())
-			return MumbleServerMessageFactory.answer(request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
+			return answer(getVersion(), request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
 		ParameterList parameterList = new ParameterList();
 		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
@@ -1243,8 +1250,8 @@ public class RequestManagerV10 extends RequestManager {
 		optChannel.get().setSoundModifier(optModifier.get());
 
 		if (!optChannel.get().getSoundModifier().equals(optModifier.get()))
-			return MumbleServerMessageFactory.answer(request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
-		return MumbleServerMessageFactory.answer(request, request.getProperties());
+		return answer(getVersion(), request, request.getProperties());
 	}
 }
