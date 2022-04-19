@@ -23,12 +23,12 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class ClientList implements IEventListener {
 	private AbstractMumbleServer server;
-	private List<MumblePlayerClient> clients;
+	private List<PlayerMumbleClient> clients;
 	private Lock lock;
 
 	public ClientList(AbstractMumbleServer internalServer) {
 		this.server = internalServer;
-		clients = new ArrayList<MumblePlayerClient>();
+		clients = new ArrayList<PlayerMumbleClient>();
 		lock = new ReentrantLock(true);
 
 		EventManager.registerListener(this);
@@ -55,7 +55,7 @@ public class ClientList implements IEventListener {
 		if (!event.getPlayer().getServer().equals(server))
 			return;
 
-		MumblePlayerClient client = getOrCreateClientByGame(event.getPlayer().getGameAddress());
+		PlayerMumbleClient client = getOrCreateClientByGame(event.getPlayer().getGameAddress());
 		client.setPlayer((Player) event.getPlayer());
 	}
 
@@ -64,7 +64,7 @@ public class ClientList implements IEventListener {
 		if (!event.getPlayer().getServer().equals(server))
 			return;
 
-		Optional<MumblePlayerClient> optClient = get(event.getPlayer().getName());
+		Optional<PlayerMumbleClient> optClient = get(event.getPlayer().getName());
 		optClient.get().setPlayer(null);
 		event.getPlayer().setOnline(false);
 		garbage(optClient.get());
@@ -77,8 +77,8 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
 	 */
-	private Optional<MumblePlayerClient> get(String name) {
-		for (MumblePlayerClient client : clients)
+	private Optional<PlayerMumbleClient> get(String name) {
+		for (PlayerMumbleClient client : clients)
 			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
 				return Optional.of(client);
 		return Optional.empty();
@@ -91,8 +91,8 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return The client associated to the IP address.
 	 */
-	private MumblePlayerClient createClient(ITcpConnection connection) {
-		MumblePlayerClient client = getOrCreateClientByMumble(connection);
+	private PlayerMumbleClient createClient(ITcpConnection connection) {
+		PlayerMumbleClient client = getOrCreateClientByMumble(connection);
 		client.createTcpClient(connection);
 		return client;
 	}
@@ -108,21 +108,21 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return The client, retrieved or created, associated to the IP address and port number.
 	 */
-	private MumblePlayerClient getOrCreateClientByGame(InetSocketAddress socketAddress) {
-		List<MumblePlayerClient> list = getClients(socketAddress.getAddress().getHostAddress());
+	private PlayerMumbleClient getOrCreateClientByGame(InetSocketAddress socketAddress) {
+		List<PlayerMumbleClient> list = getClients(socketAddress.getAddress().getHostAddress());
 
 		// No client registered
 		if (list.isEmpty())
 			return createClient(Origin.PLAYER_CONNECTED_IN_GAME, socketAddress);
 
 		// Case 2: Clients registered
-		for (MumblePlayerClient client : list) {
+		for (PlayerMumbleClient client : list) {
 			// The game address or the mumble address correspond exactly to the IP address and port number.
 			if (client.isAssociatedTo(socketAddress.getPort()))
 				return client;
 		}
 
-		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(list).check(socketAddress);
+		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).check(socketAddress);
 		if (optClient.isPresent())
 			return optClient.get();
 
@@ -139,21 +139,21 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return The client, retrieved or created, associated to the given socket.
 	 */
-	private MumblePlayerClient getOrCreateClientByMumble(ITcpConnection connection) {
-		List<MumblePlayerClient> list = getClients(connection.getAddress().getAddress().getHostAddress());
+	private PlayerMumbleClient getOrCreateClientByMumble(ITcpConnection connection) {
+		List<PlayerMumbleClient> list = getClients(connection.getAddress().getAddress().getHostAddress());
 
 		// No client registered
 		if (list.isEmpty())
 			return createClient(Origin.PLAYER_CONNECTED_IN_MUMBLE, connection.getAddress());
 
 		// Case 2: Clients registered
-		for (MumblePlayerClient client : list) {
+		for (PlayerMumbleClient client : list) {
 			// The game address or the mumble address correspond exactly to the IP address and port number.
 			if (client.isAssociatedTo(connection.getAddress().getPort()))
 				return client;
 		}
 
-		Optional<MumblePlayerClient> optClient = new GamePortAnalyzer(list).check(null);
+		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).check(null);
 		if (optClient.isPresent())
 			return optClient.get();
 
@@ -171,7 +171,7 @@ public class ClientList implements IEventListener {
 			boolean uuidAlreadyExists = false;
 			do {
 				uuid = UUID.randomUUID();
-				for (MumblePlayerClient client : clients) {
+				for (PlayerMumbleClient client : clients) {
 					if (client.getUUID().equals(uuid)) {
 						uuidAlreadyExists = true;
 						break;
@@ -184,8 +184,8 @@ public class ClientList implements IEventListener {
 		return uuid;
 	}
 
-	private MumblePlayerClient createClient(Origin origin, InetSocketAddress address) {
-		MumblePlayerClient client = new MumblePlayerClient(server, createUUID());
+	private PlayerMumbleClient createClient(Origin origin, InetSocketAddress address) {
+		PlayerMumbleClient client = new PlayerMumbleClient(server, createUUID());
 		clients.add(client);
 		EventManager.callEvent(new ServerClientAddPostEvent(server, client, origin, address));
 		return client;
@@ -198,11 +198,11 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @return The list of registered clients.
 	 */
-	private List<MumblePlayerClient> getClients(String hostAddress) {
-		List<MumblePlayerClient> list = new ArrayList<MumblePlayerClient>();
+	private List<PlayerMumbleClient> getClients(String hostAddress) {
+		List<PlayerMumbleClient> list = new ArrayList<PlayerMumbleClient>();
 		lock.lock();
 		try {
-			for (MumblePlayerClient client : clients)
+			for (PlayerMumbleClient client : clients)
 				if (client.getGameAddress().getAddress().getHostAddress().equals(hostAddress)
 						|| client.getMumbleAddress().getAddress().getHostAddress().equals(hostAddress))
 					list.add(client);
@@ -229,7 +229,7 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @param client The client to remove.
 	 */
-	private void removeClient(MumblePlayerClient client) {
+	private void removeClient(PlayerMumbleClient client) {
 		lock.lock();
 		boolean removed = false;
 		try {
@@ -247,7 +247,7 @@ public class ClientList implements IEventListener {
 	 * 
 	 * @param client The client to remove.
 	 */
-	private void garbage(MumblePlayerClient client) {
+	private void garbage(PlayerMumbleClient client) {
 		if (client.getPlayer() == null && (client.getTcpConnection() == null || client.getTcpConnection().isDisposed()))
 			removeClient(client);
 	}

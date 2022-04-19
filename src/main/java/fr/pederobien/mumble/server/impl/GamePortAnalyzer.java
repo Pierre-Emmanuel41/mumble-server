@@ -14,8 +14,8 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortSetMessageV10;
 
 public class GamePortAnalyzer {
-	private List<MumblePlayerClient> clients;
-	private MumblePlayerClient client;
+	private List<PlayerMumbleClient> clients;
+	private PlayerMumbleClient client;
 
 	/**
 	 * Creates a game port analyzer that is responsible to ask each client in the specified list if a specific port is used on client
@@ -23,7 +23,7 @@ public class GamePortAnalyzer {
 	 * 
 	 * @param clients The list of clients to check.
 	 */
-	public GamePortAnalyzer(List<MumblePlayerClient> clients) {
+	public GamePortAnalyzer(List<PlayerMumbleClient> clients) {
 		this.clients = clients;
 	}
 
@@ -34,9 +34,9 @@ public class GamePortAnalyzer {
 	 * 
 	 * @return An optional that contains the client that use the port to play at the game if registered, an empty optional otherwise.
 	 */
-	public Optional<MumblePlayerClient> check(InetSocketAddress address) {
+	public Optional<PlayerMumbleClient> check(InetSocketAddress address) {
 		CountDownLatch countDownLatch = new CountDownLatch(clients.size());
-		for (MumblePlayerClient client : clients) {
+		for (PlayerMumbleClient client : clients) {
 			// Sending simultaneously the request to each client
 			new Thread(() -> singleCheck(client, address, countDownLatch)).start();
 		}
@@ -48,7 +48,7 @@ public class GamePortAnalyzer {
 		return Optional.ofNullable(client);
 	}
 
-	private void singleCheck(MumblePlayerClient client, InetSocketAddress address, CountDownLatch countDownLatch) {
+	private void singleCheck(PlayerMumbleClient client, InetSocketAddress address, CountDownLatch countDownLatch) {
 		if (new GamePort(client).check(address))
 			this.client = client;
 
@@ -57,12 +57,12 @@ public class GamePortAnalyzer {
 	}
 
 	private class GamePort {
-		private MumblePlayerClient client;
+		private PlayerMumbleClient client;
 		private Lock lock;
 		private Condition received;
 		private boolean isUsed;
 
-		public GamePort(MumblePlayerClient client) {
+		public GamePort(PlayerMumbleClient client) {
 			this.client = client;
 
 			lock = new ReentrantLock();

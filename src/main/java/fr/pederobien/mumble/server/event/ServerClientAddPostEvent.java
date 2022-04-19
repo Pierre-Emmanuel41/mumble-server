@@ -3,11 +3,11 @@ package fr.pederobien.mumble.server.event;
 import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.server.impl.MumblePlayerClient;
+import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class ServerClientAddPostEvent extends ServerEvent {
-	private MumblePlayerClient client;
+	private PlayerMumbleClient client;
 	private Origin origin;
 	private InetSocketAddress address;
 
@@ -17,7 +17,7 @@ public class ServerClientAddPostEvent extends ServerEvent {
 	 * @param server The server on which the client has been created.
 	 * @param client The created client.
 	 */
-	public ServerClientAddPostEvent(IMumbleServer server, MumblePlayerClient client, Origin origin, InetSocketAddress address) {
+	public ServerClientAddPostEvent(IMumbleServer server, PlayerMumbleClient client, Origin origin, InetSocketAddress address) {
 		super(server);
 		this.client = client;
 		this.origin = origin;
@@ -27,7 +27,7 @@ public class ServerClientAddPostEvent extends ServerEvent {
 	/**
 	 * @return The created client.
 	 */
-	public MumblePlayerClient getClient() {
+	public PlayerMumbleClient getClient() {
 		return client;
 	}
 

@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
 
-public class MumblePlayerClient {
+public class PlayerMumbleClient {
 	private AbstractMumbleServer server;
-	private MumbleTcpPlayerClient playerClient;
+	private MumbleTcpConnection playerClient;
 	private Player player;
 	private UUID uuid;
 
@@ -17,7 +17,7 @@ public class MumblePlayerClient {
 	 * @param server The server associated to this client.
 	 * @param uuid   The client unique identifier.
 	 */
-	protected MumblePlayerClient(AbstractMumbleServer server, UUID uuid) {
+	protected PlayerMumbleClient(AbstractMumbleServer server, UUID uuid) {
 		this.server = server;
 		this.uuid = uuid;
 	}
@@ -27,10 +27,10 @@ public class MumblePlayerClient {
 		if (this == obj)
 			return true;
 
-		if (!(obj instanceof MumblePlayerClient))
+		if (!(obj instanceof PlayerMumbleClient))
 			return false;
 
-		MumblePlayerClient other = (MumblePlayerClient) obj;
+		PlayerMumbleClient other = (PlayerMumbleClient) obj;
 		return uuid.equals(other.getUUID());
 	}
 
@@ -41,7 +41,7 @@ public class MumblePlayerClient {
 	 */
 	public void createTcpClient(ITcpConnection connection) {
 		if (playerClient == null)
-			playerClient = new MumbleTcpPlayerClient(server, this, connection);
+			playerClient = new MumbleTcpConnection(server, this, connection);
 	}
 
 	/**

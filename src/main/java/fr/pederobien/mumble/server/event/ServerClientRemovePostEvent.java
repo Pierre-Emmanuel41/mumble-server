@@ -2,11 +2,11 @@ package fr.pederobien.mumble.server.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.server.impl.MumblePlayerClient;
+import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class ServerClientRemovePostEvent extends ServerEvent {
-	private MumblePlayerClient client;
+	private PlayerMumbleClient client;
 
 	/**
 	 * Creates an event thrown when the client is removed from the client list associated to the given server. This event is thrown
@@ -16,7 +16,7 @@ public class ServerClientRemovePostEvent extends ServerEvent {
 	 * @param server The server from which the client has been removed..
 	 * @param client The removed client.
 	 */
-	public ServerClientRemovePostEvent(IMumbleServer server, MumblePlayerClient client) {
+	public ServerClientRemovePostEvent(IMumbleServer server, PlayerMumbleClient client) {
 		super(server);
 		this.client = client;
 	}
@@ -24,7 +24,7 @@ public class ServerClientRemovePostEvent extends ServerEvent {
 	/**
 	 * @return The remove client.
 	 */
-	public MumblePlayerClient getClient() {
+	public PlayerMumbleClient getClient() {
 		return client;
 	}
 

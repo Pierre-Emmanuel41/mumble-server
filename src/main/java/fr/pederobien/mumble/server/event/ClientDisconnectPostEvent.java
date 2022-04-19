@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.event;
 
-import fr.pederobien.mumble.server.impl.MumblePlayerClient;
+import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 
 public class ClientDisconnectPostEvent extends PlayerClientEvent {
 
@@ -9,7 +9,7 @@ public class ClientDisconnectPostEvent extends PlayerClientEvent {
 	 * 
 	 * @param client The disconnected client.
 	 */
-	public ClientDisconnectPostEvent(MumblePlayerClient client) {
+	public ClientDisconnectPostEvent(PlayerMumbleClient client) {
 		super(client);
 	}
 }
