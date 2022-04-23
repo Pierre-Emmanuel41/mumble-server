@@ -61,7 +61,7 @@ public class PlayerMumbleClient {
 	 * @return The TCP connection with the remote.
 	 */
 	public ITcpConnection getTcpConnection() {
-		return playerConnection == null ? null : playerConnection.getConnection();
+		return playerConnection == null ? null : playerConnection.getTcpConnection();
 	}
 
 	/**
@@ -100,6 +100,6 @@ public class PlayerMumbleClient {
 	 * @return The address used by the player to speak to the other players. Null if there the player is not connected with mumble.
 	 */
 	public InetSocketAddress getMumbleAddress() {
-		return playerConnection == null ? null : playerConnection.getConnection().getAddress();
+		return playerConnection == null ? null : playerConnection.getTcpConnection().getAddress();
 	}
 }

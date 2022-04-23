@@ -33,7 +33,6 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class PlayerMumbleConnection extends AbstractMumbleConnection implements IEventListener {
 	private float version;
-	private ITcpConnection tcpConnection;
 	private IMumbleServer server;
 	private PlayerMumbleClient playerClient;
 	private boolean isJoined;
@@ -54,13 +53,6 @@ public class PlayerMumbleConnection extends AbstractMumbleConnection implements 
 		// use.
 		if (!connection.isDisposed())
 			EventManager.registerListener(this);
-	}
-
-	/**
-	 * @return The TCP connection with the remote.
-	 */
-	public ITcpConnection getConnection() {
-		return tcpConnection;
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -201,7 +193,7 @@ public class PlayerMumbleConnection extends AbstractMumbleConnection implements 
 
 	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		if (!event.getConnection().equals(getConnection()))
+		if (!event.getConnection().equals(getTcpConnection()))
 			return;
 
 		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
@@ -228,19 +220,19 @@ public class PlayerMumbleConnection extends AbstractMumbleConnection implements 
 
 	@EventHandler
 	private void OnConnectionLostEvent(ConnectionLostEvent event) {
-		if (!event.getConnection().equals(getConnection()))
+		if (!event.getConnection().equals(getTcpConnection()))
 			return;
 
 		if (playerClient.getPlayer() != null && playerClient.getPlayer().getChannel() != null)
 			playerClient.getPlayer().getChannel().getPlayers().remove(playerClient.getPlayer());
 
-		getConnection().dispose();
+		getTcpConnection().dispose();
 		EventManager.callEvent(new ClientDisconnectPostEvent(playerClient));
 	}
 
 	@EventHandler
 	private void onServerClosing(ServerClosePostEvent event) {
-		getConnection().dispose();
+		getTcpConnection().dispose();
 		EventManager.unregisterListener(this);
 	}
 
