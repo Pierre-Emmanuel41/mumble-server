@@ -32,8 +32,6 @@ import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class PlayerMumbleConnection extends AbstractMumbleConnection implements IEventListener {
-	private float version;
-	private IMumbleServer server;
 	private PlayerMumbleClient playerClient;
 	private boolean isJoined;
 
@@ -49,146 +47,146 @@ public class PlayerMumbleConnection extends AbstractMumbleConnection implements 
 		super(server, connection);
 		this.playerClient = playerClient;
 
-		// Connection disposed if and only if the remote did not answer to the server about the version of the communication protocol to
-		// use.
+		// Connection disposed if and only if the remote did not answer to the server about the getVersion() of the communication protocol
+		// to use.
 		if (!connection.isDisposed())
 			EventManager.registerListener(this);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
-		if (!event.getServer().equals(server))
+		if (!event.getServer().equals(getServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelAdd(version, event.getChannel())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelAdd(getVersion(), event.getChannel())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelRemove(ServerChannelRemovePostEvent event) {
-		if (!event.getServer().equals(server))
+		if (!event.getServer().equals(getServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelRemove(version, event.getChannel())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelRemove(getVersion(), event.getChannel())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelNameChange(ChannelNameChangePostEvent event) {
-		if (!event.getChannel().getServer().equals(server))
+		if (!event.getChannel().getServer().equals(getServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelNameChange(version, event.getChannel(), event.getOldName())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelNameChange(getVersion(), event.getChannel(), event.getOldName())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
-		if (!event.getList().getServer().equals(server))
+		if (!event.getList().getServer().equals(getServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onServerPlayerAdd(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onServerPlayerAdd(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
-		if (!event.getList().getServer().equals(server))
+		if (!event.getList().getServer().equals(getServer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onServerPlayerRemove(version, event.getPlayer().getName())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onServerPlayerRemove(getVersion(), event.getPlayer().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerNameChange(version, event.getOldName(), event.getPlayer().getName())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerNameChange(getVersion(), event.getOldName(), event.getPlayer().getName())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerOnlineChange(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerOnlineChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerAdminChange(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerAdminChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerMuteChange(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerDeafenChange(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()) && !event.getPlayer().equals(playerClient.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) && !event.getPlayer().equals(playerClient.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onPlayerPositionChange(version, event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerPositionChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelPlayerAdd(version, event.getList().getChannel(), event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
-		if (!server.getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelPlayerRemove(version, event.getList().getChannel(), event.getPlayer())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelPlayerRemove(getVersion(), event.getList().getChannel(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePostEvent event) {
-		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onParameterValueChange(version, event.getParameter())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onParameterValueChange(getVersion(), event.getParameter())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMinValueChange(ParameterMinValueChangePostEvent event) {
-		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onParameterMinValueChange(version, event.getParameter())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onParameterMinValueChange(getVersion(), event.getParameter())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMaxValueChange(ParameterMaxValueChangePostEvent event) {
-		if (!server.getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
+		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onParameterMaxValueChange(version, event.getParameter())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onParameterMaxValueChange(getVersion(), event.getParameter())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
-		if (!server.getChannels().toList().contains(event.getChannel()))
+		if (!getServer().getChannels().toList().contains(event.getChannel()))
 			return;
 
-		doIfPlayerJoined(() -> send(server.getRequestManager().onChannelSoundModifierChange(version, event.getChannel())));
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelSoundModifierChange(getVersion(), event.getChannel())));
 	}
 
 	@EventHandler
@@ -213,7 +211,7 @@ public class PlayerMumbleConnection extends AbstractMumbleConnection implements 
 		}
 
 		if (checkPermission(request))
-			send(server.getRequestManager().answer(request));
+			send(getServer().getRequestManager().answer(request));
 		else
 			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}
