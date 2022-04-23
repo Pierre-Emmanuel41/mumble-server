@@ -71,6 +71,13 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	}
 
 	/**
+	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
+	 */
+	public IServerRequestManager getRequestManager() {
+		return serverRequestManager;
+	}
+
+	/**
 	 * Set the port number on which the server receives configuration requests and on which players talk together. For internal use
 	 * only.
 	 * 
@@ -91,13 +98,6 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	 */
 	public int getMumblePort() {
 		return mumblePort.get();
-	}
-
-	/**
-	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
-	 */
-	protected IServerRequestManager getRequestManager() {
-		return serverRequestManager;
 	}
 
 	/**

@@ -5,7 +5,6 @@ import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
@@ -26,31 +25,35 @@ import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleTcpConnection implements IEventListener {
+public class PlayerMumbleConnection extends AbstractMumbleConnection implements IEventListener {
 	private float version;
 	private ITcpConnection tcpConnection;
-	private AbstractMumbleServer server;
+	private IMumbleServer server;
 	private PlayerMumbleClient playerClient;
 	private boolean isJoined;
 
 	/**
-	 * Creates a TCP client associated to a specific player client.
+	 * Creates a mumble connection in order to send or receive requests from the remote. This connection is associated to a player in
+	 * order to allow or refuse some requests according to the player administrator status.
 	 * 
-	 * @param server        The server attached to this TCP client.
-	 * @param playerClient  The player client associated to this TCP client.
-	 * @param tcpConnection The TCP connection in order to receive/send request to the remote.
+	 * @param server       The server associated to this connection.
+	 * @param playerClient The player client associated to this TCP client.
+	 * @param connection   The TCP connection with the remote.
 	 */
-	protected MumbleTcpConnection(AbstractMumbleServer server, PlayerMumbleClient playerClient, ITcpConnection tcpConnection) {
-		this.server = server;
+	protected PlayerMumbleConnection(IMumbleServer server, PlayerMumbleClient playerClient, ITcpConnection connection) {
+		super(server, connection);
 		this.playerClient = playerClient;
-		this.tcpConnection = tcpConnection;
 
-		EventManager.registerListener(this);
+		// Connection disposed if and only if the remote did not answer to the server about the version of the communication protocol to
+		// use.
+		if (!connection.isDisposed())
+			EventManager.registerListener(this);
 	}
 
 	/**
@@ -292,13 +295,6 @@ public class MumbleTcpConnection implements IEventListener {
 		default:
 			return playerClient.getPlayer() != null && playerClient.getPlayer().isAdmin();
 		}
-	}
-
-	private void send(IMumbleMessage message) {
-		if (getConnection().isDisposed())
-			return;
-
-		getConnection().send(new MumbleCallbackMessage(message, null));
 	}
 
 	private void doIfPlayerJoined(Runnable runnable) {

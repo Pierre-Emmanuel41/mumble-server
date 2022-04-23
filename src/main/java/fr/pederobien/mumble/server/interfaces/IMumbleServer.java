@@ -31,4 +31,9 @@ public interface IMumbleServer {
 	 * @return The list of channels associated to this server.
 	 */
 	IChannelList getChannels();
+
+	/**
+	 * @return The manager responsible to create messages to send to the remote.
+	 */
+	IServerRequestManager getRequestManager();
 }

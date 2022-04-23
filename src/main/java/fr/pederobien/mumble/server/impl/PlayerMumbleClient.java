@@ -4,10 +4,11 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 import fr.pederobien.communication.interfaces.ITcpConnection;
+import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
 public class PlayerMumbleClient {
-	private AbstractMumbleServer server;
-	private MumbleTcpConnection playerClient;
+	private IMumbleServer server;
+	private PlayerMumbleConnection playerConnection;
 	private Player player;
 	private UUID uuid;
 
@@ -17,7 +18,7 @@ public class PlayerMumbleClient {
 	 * @param server The server associated to this client.
 	 * @param uuid   The client unique identifier.
 	 */
-	protected PlayerMumbleClient(AbstractMumbleServer server, UUID uuid) {
+	protected PlayerMumbleClient(IMumbleServer server, UUID uuid) {
 		this.server = server;
 		this.uuid = uuid;
 	}
@@ -40,8 +41,8 @@ public class PlayerMumbleClient {
 	 * @param connection The TCP connection to send/receive data from the remote TCP client.
 	 */
 	public void createTcpClient(ITcpConnection connection) {
-		if (playerClient == null)
-			playerClient = new MumbleTcpConnection(server, this, connection);
+		if (playerConnection == null)
+			playerConnection = new PlayerMumbleConnection(server, this, connection);
 	}
 
 	/**
@@ -60,7 +61,7 @@ public class PlayerMumbleClient {
 	 * @return The TCP connection with the remote.
 	 */
 	public ITcpConnection getTcpConnection() {
-		return playerClient == null ? null : playerClient.getConnection();
+		return playerConnection == null ? null : playerConnection.getConnection();
 	}
 
 	/**
@@ -99,6 +100,6 @@ public class PlayerMumbleClient {
 	 * @return The address used by the player to speak to the other players. Null if there the player is not connected with mumble.
 	 */
 	public InetSocketAddress getMumbleAddress() {
-		return playerClient == null ? null : playerClient.getConnection().getAddress();
+		return playerConnection == null ? null : playerConnection.getConnection().getAddress();
 	}
 }
