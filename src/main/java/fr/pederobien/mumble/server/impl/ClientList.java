@@ -93,7 +93,7 @@ public class ClientList implements IEventListener {
 	 */
 	private PlayerMumbleClient createClient(ITcpConnection connection) {
 		PlayerMumbleClient client = getOrCreateClientByMumble(connection);
-		client.createTcpClient(connection);
+		client.setTcpConnection(connection);
 		return client;
 	}
 

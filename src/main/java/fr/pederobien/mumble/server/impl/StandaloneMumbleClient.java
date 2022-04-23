@@ -43,9 +43,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	protected StandaloneMumbleClient(StandaloneMumbleServer server, ITcpConnection connection) {
 		super(server, connection);
 
-		// Connection disposed if and only if the remote did not answer to the server about the version of the communication protocol to
-		// use.
-		if (!connection.isDisposed())
+		if (establishCommunicationProtocolVersion())
 			EventManager.registerListener(this);
 	}
 

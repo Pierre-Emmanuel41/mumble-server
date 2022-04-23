@@ -30,8 +30,6 @@ public abstract class AbstractMumbleConnection {
 		this.connection = connection;
 
 		version = -1;
-
-		establishCommunicationProtocolVersion();
 	}
 
 	/**
@@ -55,7 +53,19 @@ public abstract class AbstractMumbleConnection {
 		return connection;
 	}
 
-	private void establishCommunicationProtocolVersion() {
+	/**
+	 * Set the TCP connection with the remote.
+	 * 
+	 * @param connection The TCP connection in order to send or receive requests from the remote.
+	 */
+	protected void setTcpConnection(ITcpConnection connection) {
+		this.connection = connection;
+	}
+
+	/**
+	 * @return true if a common version of the communication protocol has been found, false otherwise.
+	 */
+	protected boolean establishCommunicationProtocolVersion() {
 		Lock lock = new ReentrantLock(true);
 		Condition received = lock.newCondition();
 
@@ -64,13 +74,17 @@ public abstract class AbstractMumbleConnection {
 
 		lock.lock();
 		try {
-			if (!received.await(5000, TimeUnit.MILLISECONDS) || version == -1)
+			if (!received.await(5000, TimeUnit.MILLISECONDS) || version == -1) {
 				connection.dispose();
+				return false;
+			}
 		} catch (InterruptedException e) {
 			// Do nothing
 		} finally {
 			lock.unlock();
 		}
+
+		return true;
 	}
 
 	private void getCommunicationProtocolVersion(Lock lock, Condition received) {
