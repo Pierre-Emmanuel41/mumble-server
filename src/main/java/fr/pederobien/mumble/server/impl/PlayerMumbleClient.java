@@ -27,6 +27,7 @@ import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClientJoinPostEvent;
+import fr.pederobien.mumble.server.event.ServerClientLeavePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
@@ -298,6 +299,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		// Always allow this request whatever the client state.
 		if (request.getHeader().getIdc() == Idc.SERVER_LEAVE) {
 			isJoined.set(false);
+			EventManager.callEvent(new ServerClientLeavePostEvent(getServer(), this));
 			send(MumbleServerMessageFactory.answer(request));
 			return;
 		}
