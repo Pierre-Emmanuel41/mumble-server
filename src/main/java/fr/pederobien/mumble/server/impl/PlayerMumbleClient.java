@@ -26,6 +26,7 @@ import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.ServerClientJoinPostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
@@ -287,8 +288,10 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		if (request.getHeader().getIdc() == Idc.SERVER_JOIN) {
 			if (!isJoined.compareAndSet(false, true))
 				send(MumbleServerMessageFactory.answer(request, ErrorCode.SERVER_ALREADY_JOINED));
-			else
+			else {
+				EventManager.callEvent(new ServerClientJoinPostEvent(getServer(), this));
 				send(MumbleServerMessageFactory.answer(request));
+			}
 			return;
 		}
 
