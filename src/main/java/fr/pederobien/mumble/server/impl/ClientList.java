@@ -203,8 +203,7 @@ public class ClientList implements IEventListener {
 		lock.lock();
 		try {
 			for (PlayerMumbleClient client : clients)
-				if (client.getGameAddress().getAddress().getHostAddress().equals(hostAddress)
-						|| client.getMumbleAddress().getAddress().getHostAddress().equals(hostAddress))
+				if (client.isAssociatedTo(hostAddress))
 					list.add(client);
 		} finally {
 			lock.unlock();

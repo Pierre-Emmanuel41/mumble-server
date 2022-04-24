@@ -209,10 +209,10 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		if (!event.getConnection().equals(getTcpConnection()))
+		IMumbleMessage request = checkReceivedRequest(event);
+		if (request == null)
 			return;
 
-		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
 		if (getVersion() != -1 && getVersion() != request.getHeader().getVersion()) {
 			String format = "Receiving message with unexpected getVersion() of the communication protocol, expected=v%s, actual=v%s";
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));

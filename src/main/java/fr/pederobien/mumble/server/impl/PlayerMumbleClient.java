@@ -100,8 +100,8 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	}
 
 	/**
-	 * Check if the game address or the mumble address correspond to the given address and port number. If the mumble client is
-	 * registered then a request is sent to know if the the given port is used.
+	 * Check if the game address or the mumble address correspond to the port number. If the mumble client is registered then a
+	 * request is sent to know if the the given port is used.
 	 * 
 	 * @param port The port number used to play at the game.
 	 * 
@@ -111,6 +111,20 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		InetSocketAddress gameAddress = getGameAddress();
 		InetSocketAddress mumbleAddress = getMumbleAddress();
 		return gameAddress != null && gameAddress.getPort() == port || mumbleAddress != null && mumbleAddress.getPort() == port;
+	}
+
+	/**
+	 * Check if the game address or the mumble address correspond to the given address and port number. If the mumble client is
+	 * registered then a request is sent to know if the the given port is used.
+	 * 
+	 * @param port The port number used to play at the game.
+	 * 
+	 * @return True if the game address or the mumble address correspond to the given address and port.
+	 */
+	public boolean isAssociatedTo(String address) {
+		String gameAddress = getGameAddress() == null ? null : getGameAddress().getAddress().getHostAddress();
+		String mumbleAddress = getMumbleAddress() == null ? null : getMumbleAddress().getAddress().getHostAddress();
+		return gameAddress != null && gameAddress.equals(address) || mumbleAddress != null && mumbleAddress.equals(address);
 	}
 
 	/**
@@ -265,10 +279,9 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		if (!event.getConnection().equals(getTcpConnection()))
+		IMumbleMessage request = checkReceivedRequest(event);
+		if (request == null)
 			return;
-
-		IMumbleMessage request = MumbleServerMessageFactory.parse(event.getAnswer());
 
 		// There is no need to answer to a server join request.
 		if (request.getHeader().getIdc() == Idc.SERVER_JOIN) {

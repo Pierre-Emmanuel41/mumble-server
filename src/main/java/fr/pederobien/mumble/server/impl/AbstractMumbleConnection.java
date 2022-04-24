@@ -7,12 +7,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolSetMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.LogEvent;
 
 public abstract class AbstractMumbleConnection {
 	private IMumbleServer server;
@@ -62,6 +65,17 @@ public abstract class AbstractMumbleConnection {
 		this.connection = connection;
 	}
 
+	protected IMumbleMessage checkReceivedRequest(UnexpectedDataReceivedEvent event) {
+		if (!event.getConnection().equals(getTcpConnection()))
+			return null;
+
+		try {
+			return MumbleServerMessageFactory.parse(event.getAnswer());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	/**
 	 * @return true if a common version of the communication protocol has been found, false otherwise.
 	 */
@@ -90,10 +104,11 @@ public abstract class AbstractMumbleConnection {
 	private void getCommunicationProtocolVersion(Lock lock, Condition received) {
 		// Step 1: Asking the latest version of the communication protocol supported by the remote
 		send(server.getRequestManager().getCommunicationProtocolVersion(), args -> {
-			if (args.isTimeout())
+			if (args.isTimeout()) {
+				EventManager.callEvent(new LogEvent("Client did not answer to GET_COMMUNICATION_PROTOCOL_VERSIONS in time, disposing connection ..."));
 				// No need to wait more
 				exit(lock, received);
-			else {
+			} else {
 				CommunicationProtocolGetMessageV10 message = (CommunicationProtocolGetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
 				setCommunicationProtocolVersion(lock, received, findHighestVersion(message.getVersions()));
 			}
@@ -107,7 +122,8 @@ public abstract class AbstractMumbleConnection {
 				CommunicationProtocolSetMessageV10 message = (CommunicationProtocolSetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
 				if (message.getVersion() == version)
 					this.version = version;
-			}
+			} else
+				EventManager.callEvent(new LogEvent("Client did not answer to SET_COMMUNICATION_PROTOCOL_VERSION in time, disposing connection ..."));
 
 			exit(lock, received);
 		});
