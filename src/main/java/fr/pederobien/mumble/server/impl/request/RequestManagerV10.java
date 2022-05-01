@@ -1,44 +1,46 @@
 package fr.pederobien.mumble.server.impl.request;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsAddMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ParameterMaxValueSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ParameterMinValueSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
+import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.messages.v10.AddPlayerToChannelV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetChannelInfoV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetChannelSoundModifierV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetChannelsInfoV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetFullServerConfigurationV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetParameterMaxValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetParameterMinValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetParameterValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerAdministratorStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerDeafenStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerGameAddressV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerMuteStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerOnlineStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerPositionV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetSoundModifiersInfoV10;
+import fr.pederobien.mumble.common.impl.messages.v10.KickPlayerFromChannelV10;
+import fr.pederobien.mumble.common.impl.messages.v10.RegisterChannelOnServerV10;
+import fr.pederobien.mumble.common.impl.messages.v10.RegisterPlayerOnServerV10;
+import fr.pederobien.mumble.common.impl.messages.v10.RemovePlayerFromChannelV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetChannelNameV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetChannelSoundModifierV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetParameterMaxValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetParameterMinValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetParameterValueV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerAdministratorStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerDeafenStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerGameAddressV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteByStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerNameV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerOnlineStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerPositionV10;
+import fr.pederobien.mumble.common.impl.messages.v10.UnregisterChannelFromServerV10;
+import fr.pederobien.mumble.common.impl.messages.v10.UnregisterPlayerFromServerV10;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
@@ -65,210 +67,61 @@ public class RequestManagerV10 extends RequestManager {
 	public RequestManagerV10(IMumbleServer server) {
 		super(server, 1.0f);
 
-		// Server info map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> serverInfoMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		serverInfoMap.put(Oid.GET, request -> getServerConfiguration((ServerInfoGetMessageV10) request));
-		getRequests().put(Idc.SERVER_INFO, serverInfoMap);
+		// Server messages
+		getRequests().put(Identifier.GET_FULL_SERVER_CONFIGURATION, request -> getFullServerConfiguration((GetFullServerConfigurationV10) request));
+		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, request -> null);
 
-		// Channels map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		channelsMap.put(Oid.GET, request -> getChannels((ChannelsGetMessageV10) request));
-		channelsMap.put(Oid.ADD, request -> addChannel((ChannelsAddMessageV10) request));
-		channelsMap.put(Oid.REMOVE, request -> removeChannel((ChannelsRemoveMessageV10) request));
-		channelsMap.put(Oid.SET, request -> renameChannel((ChannelsSetMessageV10) request));
-		getRequests().put(Idc.CHANNELS, channelsMap);
+		// Player messages
+		getRequests().put(Identifier.GET_PLAYER_INFO, request -> null);
+		getRequests().put(Identifier.REGISTER_PLAYER_ON_SERVER, request -> registerPlayerOnServer((RegisterPlayerOnServerV10) request));
+		getRequests().put(Identifier.UNREGISTER_PLAYER_FROM_SERVER, request -> unregisterPlayerOnServer((UnregisterPlayerFromServerV10) request));
+		getRequests().put(Identifier.GET_PLAYER_ONLINE_STATUS, request -> getPlayerOnlineStatus((GetPlayerOnlineStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, request -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_NAME, request -> renamePlayer((SetPlayerNameV10) request));
+		getRequests().put(Identifier.GET_PLAYER_GAME_ADDRESS, request -> getPlayerGameAddress((GetPlayerGameAddressV10) request));
+		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, request -> setPlayerGameAddress((SetPlayerGameAddressV10) request));
+		getRequests().put(Identifier.GET_PLAYER_ADMINISTRATOR, request -> getPlayerAdmin((GetPlayerAdministratorStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, request -> setPlayerAdmin((SetPlayerAdministratorStatusV10) request));
+		getRequests().put(Identifier.GET_PLAYER_MUTE, request -> getPlayerMute((GetPlayerMuteStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_MUTE, request -> setPlayerMute((SetPlayerMuteStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, request -> setPlayerMuteBy((SetPlayerMuteByStatusV10) request));
+		getRequests().put(Identifier.GET_PLAYER_DEAFEN, request -> getPlayerDeafen((GetPlayerDeafenStatusV10) request));
+		getRequests().put(Identifier.SET_PLAYER_DEAFEN, request -> setPlayerDeafen((SetPlayerDeafenStatusV10) request));
+		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, request -> kickPlayerFromChannel((KickPlayerFromChannelV10) request));
+		getRequests().put(Identifier.GET_PLAYER_POSITION, request -> getPlayerPosition((GetPlayerPositionV10) request));
+		getRequests().put(Identifier.SET_PLAYER_POSITION, request -> setPlayerPosition((SetPlayerPositionV10) request));
 
-		// Player map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerMap.put(Oid.GET, request -> playerInfoGet((PlayerGetMessageV10) request));
-		playerMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
-		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
-		playerMap.put(Oid.REMOVE, request -> removePlayer((PlayerRemoveMessageV10) request));
-		getRequests().put(Idc.PLAYER, playerMap);
+		// Channel messages
+		getRequests().put(Identifier.GET_CHANNELS_INFO, request -> getChannelsInfo((GetChannelsInfoV10) request));
+		getRequests().put(Identifier.GET_CHANNEL_INFO, request -> getChannelInfo((GetChannelInfoV10) request));
+		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, request -> registerChannelOnServer((RegisterChannelOnServerV10) request));
+		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, request -> unregisterChannelFromServer((UnregisterChannelFromServerV10) request));
+		getRequests().put(Identifier.SET_CHANNEL_NAME, request -> renameChannel((SetChannelNameV10) request));
+		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, request -> addPlayerToChannel((AddPlayerToChannelV10) request));
+		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, request -> removePlayerFromChannel((RemovePlayerFromChannelV10) request));
 
-		// Player name map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerNameMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerNameMap.put(Oid.SET, request -> renamePlayer((PlayerNameSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_NAME, playerNameMap);
+		// Parameter message
+		getRequests().put(Identifier.GET_PARAMETER_VALUE, request -> getParameterValue((GetParameterValueV10) request));
+		getRequests().put(Identifier.SET_PARAMETER_VALUE, request -> setParameterValue((SetParameterValueV10) request));
+		getRequests().put(Identifier.GET_PARAMETER_MIN_VALUE, request -> getParameterMinValue((GetParameterMinValueV10) request));
+		getRequests().put(Identifier.SET_PARAMETER_MIN_VALUE, request -> setParameterMinValue((SetParameterMinValueV10) request));
+		getRequests().put(Identifier.GET_PARAMETER_MAX_VALUE, request -> getParameterMaxValue((GetParameterMaxValueV10) request));
+		getRequests().put(Identifier.SET_PARAMETER_MAX_VALUE, request -> setParameterMaxValue((SetParameterMaxValueV10) request));
 
-		// Player online map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerOnlineMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerOnlineMap.put(Oid.GET, request -> getPlayerOnlineStatus((PlayerOnlineGetMessageV10) request));
-		playerOnlineMap.put(Oid.SET, request -> setPlayerOnlineStatus((PlayerOnlineSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_ONLINE, playerOnlineMap);
-
-		// Player game address map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerGameAddressMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerGameAddressMap.put(Oid.GET, request -> getPlayerGameAddress((PlayerGameAddressGetMessageV10) request));
-		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
-
-		// Player administrator map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerAdminMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerAdminMap.put(Oid.SET, request -> setPlayerAdmin((PlayerAdminSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_ADMIN, playerAdminMap);
-
-		// Player mute map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerMuteMap.put(Oid.SET, request -> setPlayerMute((PlayerMuteSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
-
-		// Player mute by map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerMuteByMap.put(Oid.SET, request -> setPlayerMuteBy((PlayerMuteBySetMessageV10) request));
-		getRequests().put(Idc.PLAYER_MUTE_BY, playerMuteByMap);
-
-		// Player deafen map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_DEAFEN, playerDeafenMap);
-
-		// Player kick map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerKickMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerKickMap.put(Oid.SET, request -> kickPlayerFromChannel((PlayerKickSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
-
-		// Player position map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> playerPositionMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		playerPositionMap.put(Oid.GET, request -> getPlayerPosition((PlayerPositionGetMessageV10) request));
-		playerPositionMap.put(Oid.SET, request -> setPlayerPosition((PlayerPositionSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
-
-		// Channels player map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
-		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
-		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Parameter value map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
-		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
-
-		// Parameter minimum value map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterMinValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		parameterMinValueMap.put(Oid.SET, request -> setParameterMinValue((ParameterMinValueSetMessageV10) request));
-		getRequests().put(Idc.PARAMETER_MIN_VALUE, parameterMinValueMap);
-
-		// Parameter maximum value map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> parameterMaxValueMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		parameterMaxValueMap.put(Oid.SET, request -> setParameterMaxValue((ParameterMaxValueSetMessageV10) request));
-		getRequests().put(Idc.PARAMETER_MAX_VALUE, parameterMaxValueMap);
-
-		// Sound modifier map
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> soundModifierMap = new HashMap<Oid, Function<IMumbleMessage, IMumbleMessage>>();
-		soundModifierMap.put(Oid.GET, request -> soundModifierGet((SoundModifierGetMessageV10) request));
-		soundModifierMap.put(Oid.SET, request -> setChannelSoundModifier((SoundModifierSetMessageV10) request));
-		soundModifierMap.put(Oid.INFO, request -> soundModifierInfo((SoundModifierInfoMessageV10) request));
-		getRequests().put(Idc.SOUND_MODIFIER, soundModifierMap);
-	}
-
-	@Override
-	protected IMumbleMessage playerInfoGet(PlayerGetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
-		if (optPlayer.isPresent())
-			return answer(getVersion(), request, optPlayer.get().isOnline(), optPlayer.get().getName(), optPlayer.get().isAdmin());
-		return answer(getVersion(), request, false);
-	}
-
-	@Override
-	protected IMumbleMessage playerInfoSet(PlayerSetMessageV10 request) {
-		/*
-		 * if (request.getPlayerInfo().isOnline()) { String address = request.getPlayerInfo().getGameAddress(); int port =
-		 * request.getPlayerInfo().getGamePort(); boolean isAdmin = request.getPlayerInfo().isAdmin(); try {
-		 * getServer().getClients().addPlayer(new InetSocketAddress(InetAddress.getByName(address), port),
-		 * request.getPlayerInfo().getName(), isAdmin); } catch (UnknownHostException e) { return answer(getVersion(), request,
-		 * ErrorCode.UNEXPECTED_ERROR); } } else getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return
-		 * answer(getVersion(), request, request.getProperties());
-		 */
-		return null;
-	}
-
-	@Override
-	protected IMumbleMessage soundModifierGet(SoundModifierGetMessageV10 request) {
-		List<Object> informations = new ArrayList<Object>();
-
-		// channel's name
-		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
-		if (!optChannel.isPresent())
-			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
-
-		// channel's name
-		informations.add(optChannel.get().getName());
-
-		// Modifier's name
-		informations.add(optChannel.get().getSoundModifier().getName());
-
-		// Number of parameters
-		informations.add(optChannel.get().getSoundModifier().getParameters().size());
-
-		for (IParameter<?> parameter : optChannel.get().getSoundModifier().getParameters()) {
-			// Parameter's name
-			informations.add(parameter.getName());
-
-			// Parameter's type
-			informations.add(parameter.getType());
-
-			// Parameter's value
-			informations.add(parameter.getValue());
-		}
-		return answer(getVersion(), request, informations.toArray());
-	}
-
-	@Override
-	protected IMumbleMessage soundModifierInfo(SoundModifierInfoMessageV10 request) {
-		List<Object> informations = new ArrayList<Object>();
-
-		// Number of modifiers
-		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
-		informations.add(modifiers.size());
-
-		// Modifier informations
-		for (ISoundModifier modifier : modifiers.values()) {
-			// Modifier's name
-			informations.add(modifier.getName());
-
-			// Number of parameter
-			informations.add(modifier.getParameters().size());
-
-			// Modifier's parameter
-			for (IParameter<?> parameter : modifier.getParameters()) {
-				// Parameter's name
-				informations.add(parameter.getName());
-
-				// Parameter's type
-				informations.add(parameter.getType());
-
-				// isRangeParameter
-				boolean isRange = parameter instanceof RangeParameter;
-				informations.add(isRange);
-
-				// Parameter's default value
-				informations.add(parameter.getDefaultValue());
-
-				// Parameter's value
-				informations.add(parameter.getValue());
-
-				// Parameter's range value
-				if (isRange) {
-					RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
-					informations.add(rangeParameter.getMin());
-					informations.add(rangeParameter.getMax());
-				}
-			}
-		}
-
-		return answer(getVersion(), request, informations.toArray());
+		// Sound modifier messages
+		getRequests().put(Identifier.GET_SOUND_MODIFIERS_INFO, request -> getSoundModifiersInfo((GetSoundModifiersInfoV10) request));
+		getRequests().put(Identifier.GET_CHANNEL_SOUND_MODIFIER_INFO, request -> getChannelSoundModifier((GetChannelSoundModifierV10) request));
+		getRequests().put(Identifier.SET_CHANNEL_SOUND_MODIFIER, request -> setChannelSoundModifier((SetChannelSoundModifierV10) request));
 	}
 
 	@Override
 	public IMumbleMessage getCommunicationProtocolVersion() {
-		return create(getVersion(), Idc.COMMUNICATION_PROTOCOL_VERSION, Oid.GET);
+		return create(getVersion(), Identifier.GET_CP_VERSIONS);
 	}
 
 	@Override
 	public IMumbleMessage setCommunicationProtocolVersion(float version) {
-		return create(getVersion(), Idc.COMMUNICATION_PROTOCOL_VERSION, Oid.SET, version);
+		return create(getVersion(), Identifier.SET_CP_VERSION, version);
 	}
 
 	@Override
@@ -312,17 +165,17 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(getVersion(), Idc.CHANNELS, Oid.ADD, informations.toArray());
+		return create(getVersion(), Identifier.REGISTER_CHANNEL_ON_THE_SERVER, informations.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onChannelRemove(IChannel channel) {
-		return create(getVersion(), Idc.CHANNELS, Oid.REMOVE, channel.getName());
+		return create(getVersion(), Identifier.UNREGISTER_CHANNEL_FROM_SERVER, channel.getName());
 	}
 
 	@Override
 	public IMumbleMessage onChannelNameChange(IChannel channel, String oldName) {
-		return create(getVersion(), Idc.CHANNELS, Oid.SET, oldName, channel.getName());
+		return create(getVersion(), Identifier.SET_CHANNEL_NAME, oldName, channel.getName());
 	}
 
 	@Override
@@ -365,69 +218,69 @@ public class RequestManagerV10 extends RequestManager {
 		// Player's pitch
 		properties.add(player.getPosition().getPitch());
 
-		return create(getVersion(), Idc.PLAYER, Oid.ADD, properties.toArray());
+		return create(getVersion(), Identifier.REGISTER_PLAYER_ON_SERVER, properties.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onServerPlayerRemove(String name) {
-		return create(getVersion(), Idc.PLAYER, Oid.REMOVE, name);
+		return create(getVersion(), Identifier.UNREGISTER_CHANNEL_FROM_SERVER, name);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerNameChange(String oldName, String newName) {
-		return create(getVersion(), Idc.PLAYER_NAME, Oid.SET, oldName, newName);
+		return create(getVersion(), Identifier.SET_PLAYER_NAME, oldName, newName);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerOnlineChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_ONLINE, Oid.SET, player.getName(), player.isOnline());
+		return create(getVersion(), Identifier.SET_PLAYER_ONLINE_STATUS, player.getName(), player.isOnline());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerGameAddressChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), player.getGameAddress().getAddress().getHostAddress(),
+		return create(getVersion(), Identifier.SET_PLAYER_GAME_ADDRESS, player.getName(), player.getGameAddress().getAddress().getHostAddress(),
 				player.getGameAddress().getPort());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerAdminChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin());
+		return create(getVersion(), Identifier.SET_PLAYER_ADMINISTRATOR, player.getName(), player.isAdmin());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute());
+		return create(getVersion(), Identifier.SET_PLAYER_MUTE, player.getName(), player.isMute());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteByChange(IPlayer target, IPlayer source) {
-		return create(getVersion(), Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), target.isMuteBy(source));
+		return create(getVersion(), Identifier.SET_PLAYER_MUTE_BY, target.getName(), source.getName(), target.isMuteBy(source));
 	}
 
 	@Override
 	public IMumbleMessage onPlayerDeafenChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen());
+		return create(getVersion(), Identifier.SET_PLAYER_DEAFEN, player.getName(), player.isDeafen());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerKick(IPlayer kicked, IPlayer kicking) {
-		return create(getVersion(), Idc.PLAYER_KICK, Oid.SET, kicked.getName(), kicking.getName());
+		return create(getVersion(), Identifier.KICK_PLAYER_FROM_CHANNEL, kicked.getName(), kicking.getName());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerPositionChange(IPlayer player) {
-		return create(getVersion(), Idc.PLAYER_POSITION, Oid.SET, player.getName(), player.getPosition().getX(), player.getPosition().getY(), player.getPosition().getZ(),
-				player.getPosition().getYaw(), player.getPosition().getPitch());
+		return create(getVersion(), Identifier.SET_PLAYER_POSITION, player.getName(), player.getPosition().getX(), player.getPosition().getY(),
+				player.getPosition().getZ(), player.getPosition().getYaw(), player.getPosition().getPitch());
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
-		return create(getVersion(), Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName());
+		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName());
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerRemove(IChannel channel, IPlayer player) {
-		return create(getVersion(), Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName());
+		return create(getVersion(), Identifier.REMOVE_PLAYER_FROM_CHANNEL, channel.getName(), player.getName());
 	}
 
 	@Override
@@ -446,7 +299,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's value
 		informations.add(parameter.getValue());
 
-		return create(getVersion(), Idc.PARAMETER_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Identifier.SET_PARAMETER_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -465,7 +318,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's minimum value
 		informations.add(parameter.getMin());
 
-		return create(getVersion(), Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Identifier.SET_PARAMETER_MIN_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -484,7 +337,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's maximum value
 		informations.add(parameter.getMax());
 
-		return create(getVersion(), Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray());
+		return create(getVersion(), Identifier.SET_PARAMETER_MAX_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -527,7 +380,7 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(getVersion(), Idc.SOUND_MODIFIER, Oid.SET, informations.toArray());
+		return create(getVersion(), Identifier.SET_CHANNEL_SOUND_MODIFIER, informations.toArray());
 	}
 
 	/**
@@ -537,7 +390,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage getServerConfiguration(ServerInfoGetMessageV10 request) {
+	private IMumbleMessage getFullServerConfiguration(GetFullServerConfigurationV10 request) {
 		List<Object> informations = new ArrayList<Object>();
 
 		List<IPlayer> players = getServer().getPlayers().toList();
@@ -672,13 +525,355 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Adds a player on the server.
+	 * 
+	 * @param request The request sent by the server in order to add a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage registerPlayerOnServer(RegisterPlayerOnServerV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
+		if (optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_REGISTERED);
+
+		FullPlayerInfo info = request.getPlayerInfo();
+		IPlayer player = getServer().getPlayers().add(info.getName(), info.getGameAddress(), info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(),
+				info.getPitch());
+		if (player == null)
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Removes a player on the server.
+	 * 
+	 * @param request The request sent by the server in order to add a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage unregisterPlayerOnServer(UnregisterPlayerFromServerV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
+		if (player == null)
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the online status of a player.
+	 * 
+	 * @param request The request received from the remote in order to get the online status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerOnlineStatus(GetPlayerOnlineStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isOnline());
+	}
+
+	/**
+	 * Set the online status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the online status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerOnlineStatus(SetPlayerOnlineStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		optPlayer.get().setOnline(request.isOnline());
+		if (optPlayer.get().isOnline() != request.isOnline())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Rename a player on the server.
+	 * 
+	 * @param request The request received from the remote in order to rename a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage renamePlayer(SetPlayerNameV10 request) {
+		Optional<IPlayer> optOldPlayer = getServer().getPlayers().get(request.getOldName());
+		if (!optOldPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		Optional<IPlayer> optNewPlayer = getServer().getPlayers().get(request.getNewName());
+		if (optNewPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_EXISTS);
+
+		optOldPlayer.get().setName(request.getNewName());
+		if (!optOldPlayer.get().getName().equals(request.getNewName()))
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the game address of a player.
+	 * 
+	 * @param request The request received from the remote in order to get game address of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerGameAddress(GetPlayerGameAddressV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		String gameAddress = optPlayer.get().getGameAddress().getAddress().getHostAddress();
+		int gamePort = optPlayer.get().getGameAddress().getPort();
+		return answer(getVersion(), request, request.getPlayerName(), gameAddress, gamePort);
+	}
+
+	/**
+	 * Update the game address of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the game address of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerGameAddress(SetPlayerGameAddressV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		optPlayer.get().setGameAddress(request.getGameAddress());
+		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the administrator status of a player.
+	 * 
+	 * @param request The request received from the remote in order to get the administrator status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerAdmin(GetPlayerAdministratorStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isAdmin());
+	}
+
+	/**
+	 * Update the administrator status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the administrator status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerAdmin(SetPlayerAdministratorStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		try {
+			optPlayer.get().setAdmin(request.isAdmin());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isAdmin() != request.isAdmin())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the mute status of a player.
+	 * 
+	 * @param request The request received from the remote in order to get the mute status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerMute(GetPlayerMuteStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isMute());
+	}
+
+	/**
+	 * Update the mute status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the mute status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerMute(SetPlayerMuteStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		try {
+			optPlayer.get().setMute(request.isMute());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isMute() != request.isMute())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Update the mute status of a player for another player.
+	 * 
+	 * @param request The request received from the remote in order to update the mute status of a player for another player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerMuteBy(SetPlayerMuteByStatusV10 request) {
+		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
+		if (!optTarget.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
+		if (!optSource.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		optTarget.get().setMuteBy(optSource.get(), request.isMute());
+		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the deafen status of a player.
+	 * 
+	 * @param request The request received from the remote in order to get the deafen status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerDeafen(GetPlayerDeafenStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isDeafen());
+	}
+
+	/**
+	 * Update the deafen status of a player.
+	 * 
+	 * @param request The request received from the remote in order to update the deafen status of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerDeafen(SetPlayerDeafenStatusV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		try {
+			optPlayer.get().setDeafen(request.isDeafen());
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optPlayer.get().isDeafen() != request.isDeafen())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Kicks a player from a channel.
+	 * 
+	 * @param request The request received from the remote in order to kick a player from a channel.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage kickPlayerFromChannel(KickPlayerFromChannelV10 request) {
+		Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKicked());
+		if (!optKickedPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		Optional<IPlayer> optKickingPlayer = getServer().getPlayers().get(request.getKicking());
+		if (!optKickingPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		try {
+			optKickedPlayer.get().kick(optKickingPlayer.get());
+		} catch (PlayerNotAdministratorException e) {
+			return answer(getVersion(), request, ErrorCode.PERMISSION_REFUSED);
+		} catch (PlayerNotRegisteredInChannelException e) {
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
+		}
+
+		if (optKickedPlayer.get().getChannel() != null)
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerPosition(GetPlayerPositionV10 request) {
+		String playerName = request.getPlayerInfo().getName();
+
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		IPosition position = optPlayer.get().getPosition();
+		return answer(getVersion(), request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
+	}
+
+	/**
+	 * Update the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage setPlayerPosition(SetPlayerPositionV10 request) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
+		if (!optPlayer.isPresent())
+			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+
+		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
+		if (optPlayer.get().getPosition().getX() != request.getX() || optPlayer.get().getPosition().getY() != request.getY()
+				|| optPlayer.get().getPosition().getZ() != request.getZ() || optPlayer.get().getPosition().getYaw() != request.getYaw()
+				|| optPlayer.get().getPosition().getPitch() != request.getPitch())
+			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+
+		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
 	 * Gets the list of channels registered on the server.
 	 * 
 	 * @param request The request sent by the remote in order to get the channels list.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage getChannels(ChannelsGetMessageV10 request) {
+	private IMumbleMessage getChannelsInfo(GetChannelsInfoV10 request) {
 		List<Object> informations = new ArrayList<Object>();
 
 		// Number of channels
@@ -736,13 +931,76 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Gets information about a channel
+	 * 
+	 * @param request The request sent by the remote in order to get information about a channel
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getChannelInfo(GetChannelInfoV10 request) {
+		List<Object> informations = new ArrayList<Object>();
+
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		// Channel's name
+		informations.add(optChannel.get().getName());
+
+		// Modifier's name
+		informations.add(optChannel.get().getSoundModifier().getName());
+
+		// Number of parameters
+		informations.add(optChannel.get().getSoundModifier().getParameters().size());
+
+		for (IParameter<?> parameter : optChannel.get().getSoundModifier().getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof RangeParameter;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+				informations.add(rangeParameter.getMin());
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		// Number of players
+		informations.add(optChannel.get().getPlayers().toList().size());
+
+		for (IPlayer player : optChannel.get().getPlayers()) {
+			// Player's name
+			informations.add(player.getName());
+
+			// Player's mute
+			informations.add(player.isMute());
+
+			// Player's deafen
+			informations.add(player.isDeafen());
+		}
+		return answer(getVersion(), request, informations.toArray());
+	}
+
+	/**
 	 * Adds a channel to this server based on the properties of the given request.
 	 * 
 	 * @param request The request sent by the remote in order to add a channel.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage addChannel(ChannelsAddMessageV10 request) {
+	private IMumbleMessage registerChannelOnServer(RegisterChannelOnServerV10 request) {
 		if (getServer().getChannels().get(request.getChannelInfo().getName()).isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_ALREADY_EXISTS);
 
@@ -769,7 +1027,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage removeChannel(ChannelsRemoveMessageV10 request) {
+	private IMumbleMessage unregisterChannelFromServer(UnregisterChannelFromServerV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -787,7 +1045,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage renameChannel(ChannelsSetMessageV10 request) {
+	private IMumbleMessage renameChannel(SetChannelNameV10 request) {
 		Optional<IChannel> optOldChannel = getServer().getChannels().get(request.getOldName());
 		if (!optOldChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -804,241 +1062,13 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
-	 * Adds a player on the server.
-	 * 
-	 * @param request The request sent by the server in order to add a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage addPlayer(PlayerAddMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
-		if (optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_REGISTERED);
-
-		FullPlayerInfo info = request.getPlayerInfo();
-		IPlayer player = getServer().getPlayers().add(info.getName(), info.getGameAddress(), info.isAdmin(), info.getX(), info.getY(), info.getZ(), info.getYaw(),
-				info.getPitch());
-		if (player == null)
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Removes a player on the server.
-	 * 
-	 * @param request The request sent by the server in order to add a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage removePlayer(PlayerRemoveMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		IPlayer player = getServer().getPlayers().remove(request.getPlayerName());
-		if (player == null)
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Rename a player on the server.
-	 * 
-	 * @param request The request received from the remote in order to rename a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage renamePlayer(PlayerNameSetMessageV10 request) {
-		Optional<IPlayer> optOldPlayer = getServer().getPlayers().get(request.getOldName());
-		if (!optOldPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		Optional<IPlayer> optNewPlayer = getServer().getPlayers().get(request.getNewName());
-		if (optNewPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_EXISTS);
-
-		optOldPlayer.get().setName(request.getNewName());
-		if (!optOldPlayer.get().getName().equals(request.getNewName()))
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Get the online status of a player.
-	 * 
-	 * @param request The request received from the remote in order to get the online status of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage getPlayerOnlineStatus(PlayerOnlineGetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		return answer(getVersion(), request, request.getPlayerName(), optPlayer.get().isOnline());
-	}
-
-	/**
-	 * Set the online status of a player.
-	 * 
-	 * @param request The request received from the remote in order to update the online status of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerOnlineStatus(PlayerOnlineSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		optPlayer.get().setOnline(request.isOnline());
-		if (optPlayer.get().isOnline() != request.isOnline())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Get the game address of a player.
-	 * 
-	 * @param request The request received from the remote in order to get game address of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage getPlayerGameAddress(PlayerGameAddressGetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		String gameAddress = optPlayer.get().getGameAddress().getAddress().getHostAddress();
-		int gamePort = optPlayer.get().getGameAddress().getPort();
-		return answer(getVersion(), request, request.getPlayerName(), gameAddress, gamePort);
-	}
-
-	/**
-	 * Update the game address of a player.
-	 * 
-	 * @param request The request received from the remote in order to update the game address of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		optPlayer.get().setGameAddress(request.getGameAddress());
-		if (!optPlayer.get().getGameAddress().equals(request.getGameAddress()))
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Update the administrator status of a player.
-	 * 
-	 * @param request The request received from the remote in order to update the administrator status of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerAdmin(PlayerAdminSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		try {
-			optPlayer.get().setAdmin(request.isAdmin());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
-
-		if (optPlayer.get().isAdmin() != request.isAdmin())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Update the mute status of a player.
-	 * 
-	 * @param request The request received from the remote in order to update the mute status of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerMute(PlayerMuteSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		try {
-			optPlayer.get().setMute(request.isMute());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
-
-		if (optPlayer.get().isMute() != request.isMute())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Update the deafen status of a player.
-	 * 
-	 * @param request The request received from the remote in order to update the deafen status of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerDeafen(PlayerDeafenSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		try {
-			optPlayer.get().setDeafen(request.isDeafen());
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
-
-		if (optPlayer.get().isDeafen() != request.isDeafen())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Update the mute status of a player for another player.
-	 * 
-	 * @param request The request received from the remote in order to update the mute status of a player for another player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
-		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
-		if (!optTarget.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
-		if (!optSource.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		optTarget.get().setMuteBy(optSource.get(), request.isMute());
-		if (optTarget.get().isMuteBy(optSource.get()) != request.isMute())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
 	 * Adds a player to a channel.
 	 * 
 	 * @param request The request received from the remote in order to add a player to a channel.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
+	private IMumbleMessage addPlayerToChannel(AddPlayerToChannelV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -1064,7 +1094,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
+	private IMumbleMessage removePlayerFromChannel(RemovePlayerFromChannelV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -1081,72 +1111,22 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
-	 * Kicks a player from a channel.
+	 * Get the value of a parameter of a sound modifier associated to a a channel.
 	 * 
-	 * @param request The request received from the remote in order to kick a player from a channel.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage kickPlayerFromChannel(PlayerKickSetMessageV10 request) {
-		Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKicked());
-		if (!optKickedPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		Optional<IPlayer> optKickingPlayer = getServer().getPlayers().get(request.getKicking());
-		if (!optKickingPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		try {
-			optKickedPlayer.get().kick(optKickingPlayer.get());
-		} catch (PlayerNotAdministratorException e) {
-			return answer(getVersion(), request, ErrorCode.PERMISSION_REFUSED);
-		} catch (PlayerNotRegisteredInChannelException e) {
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_REGISTERED);
-		}
-
-		if (optKickedPlayer.get().getChannel() != null)
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
-	}
-
-	/**
-	 * Get the position of a player.
-	 * 
-	 * @param request The request sent by the remote in order to update the position of a player.
+	 * @param request The request sent by the remote in order to update the value of a parameter
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage getPlayerPosition(PlayerPositionGetMessageV10 request) {
-		String playerName = request.getPlayerInfo().getName();
+	private IMumbleMessage getParameterValue(GetParameterValueV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
 
-		IPosition position = optPlayer.get().getPosition();
-		return answer(getVersion(), request, playerName, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
-	}
-
-	/**
-	 * Update the position of a player.
-	 * 
-	 * @param request The request sent by the remote in order to update the position of a player.
-	 * 
-	 * @return The server answer.
-	 */
-	private IMumbleMessage setPlayerPosition(PlayerPositionSetMessageV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
-		if (optPlayer.get().getPosition().getX() != request.getX() || optPlayer.get().getPosition().getY() != request.getY()
-				|| optPlayer.get().getPosition().getZ() != request.getZ() || optPlayer.get().getPosition().getYaw() != request.getYaw()
-				|| optPlayer.get().getPosition().getPitch() != request.getPitch())
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
-
-		return answer(getVersion(), request, request.getProperties());
+		return answer(getVersion(), request, optChannel.get().getName(), optParameter.get().getName(), optParameter.get().getType(), optParameter.get().getValue());
 	}
 
 	/**
@@ -1156,7 +1136,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setParameterValue(ParameterValueSetMessageV10 request) {
+	private IMumbleMessage setParameterValue(SetParameterValueV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -1173,13 +1153,36 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Get the minimum value of a parameter of a sound modifier associated to a a channel.
+	 * 
+	 * @param request The request sent by the remote in order to get the minimum value of a parameter
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getParameterMinValue(GetParameterMinValueV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
+
+		if (!(optParameter.get() instanceof IRangeParameter<?>))
+			return answer(getVersion(), request, ErrorCode.PARAMETER_WITHOUT_MIN);
+
+		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
+		return answer(getVersion(), request, optChannel.get().getName(), range.getName(), range.getType(), range.getMin());
+	}
+
+	/**
 	 * Update the minimum value of a parameter of a sound modifier associated to a a channel.
 	 * 
 	 * @param request The request sent by the remote in order to update the minimum value of a parameter
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setParameterMinValue(ParameterMinValueSetMessageV10 request) {
+	private IMumbleMessage setParameterMinValue(SetParameterMinValueV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -1200,13 +1203,37 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Get the maximum value of a parameter of a sound modifier associated to a a channel.
+	 * 
+	 * @param request The request sent by the remote in order to get the maximum value of a parameter
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getParameterMaxValue(GetParameterMaxValueV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		Optional<IParameter<?>> optParameter = optChannel.get().getSoundModifier().getParameters().get(request.getParameterName());
+		if (!optParameter.isPresent())
+			return answer(getVersion(), request, ErrorCode.PARAMETER_NOT_FOUND);
+
+		if (!(optParameter.get() instanceof IRangeParameter<?>))
+			return answer(getVersion(), request, ErrorCode.PARAMETER_WITHOUT_MAX);
+
+		IRangeParameter<?> range = (IRangeParameter<?>) optParameter.get();
+
+		return answer(getVersion(), request, optChannel.get().getName(), range.getName(), range.getType(), range.getMax());
+	}
+
+	/**
 	 * Update the maximum value of a parameter of a sound modifier associated to a a channel.
 	 * 
 	 * @param request The request sent by the remote in order to update the maximum value of a parameter
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setParameterMaxValue(ParameterMaxValueSetMessageV10 request) {
+	private IMumbleMessage setParameterMaxValue(SetParameterMaxValueV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
@@ -1227,13 +1254,121 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Get information about all sound modifiers registered on the server
+	 * 
+	 * @param request The request sent by the remote in order to get information about all sound modifiers.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getSoundModifiersInfo(GetSoundModifiersInfoV10 request) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Number of sound modifier
+		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+		informations.add(modifiers.size());
+
+		// Modifier informations
+		for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
+			// Modifier's name
+			informations.add(modifierEntry.getValue().getName());
+
+			// Number of parameter
+			informations.add(modifierEntry.getValue().getParameters().size());
+
+			// Modifier's parameter
+			for (IParameter<?> parameter : modifierEntry.getValue().getParameters()) {
+				// Parameter's name
+				informations.add(parameter.getName());
+
+				// Parameter's type
+				informations.add(parameter.getType());
+
+				// Parameter's default value
+				informations.add(parameter.getDefaultValue());
+
+				// Parameter's value
+				informations.add(parameter.getValue());
+
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
+				if (isRange) {
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+					informations.add(rangeParameter.getMin());
+					informations.add(rangeParameter.getMax());
+				}
+			}
+		}
+
+		return answer(getVersion(), request, informations);
+	}
+
+	/**
+	 * Get the sound modifier of a channel.
+	 * 
+	 * @param request The request sent by the remote in order to get the sound modifier of a channel.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getChannelSoundModifier(GetChannelSoundModifierV10 request) {
+		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
+		if (!optChannel.isPresent())
+			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
+
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel name
+		informations.add(optChannel.get().getName());
+
+		// Channel's sound modifier name
+		informations.add(optChannel.get().getSoundModifier().getName());
+
+		// Number of parameters
+		informations.add(optChannel.get().getSoundModifier().getParameters().size());
+
+		for (IParameter<?> parameter : optChannel.get().getSoundModifier().getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof RangeParameter;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+				informations.add(rangeParameter.getMin());
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		// Number of players
+		informations.add(optChannel.get().getPlayers().toList().size());
+
+		for (IPlayer player : optChannel.get().getPlayers())
+			// Player name
+			informations.add(player.getName());
+
+		return answer(getVersion(), request, informations);
+	}
+
+	/**
 	 * Set the sound modifier of a channel.
 	 * 
 	 * @param request The request sent by the remote in order to set the sound modifier of a channel.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setChannelSoundModifier(SoundModifierSetMessageV10 request) {
+	private IMumbleMessage setChannelSoundModifier(SetChannelSoundModifierV10 request) {
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelInfo().getName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);

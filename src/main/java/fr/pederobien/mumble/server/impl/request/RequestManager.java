@@ -5,22 +5,16 @@ import java.util.Map;
 import java.util.function.Function;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
-import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IRequestManager;
 
 public abstract class RequestManager implements IRequestManager {
 	private float version;
 	private IMumbleServer server;
-	private Map<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>> requests;
+	private Map<Identifier, Function<IMumbleMessage, IMumbleMessage>> requests;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
@@ -31,7 +25,7 @@ public abstract class RequestManager implements IRequestManager {
 	public RequestManager(IMumbleServer server, float version) {
 		this.server = server;
 		this.version = version;
-		requests = new HashMap<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>>();
+		requests = new HashMap<Identifier, Function<IMumbleMessage, IMumbleMessage>>();
 	}
 
 	@Override
@@ -48,21 +42,17 @@ public abstract class RequestManager implements IRequestManager {
 	 */
 	@Override
 	public IMumbleMessage answer(IMumbleMessage request) {
-		Map<Oid, Function<IMumbleMessage, IMumbleMessage>> map = requests.get(request.getHeader().getIdc());
-		if (map == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.IDC_UNKNOWN);
-
-		Function<IMumbleMessage, IMumbleMessage> answer = map.get(request.getHeader().getOid());
+		Function<IMumbleMessage, IMumbleMessage> answer = requests.get(request.getHeader().getIdentifier());
 		if (answer == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.INCOMPATIBLE_IDC_OID);
+			return MumbleServerMessageFactory.answer(request, ErrorCode.IDENTIFIER_UNKNOWN);
 
 		return answer.apply(request);
 	}
 
 	/**
-	 * @return The map that stores requests.
+	 * @return The map that contains the code to run according to the identifier of the request sent by the remote.
 	 */
-	public Map<Idc, Map<Oid, Function<IMumbleMessage, IMumbleMessage>>> getRequests() {
+	public Map<Identifier, Function<IMumbleMessage, IMumbleMessage>> getRequests() {
 		return requests;
 	}
 
@@ -76,12 +66,11 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * Send a message based on the given parameter to the remote.
 	 * 
-	 * @param idc     The message idc.
-	 * @param oid     The message oid.
-	 * @param payload The message payload.
+	 * @param identifier The identifier of the request to create.
+	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage create(float version, Idc idc, Oid oid, Object... payload) {
-		return MumbleServerMessageFactory.create(version, idc, oid, payload);
+	protected IMumbleMessage create(float version, Identifier identifier, Object... properties) {
+		return MumbleServerMessageFactory.create(version, identifier, properties);
 	}
 
 	/**
@@ -111,40 +100,4 @@ public abstract class RequestManager implements IRequestManager {
 	protected IMumbleMessage answer(float version, IMumbleMessage message, ErrorCode errorCode) {
 		return MumbleServerMessageFactory.answer(version, message, errorCode);
 	}
-
-	/**
-	 * Get information about a specific player.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage playerInfoGet(PlayerGetMessageV10 request);
-
-	/**
-	 * Update the statuses of a specific player.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Get or update the sound modifier of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage soundModifierGet(SoundModifierGetMessageV10 request);
-
-	/**
-	 * Get a description of each sound modifier registered in the {@link SoundManager}.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
-	protected abstract IMumbleMessage soundModifierInfo(SoundModifierInfoMessageV10 request);
 }

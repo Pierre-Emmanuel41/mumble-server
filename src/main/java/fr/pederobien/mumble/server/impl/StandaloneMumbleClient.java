@@ -4,7 +4,7 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
@@ -217,7 +217,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 			String format = "Receiving message with unexpected getVersion() of the communication protocol, expected=v%s, actual=v%s";
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));
 		} else {
-			if (request.getHeader().getIdc() != Idc.UNKNOWN)
+			if (request.getHeader().getIdentifier() != Identifier.UNKNOWN)
 				send(getServer().getRequestManager().answer(request));
 			else
 				send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));

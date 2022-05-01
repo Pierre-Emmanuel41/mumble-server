@@ -9,9 +9,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.messages.v10.GamePortSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetGamePortUsedV10;
 
 public class GamePortAnalyzer {
 	private List<PlayerMumbleClient> clients;
@@ -82,11 +82,11 @@ public class GamePortAnalyzer {
 				return false;
 
 			// Step 1: Sending the request to the client.
-			client.getTcpConnection().send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Idc.GAME_PORT, address.getPort()), args -> {
+			client.getTcpConnection().send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Identifier.IS_GAME_PORT_USED, address.getPort()), args -> {
 				if (args.isTimeout())
 					isUsed = false;
 				else {
-					GamePortSetMessageV10 response = (GamePortSetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+					SetGamePortUsedV10 response = (SetGamePortUsedV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
 					isUsed = response.isUsed();
 				}
 

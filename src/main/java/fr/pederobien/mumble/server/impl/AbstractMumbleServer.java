@@ -3,7 +3,7 @@ package fr.pederobien.mumble.server.impl;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import fr.pederobien.communication.impl.TcpServer;
-import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
 import fr.pederobien.mumble.server.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.server.interfaces.IChannelList;
@@ -87,7 +87,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		if (!this.mumblePort.compareAndSet(-1, mumblePort))
 			throw new IllegalStateException("The port number has already been set");
 
-		tcpServer = new TcpServer(name, mumblePort, () -> new MessageExtractor());
+		tcpServer = new TcpServer(name, mumblePort, () -> new MumbleMessageExtractor());
 		vocalServer = new VocalServer(name, mumblePort);
 	}
 

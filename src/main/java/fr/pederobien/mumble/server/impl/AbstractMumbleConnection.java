@@ -10,8 +10,8 @@ import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.CommunicationProtocolSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetCommunicationProtocolVersionV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.utils.event.EventManager;
@@ -109,7 +109,7 @@ public abstract class AbstractMumbleConnection {
 				// No need to wait more
 				exit(lock, received);
 			} else {
-				CommunicationProtocolGetMessageV10 message = (CommunicationProtocolGetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+				GetCommunicationProtocolVersionsV10 message = (GetCommunicationProtocolVersionsV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
 				setCommunicationProtocolVersion(lock, received, findHighestVersion(message.getVersions()));
 			}
 		});
@@ -119,7 +119,7 @@ public abstract class AbstractMumbleConnection {
 		// Step 2: Setting a specific version of the communication protocol to use for the client-server communication.
 		send(server.getRequestManager().setCommunicationProtocolVersion(version), args -> {
 			if (!args.isTimeout()) {
-				CommunicationProtocolSetMessageV10 message = (CommunicationProtocolSetMessageV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
+				SetCommunicationProtocolVersionV10 message = (SetCommunicationProtocolVersionV10) MumbleServerMessageFactory.parse(args.getResponse().getBytes());
 				if (message.getVersion() == version)
 					this.version = version;
 			} else

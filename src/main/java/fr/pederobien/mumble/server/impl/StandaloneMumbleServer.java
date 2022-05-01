@@ -8,7 +8,7 @@ import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePreEvent;
 import fr.pederobien.mumble.server.event.ServerOpenPostEvent;
@@ -110,7 +110,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 		if (!this.externalGameServerPort.compareAndSet(-1, externalGameServerPort))
 			throw new IllegalStateException("The port number has already been set");
 
-		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MessageExtractor());
+		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MumbleMessageExtractor());
 	}
 
 	/**

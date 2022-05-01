@@ -8,7 +8,7 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
@@ -286,7 +286,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 			return;
 
 		// There is no need to answer to a server join request.
-		if (request.getHeader().getIdc() == Idc.SERVER_JOIN) {
+		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_JOIN) {
 			if (!isJoined.compareAndSet(false, true))
 				send(MumbleServerMessageFactory.answer(request, ErrorCode.SERVER_ALREADY_JOINED));
 			else {
@@ -297,7 +297,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		}
 
 		// Always allow this request whatever the client state.
-		if (request.getHeader().getIdc() == Idc.SERVER_LEAVE) {
+		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_LEAVE) {
 			isJoined.set(false);
 			EventManager.callEvent(new ServerClientLeavePostEvent(getServer(), this));
 			send(MumbleServerMessageFactory.answer(request));
@@ -329,53 +329,73 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	}
 
 	private boolean checkPermission(IMumbleMessage request) {
-		// No need to check the permission for this Idc.
-		if (request.getHeader().getIdc() == Idc.GAME_PORT)
+		// No need to check the permission for this identifier.
+		if (request.getHeader().getIdentifier() == Identifier.SET_GAME_PORT_USED)
 			return true;
 
 		if (!isJoined.get())
 			return false;
 
-		switch (request.getHeader().getIdc()) {
-		case SERVER_INFO:
-			switch (request.getHeader().getOid()) {
-			case GET:
-				return true;
-			default:
-				return false;
-			}
-		case PLAYER:
-		case PLAYER_MUTE:
-		case PLAYER_DEAFEN:
+		switch (request.getHeader().getIdentifier()) {
+		case GET_FULL_SERVER_CONFIGURATION:
 			return true;
-		case CHANNELS:
-			switch (request.getHeader().getOid()) {
-			case GET:
-				return true;
-			case ADD:
-			case REMOVE:
-				return player != null && player.isAdmin();
-			default:
-				return false;
-			}
-		case CHANNELS_PLAYER:
-			switch (request.getHeader().getOid()) {
-			case ADD:
-			case REMOVE:
-				return player != null && player.isOnline();
-			default:
-				return false;
-			}
-		case SOUND_MODIFIER:
-			switch (request.getHeader().getOid()) {
-			case GET:
-			case INFO:
-				return true;
-			case SET:
-				return player != null && player.isAdmin();
-			default:
-				return false;
-			}
+		case GET_SERVER_CONFIGURATION:
+			return false;
+		case REGISTER_PLAYER_ON_SERVER:
+		case UNREGISTER_PLAYER_FROM_SERVER:
+			return false;
+		case GET_PLAYER_ONLINE_STATUS:
+			return true;
+		case SET_PLAYER_ONLINE_STATUS:
+			return player != null && player.isAdmin();
+		case SET_PLAYER_NAME:
+			return false;
+		case GET_PLAYER_ADMINISTRATOR:
+			return true;
+		case SET_PLAYER_ADMINISTRATOR:
+			return player != null && player.isAdmin();
+		case GET_PLAYER_MUTE:
+		case SET_PLAYER_MUTE:
+			return true;
+		case SET_PLAYER_MUTE_BY:
+			return true;
+		case GET_PLAYER_DEAFEN:
+		case SET_PLAYER_DEAFEN:
+			return true;
+		case KICK_PLAYER_FROM_CHANNEL:
+			return player != null && player.isAdmin();
+		case GET_PLAYER_POSITION:
+		case SET_PLAYER_POSITION:
+			return true;
+		case GET_CHANNELS_INFO:
+		case GET_CHANNEL_INFO:
+			return true;
+		case REGISTER_CHANNEL_ON_THE_SERVER:
+		case UNREGISTER_CHANNEL_FROM_SERVER:
+		case SET_CHANNEL_NAME:
+			return player != null && player.isAdmin();
+		case ADD_PLAYER_TO_CHANNEL:
+		case REMOVE_PLAYER_FROM_CHANNEL:
+			return true;
+		case GET_PARAMETER_VALUE:
+			return true;
+		case SET_PARAMETER_VALUE:
+			return player != null && player.isAdmin();
+		case GET_PARAMETER_MIN_VALUE:
+			return true;
+		case SET_PARAMETER_MIN_VALUE:
+			return player != null && player.isAdmin();
+		case GET_PARAMETER_MAX_VALUE:
+			return true;
+		case SET_PARAMETER_MAX_VALUE:
+			return player != null && player.isAdmin();
+		case GET_SOUND_MODIFIERS_INFO:
+		case GET_CHANNEL_SOUND_MODIFIER_INFO:
+			return true;
+		case IS_GAME_PORT_USED:
+			return false;
+		case SET_GAME_PORT_USED:
+			return true;
 		default:
 			return player != null && player.isAdmin();
 		}
