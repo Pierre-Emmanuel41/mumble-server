@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IParameterList;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;

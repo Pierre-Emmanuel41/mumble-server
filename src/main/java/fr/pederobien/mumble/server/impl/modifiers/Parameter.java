@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.common.impl.model.ParameterType;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
 import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.server.interfaces.IParameter;
