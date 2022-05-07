@@ -69,7 +69,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@Override
 	public IPlayer remove(String name) {
-		Optional<IPlayer> optPlayer = getPlayer(name);
+		Optional<IPlayer> optPlayer = get(name);
 		if (!optPlayer.isPresent())
 			return null;
 
@@ -95,7 +95,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@Override
-	public Optional<IPlayer> getPlayer(String name) {
+	public Optional<IPlayer> get(String name) {
 		return Optional.ofNullable(players.get(name));
 	}
 
@@ -111,11 +111,11 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@EventHandler
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
-		Optional<IPlayer> optOldPlayer = getPlayer(event.getOldName());
+		Optional<IPlayer> optOldPlayer = get(event.getOldName());
 		if (!optOldPlayer.isPresent())
 			return;
 
-		Optional<IPlayer> optNewPlayer = getPlayer(event.getPlayer().getName());
+		Optional<IPlayer> optNewPlayer = get(event.getPlayer().getName());
 		if (optNewPlayer.isPresent())
 			throw new PlayerAlreadyRegisteredException(this, optNewPlayer.get());
 
@@ -130,7 +130,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@EventHandler
 	private void onPlayerSpeak(PlayerSpeakEvent event) {
-		Optional<IPlayer> optPlayer = getPlayer(event.getTransmitter().getName());
+		Optional<IPlayer> optPlayer = get(event.getTransmitter().getName());
 		if (!optPlayer.isPresent())
 			return;
 
