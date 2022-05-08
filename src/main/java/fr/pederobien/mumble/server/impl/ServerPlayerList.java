@@ -95,7 +95,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		try {
 			Set<String> names = new HashSet<String>(players.keySet());
 			for (String name : names) {
-				EventManager.callEvent(new ServerPlayerRemovePreEvent(this, players.remove(name)));
+				EventManager.callEvent(new ServerPlayerRemovePostEvent(this, players.remove(name)));
 			}
 		} finally {
 			lock.unlock();
