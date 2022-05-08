@@ -273,8 +273,13 @@ public class Player implements IPlayer, IEventListener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	private void onServerPlayerRemoveAndRemoveFromChannel(ServerPlayerRemovePostEvent event) {
-		if (event.getPlayer().equals(this) && channel != null)
-			channel.getPlayers().remove(this);
+		if (!event.getPlayer().equals(this))
+			return;
+
+		if (isOnline) {
+			this.isOnline = false;
+			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, true));
+		}
 
 		EventManager.unregisterListener(this);
 	}

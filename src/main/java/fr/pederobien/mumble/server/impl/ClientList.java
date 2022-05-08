@@ -66,7 +66,6 @@ public class ClientList implements IEventListener {
 
 		Optional<PlayerMumbleClient> optClient = get(event.getPlayer().getName());
 		optClient.get().setPlayer(null);
-		event.getPlayer().setOnline(false);
 		garbage(optClient.get());
 	}
 

@@ -230,6 +230,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 			return;
 
 		getTcpConnection().dispose();
+		getServer().getPlayers().clear();
 		EventManager.unregisterListener(this);
 	}
 }

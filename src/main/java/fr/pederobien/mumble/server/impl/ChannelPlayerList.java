@@ -18,8 +18,10 @@ import fr.pederobien.mumble.server.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelPlayerList;
@@ -165,6 +167,24 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	@EventHandler
+	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+		Optional<IPlayer> optPlayer = get(event.getPlayer().getName());
+		if (!optPlayer.isPresent())
+			return;
+
+		removePlayer(optPlayer.get());
+	}
+
+	@EventHandler
+	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+		Optional<IPlayer> optPlayer = get(event.getPlayer().getName());
+		if (!optPlayer.isPresent())
+			return;
+
+		removePlayer(optPlayer.get());
 	}
 
 	@EventHandler
