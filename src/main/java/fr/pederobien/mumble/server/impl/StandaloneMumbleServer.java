@@ -110,7 +110,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 		if (!this.externalGameServerPort.compareAndSet(-1, externalGameServerPort))
 			throw new IllegalStateException("The port number has already been set");
 
-		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MumbleMessageExtractor());
+		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MumbleMessageExtractor(), true);
 	}
 
 	/**

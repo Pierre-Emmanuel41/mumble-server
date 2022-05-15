@@ -87,7 +87,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		if (!this.mumblePort.compareAndSet(-1, mumblePort))
 			throw new IllegalStateException("The port number has already been set");
 
-		tcpServer = new TcpServer(name, mumblePort, () -> new MumbleMessageExtractor());
+		tcpServer = new TcpServer(name, mumblePort, () -> new MumbleMessageExtractor(), true);
 		vocalServer = new VocalServer(name, mumblePort);
 	}
 
