@@ -26,8 +26,14 @@ public class ClientList implements IEventListener {
 	private List<PlayerMumbleClient> clients;
 	private Lock lock;
 
-	public ClientList(AbstractMumbleServer internalServer) {
-		this.server = internalServer;
+	/**
+	 * Creates a clients list associated to a mumble server. A client is an intermediate object used to gather information about the
+	 * player from the game and the information about the player in mumble.
+	 * 
+	 * @param server The server associated to this clients list.
+	 */
+	public ClientList(AbstractMumbleServer server) {
+		this.server = server;
 		clients = new ArrayList<PlayerMumbleClient>();
 		lock = new ReentrantLock(true);
 

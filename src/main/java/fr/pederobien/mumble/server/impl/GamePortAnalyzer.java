@@ -9,8 +9,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import fr.pederobien.mumble.common.impl.Identifier;
-import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.messages.v10.SetGamePortUsedV10;
 
 public class GamePortAnalyzer {
@@ -82,7 +80,7 @@ public class GamePortAnalyzer {
 				return false;
 
 			// Step 1: Sending the request to the client.
-			client.getTcpConnection().send(new MumbleCallbackMessage(MumbleServerMessageFactory.create(Identifier.IS_GAME_PORT_USED, address.getPort()), args -> {
+			client.send(client.createCheckGamePortMessage(address.getPort()), args -> {
 				if (args.isTimeout())
 					isUsed = false;
 				else {
@@ -99,7 +97,7 @@ public class GamePortAnalyzer {
 				} finally {
 					lock.unlock();
 				}
-			}, 3000));
+			}, 3000);
 
 			// Step 2: Waiting for an answer.
 			lock.lock();

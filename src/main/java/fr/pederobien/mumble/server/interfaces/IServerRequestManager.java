@@ -249,4 +249,14 @@ public interface IServerRequestManager {
 	 * @return The message to send to the remote in order to set the sound modifier of a channel.
 	 */
 	IMumbleMessage onChannelSoundModifierChange(float version, IChannel channel);
+
+	/**
+	 * Send a message to the remote in order to check if a port is used on client side.
+	 * 
+	 * @param version The protocol version to use to create a mumble message.
+	 * @param port    The port to check.
+	 * 
+	 * @return The message to send to the remote in order to check if a port is used.
+	 */
+	IMumbleMessage onGamePortCheck(float version, int port);
 }

@@ -165,6 +165,11 @@ public class ServerRequestManager implements IServerRequestManager {
 		return findManagerAndApply(version, manager -> manager.onChannelSoundModifierChange(channel));
 	}
 
+	@Override
+	public IMumbleMessage onGamePortCheck(float version, int port) {
+		return findManagerAndApply(version, manager -> manager.onGamePortCheck(port));
+	}
+
 	private void register(IRequestManager manager) {
 		managers.put(manager.getVersion(), manager);
 	}

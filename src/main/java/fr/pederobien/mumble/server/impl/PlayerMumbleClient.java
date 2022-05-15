@@ -143,6 +143,17 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		return getTcpConnection() == null ? null : getTcpConnection().getAddress();
 	}
 
+	/**
+	 * Creates a message to send to the remote in order to check if the specified port is used.
+	 * 
+	 * @param gamePort The game port to check.
+	 * 
+	 * @return The message to send to the remote.
+	 */
+	public IMumbleMessage createCheckGamePortMessage(int gamePort) {
+		return getServer().getRequestManager().onGamePortCheck(getVersion(), gamePort);
+	}
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelAdded(ServerChannelAddPostEvent event) {
 		if (!event.getServer().equals(getServer()))
@@ -338,9 +349,9 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 		switch (request.getHeader().getIdentifier()) {
 		case GET_FULL_SERVER_CONFIGURATION:
-			return true;
-		case GET_SERVER_CONFIGURATION:
 			return false;
+		case GET_SERVER_CONFIGURATION:
+			return true;
 		case REGISTER_PLAYER_ON_SERVER:
 		case UNREGISTER_PLAYER_FROM_SERVER:
 			return false;

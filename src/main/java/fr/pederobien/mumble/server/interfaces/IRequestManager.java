@@ -217,4 +217,13 @@ public interface IRequestManager {
 	 * @return The message to send to the remote in order to set the sound modifier of a channel.
 	 */
 	IMumbleMessage onChannelSoundModifierChange(IChannel channel);
+
+	/**
+	 * Send a message to the remote in order to check if a port is used on client side.
+	 * 
+	 * @param port The port to check.
+	 * 
+	 * @return The message to send to the remote in order to check if a port is used.
+	 */
+	IMumbleMessage onGamePortCheck(int port);
 }

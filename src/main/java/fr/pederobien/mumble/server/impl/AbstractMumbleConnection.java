@@ -155,7 +155,7 @@ public abstract class AbstractMumbleConnection {
 	 * 
 	 * @param message The request to send to the remote.
 	 */
-	protected void send(IMumbleMessage message) {
+	public void send(IMumbleMessage message) {
 		send(message, null);
 	}
 
@@ -165,10 +165,21 @@ public abstract class AbstractMumbleConnection {
 	 * @param message  The request to send to the remote.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	protected void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback) {
+	public void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback) {
+		send(message, callback, 1000);
+	}
+
+	/**
+	 * Send a request to the remote and expect an answer.
+	 * 
+	 * @param message  The request to send to the remote.
+	 * @param callback The callback to run when an answer is received from the server.
+	 * @param timeout  The request timeout.
+	 */
+	public void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback, int timeout) {
 		if (connection.isDisposed())
 			return;
 
-		connection.send(new MumbleCallbackMessage(message, callback));
+		connection.send(new MumbleCallbackMessage(message, callback, timeout));
 	}
 }

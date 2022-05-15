@@ -21,6 +21,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerGameAddressV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerMuteStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerOnlineStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerPositionV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetSoundModifiersInfoV10;
 import fr.pederobien.mumble.common.impl.messages.v10.KickPlayerFromChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.RegisterChannelOnServerV10;
@@ -69,7 +70,7 @@ public class RequestManagerV10 extends RequestManager {
 
 		// Server messages
 		getRequests().put(Identifier.GET_FULL_SERVER_CONFIGURATION, request -> getFullServerConfiguration((GetFullServerConfigurationV10) request));
-		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, request -> null);
+		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, request -> getServerConfiguration((GetServerConfigurationV10) request));
 
 		// Player messages
 		getRequests().put(Identifier.GET_PLAYER_INFO, request -> null);
@@ -383,6 +384,11 @@ public class RequestManagerV10 extends RequestManager {
 		return create(getVersion(), Identifier.SET_CHANNEL_SOUND_MODIFIER, informations.toArray());
 	}
 
+	@Override
+	public IMumbleMessage onGamePortCheck(int port) {
+		return create(getVersion(), Identifier.IS_GAME_PORT_USED, port);
+	}
+
 	/**
 	 * Creates a message that contains the current server configuration.
 	 * 
@@ -438,6 +444,145 @@ public class RequestManagerV10 extends RequestManager {
 			// Player's pitch angle
 			informations.add(player.getPosition().getPitch());
 
+		}
+
+		// Number of sound modifier
+		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+		informations.add(modifiers.size());
+
+		// Modifier informations
+		for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
+			// Modifier's name
+			informations.add(modifierEntry.getValue().getName());
+
+			// Number of parameter
+			informations.add(modifierEntry.getValue().getParameters().size());
+
+			// Modifier's parameter
+			for (IParameter<?> parameter : modifierEntry.getValue().getParameters()) {
+				// Parameter's name
+				informations.add(parameter.getName());
+
+				// Parameter's type
+				informations.add(parameter.getType());
+
+				// Parameter's default value
+				informations.add(parameter.getDefaultValue());
+
+				// Parameter's value
+				informations.add(parameter.getValue());
+
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
+				if (isRange) {
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+					informations.add(rangeParameter.getMin());
+					informations.add(rangeParameter.getMax());
+				}
+			}
+		}
+
+		// Number of channels
+		informations.add(getServer().getChannels().toList().size());
+		for (IChannel channel : getServer().getChannels()) {
+			// Channel name
+			informations.add(channel.getName());
+
+			// Channel's sound modifier name
+			informations.add(channel.getSoundModifier().getName());
+
+			// Number of parameters
+			informations.add(channel.getSoundModifier().getParameters().size());
+
+			for (IParameter<?> parameter : channel.getSoundModifier().getParameters()) {
+				// Parameter's name
+				informations.add(parameter.getName());
+
+				// Parameter's type
+				informations.add(parameter.getType());
+
+				// Parameter's default value
+				informations.add(parameter.getDefaultValue());
+
+				// Parameter's value
+				informations.add(parameter.getValue());
+
+				// Parameter's range
+				boolean isRange = parameter instanceof RangeParameter;
+				informations.add(isRange);
+
+				if (isRange) {
+					IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+					informations.add(rangeParameter.getMin());
+					informations.add(rangeParameter.getMax());
+				}
+			}
+
+			// Number of players
+			informations.add(channel.getPlayers().toList().size());
+
+			for (IPlayer player : channel.getPlayers())
+				// Player name
+				informations.add(player.getName());
+		}
+		return answer(getVersion(), request, informations.toArray());
+	}
+
+	/**
+	 * Creates a message that contains the current server configuration.
+	 * 
+	 * @param request The request sent by the remote in order to get the server configuration.
+	 * 
+	 * @return The server answer.
+	 */
+	@SuppressWarnings("null")
+	private IMumbleMessage getServerConfiguration(GetServerConfigurationV10 request) {
+		List<Object> informations = new ArrayList<Object>();
+
+		IPlayer mainPlayer = null;
+		boolean isOnline = false;
+
+		// Player's online status
+		informations.add(isOnline);
+
+		if (isOnline) {
+			// Player's name
+			informations.add(mainPlayer.getName());
+
+			// Player's identifier
+			informations.add(mainPlayer.getIdentifier());
+
+			// Player's game address
+			informations.add(mainPlayer.getGameAddress().getAddress().getHostAddress());
+
+			// Player's game port
+			informations.add(mainPlayer.getGameAddress().getPort());
+
+			// Player's administrator status
+			informations.add(mainPlayer.isAdmin());
+
+			// Player's mute status
+			informations.add(mainPlayer.isMute());
+
+			// Player's deafen status
+			informations.add(mainPlayer.isDeafen());
+
+			// Player's X coordinate
+			informations.add(mainPlayer.getPosition().getX());
+
+			// Player's Y coordinate
+			informations.add(mainPlayer.getPosition().getY());
+
+			// Player's Z coordinate
+			informations.add(mainPlayer.getPosition().getZ());
+
+			// Player's yaw angle
+			informations.add(mainPlayer.getPosition().getYaw());
+
+			// Player's pitch angle
+			informations.add(mainPlayer.getPosition().getPitch());
 		}
 
 		// Number of sound modifier
