@@ -157,7 +157,7 @@ public class InternalServer implements IMumbleServer, IEventListener {
 	 */
 	public void setPort(int port) {
 		this.port = port;
-		tcpServer = new TcpServer(name, port, () -> new MessageExtractor());
+		tcpServer = new TcpServer(name, port, () -> new MessageExtractor(), true);
 		udpServer = new UdpServer(name, port, () -> new MessageExtractor());
 	}
 
