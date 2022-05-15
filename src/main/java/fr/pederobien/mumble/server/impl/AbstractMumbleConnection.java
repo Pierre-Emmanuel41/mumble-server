@@ -177,7 +177,7 @@ public abstract class AbstractMumbleConnection {
 	 * @param timeout  The request timeout.
 	 */
 	public void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback, int timeout) {
-		if (connection.isDisposed())
+		if (connection == null || connection.isDisposed())
 			return;
 
 		connection.send(new MumbleCallbackMessage(message, callback, timeout));

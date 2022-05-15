@@ -127,7 +127,7 @@ public class ClientList implements IEventListener {
 				return client;
 		}
 
-		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).check(socketAddress);
+		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).checkPortByGame(socketAddress.getPort());
 		if (optClient.isPresent())
 			return optClient.get();
 
@@ -158,7 +158,7 @@ public class ClientList implements IEventListener {
 				return client;
 		}
 
-		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).check(null);
+		Optional<PlayerMumbleClient> optClient = new GamePortAnalyzer(list).checkPortByMumble(connection);
 		if (optClient.isPresent())
 			return optClient.get();
 

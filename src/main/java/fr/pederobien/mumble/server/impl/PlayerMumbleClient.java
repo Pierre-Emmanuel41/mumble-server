@@ -151,7 +151,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	 * @return The message to send to the remote.
 	 */
 	public IMumbleMessage createCheckGamePortMessage(int gamePort) {
-		return getServer().getRequestManager().onGamePortCheck(getVersion(), gamePort);
+		return getServer().getRequestManager().onGamePortCheck(1.0f, gamePort);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
