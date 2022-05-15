@@ -224,7 +224,7 @@ public class RequestManagerV10 extends RequestManager {
 
 	@Override
 	public IMumbleMessage onServerPlayerRemove(String name) {
-		return create(getVersion(), Identifier.UNREGISTER_CHANNEL_FROM_SERVER, name);
+		return create(getVersion(), Identifier.UNREGISTER_PLAYER_FROM_SERVER, name);
 	}
 
 	@Override
