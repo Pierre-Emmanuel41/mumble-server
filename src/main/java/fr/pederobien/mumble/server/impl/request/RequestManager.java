@@ -7,14 +7,16 @@ import java.util.function.Function;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
+import fr.pederobien.mumble.server.impl.AbstractMumbleConnection;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
+import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IRequestManager;
 
 public abstract class RequestManager implements IRequestManager {
 	private float version;
 	private IMumbleServer server;
-	private Map<Identifier, Function<IMumbleMessage, IMumbleMessage>> requests;
+	private Map<Identifier, Function<RequestReceivedHolder, IMumbleMessage>> requests;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
@@ -25,7 +27,7 @@ public abstract class RequestManager implements IRequestManager {
 	public RequestManager(IMumbleServer server, float version) {
 		this.server = server;
 		this.version = version;
-		requests = new HashMap<Identifier, Function<IMumbleMessage, IMumbleMessage>>();
+		requests = new HashMap<Identifier, Function<RequestReceivedHolder, IMumbleMessage>>();
 	}
 
 	@Override
@@ -33,26 +35,19 @@ public abstract class RequestManager implements IRequestManager {
 		return version;
 	}
 
-	/**
-	 * run a specific treatment associated to the given request.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
 	@Override
-	public IMumbleMessage answer(IMumbleMessage request) {
-		Function<IMumbleMessage, IMumbleMessage> answer = requests.get(request.getHeader().getIdentifier());
+	public IMumbleMessage answer(RequestReceivedHolder holder) {
+		Function<RequestReceivedHolder, IMumbleMessage> answer = requests.get(holder.getRequest().getHeader().getIdentifier());
 		if (answer == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.IDENTIFIER_UNKNOWN);
+			return MumbleServerMessageFactory.answer(holder.getRequest(), ErrorCode.IDENTIFIER_UNKNOWN);
 
-		return answer.apply(request);
+		return answer.apply(holder);
 	}
 
 	/**
 	 * @return The map that contains the code to run according to the identifier of the request sent by the remote.
 	 */
-	public Map<Identifier, Function<IMumbleMessage, IMumbleMessage>> getRequests() {
+	public Map<Identifier, Function<RequestReceivedHolder, IMumbleMessage>> getRequests() {
 		return requests;
 	}
 
@@ -99,5 +94,22 @@ public abstract class RequestManager implements IRequestManager {
 	 */
 	protected IMumbleMessage answer(float version, IMumbleMessage message, ErrorCode errorCode) {
 		return MumbleServerMessageFactory.answer(version, message, errorCode);
+	}
+
+	/**
+	 * Try to execute code according to the instance type of the connection.
+	 * 
+	 * @param holder   The holder that contains the connection that received the request and the request itself.
+	 * @param clazz    The expected connection type.
+	 * @param function The code to execute if the connection is an instance of the given class.
+	 * 
+	 * @return False if the connection is not an instance of the class, the function's result otherwise.
+	 */
+	protected <T extends AbstractMumbleConnection> boolean runIfInstanceof(RequestReceivedHolder holder, Class<T> clazz, Function<T, Boolean> function) {
+		try {
+			return function.apply(clazz.cast(holder.getConnection()));
+		} catch (ClassCastException e) {
+			return false;
+		}
 	}
 }

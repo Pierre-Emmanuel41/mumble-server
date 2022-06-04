@@ -21,7 +21,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerGameAddressV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerMuteStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerOnlineStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerPositionV10;
-import fr.pederobien.mumble.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetSoundModifiersInfoV10;
 import fr.pederobien.mumble.common.impl.messages.v10.KickPlayerFromChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.RegisterChannelOnServerV10;
@@ -47,6 +46,8 @@ import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayer
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
+import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
+import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
@@ -69,50 +70,50 @@ public class RequestManagerV10 extends RequestManager {
 		super(server, 1.0f);
 
 		// Server messages
-		getRequests().put(Identifier.GET_FULL_SERVER_CONFIGURATION, request -> getFullServerConfiguration((GetFullServerConfigurationV10) request));
-		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, request -> getServerConfiguration((GetServerConfigurationV10) request));
+		getRequests().put(Identifier.GET_FULL_SERVER_CONFIGURATION, holder -> getFullServerConfiguration((GetFullServerConfigurationV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, holder -> getServerConfiguration(holder));
 
 		// Player messages
-		getRequests().put(Identifier.GET_PLAYER_INFO, request -> null);
-		getRequests().put(Identifier.REGISTER_PLAYER_ON_SERVER, request -> registerPlayerOnServer((RegisterPlayerOnServerV10) request));
-		getRequests().put(Identifier.UNREGISTER_PLAYER_FROM_SERVER, request -> unregisterPlayerOnServer((UnregisterPlayerFromServerV10) request));
-		getRequests().put(Identifier.GET_PLAYER_ONLINE_STATUS, request -> getPlayerOnlineStatus((GetPlayerOnlineStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, request -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_NAME, request -> renamePlayer((SetPlayerNameV10) request));
-		getRequests().put(Identifier.GET_PLAYER_GAME_ADDRESS, request -> getPlayerGameAddress((GetPlayerGameAddressV10) request));
-		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, request -> setPlayerGameAddress((SetPlayerGameAddressV10) request));
-		getRequests().put(Identifier.GET_PLAYER_ADMINISTRATOR, request -> getPlayerAdmin((GetPlayerAdministratorStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, request -> setPlayerAdmin((SetPlayerAdministratorStatusV10) request));
-		getRequests().put(Identifier.GET_PLAYER_MUTE, request -> getPlayerMute((GetPlayerMuteStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_MUTE, request -> setPlayerMute((SetPlayerMuteStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, request -> setPlayerMuteBy((SetPlayerMuteByStatusV10) request));
-		getRequests().put(Identifier.GET_PLAYER_DEAFEN, request -> getPlayerDeafen((GetPlayerDeafenStatusV10) request));
-		getRequests().put(Identifier.SET_PLAYER_DEAFEN, request -> setPlayerDeafen((SetPlayerDeafenStatusV10) request));
-		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, request -> kickPlayerFromChannel((KickPlayerFromChannelV10) request));
-		getRequests().put(Identifier.GET_PLAYER_POSITION, request -> getPlayerPosition((GetPlayerPositionV10) request));
-		getRequests().put(Identifier.SET_PLAYER_POSITION, request -> setPlayerPosition((SetPlayerPositionV10) request));
+		getRequests().put(Identifier.GET_PLAYER_INFO, holder -> null);
+		getRequests().put(Identifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
+		getRequests().put(Identifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerOnServer((UnregisterPlayerFromServerV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_ONLINE_STATUS, holder -> getPlayerOnlineStatus((GetPlayerOnlineStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_NAME, holder -> renamePlayer((SetPlayerNameV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_GAME_ADDRESS, holder -> getPlayerGameAddress((GetPlayerGameAddressV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, holder -> setPlayerGameAddress((SetPlayerGameAddressV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_ADMINISTRATOR, holder -> getPlayerAdmin((GetPlayerAdministratorStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_MUTE, holder -> getPlayerMute((GetPlayerMuteStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_DEAFEN, holder -> getPlayerDeafen((GetPlayerDeafenStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PLAYER_POSITION, holder -> getPlayerPosition((GetPlayerPositionV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
 		// Channel messages
-		getRequests().put(Identifier.GET_CHANNELS_INFO, request -> getChannelsInfo((GetChannelsInfoV10) request));
-		getRequests().put(Identifier.GET_CHANNEL_INFO, request -> getChannelInfo((GetChannelInfoV10) request));
-		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, request -> registerChannelOnServer((RegisterChannelOnServerV10) request));
-		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, request -> unregisterChannelFromServer((UnregisterChannelFromServerV10) request));
-		getRequests().put(Identifier.SET_CHANNEL_NAME, request -> renameChannel((SetChannelNameV10) request));
-		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, request -> addPlayerToChannel((AddPlayerToChannelV10) request));
-		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, request -> removePlayerFromChannel((RemovePlayerFromChannelV10) request));
+		getRequests().put(Identifier.GET_CHANNELS_INFO, holder -> getChannelsInfo((GetChannelsInfoV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_CHANNEL_INFO, holder -> getChannelInfo((GetChannelInfoV10) holder.getRequest()));
+		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
+		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, holder -> unregisterChannelFromServer((UnregisterChannelFromServerV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_CHANNEL_NAME, holder -> renameChannel((SetChannelNameV10) holder.getRequest()));
+		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, holder -> addPlayerToChannel((AddPlayerToChannelV10) holder.getRequest()));
+		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, holder -> removePlayerFromChannel((RemovePlayerFromChannelV10) holder.getRequest()));
 
 		// Parameter message
-		getRequests().put(Identifier.GET_PARAMETER_VALUE, request -> getParameterValue((GetParameterValueV10) request));
-		getRequests().put(Identifier.SET_PARAMETER_VALUE, request -> setParameterValue((SetParameterValueV10) request));
-		getRequests().put(Identifier.GET_PARAMETER_MIN_VALUE, request -> getParameterMinValue((GetParameterMinValueV10) request));
-		getRequests().put(Identifier.SET_PARAMETER_MIN_VALUE, request -> setParameterMinValue((SetParameterMinValueV10) request));
-		getRequests().put(Identifier.GET_PARAMETER_MAX_VALUE, request -> getParameterMaxValue((GetParameterMaxValueV10) request));
-		getRequests().put(Identifier.SET_PARAMETER_MAX_VALUE, request -> setParameterMaxValue((SetParameterMaxValueV10) request));
+		getRequests().put(Identifier.GET_PARAMETER_VALUE, holder -> getParameterValue((GetParameterValueV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PARAMETER_VALUE, holder -> setParameterValue((SetParameterValueV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PARAMETER_MIN_VALUE, holder -> getParameterMinValue((GetParameterMinValueV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PARAMETER_MIN_VALUE, holder -> setParameterMinValue((SetParameterMinValueV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_PARAMETER_MAX_VALUE, holder -> getParameterMaxValue((GetParameterMaxValueV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PARAMETER_MAX_VALUE, holder -> setParameterMaxValue((SetParameterMaxValueV10) holder.getRequest()));
 
 		// Sound modifier messages
-		getRequests().put(Identifier.GET_SOUND_MODIFIERS_INFO, request -> getSoundModifiersInfo((GetSoundModifiersInfoV10) request));
-		getRequests().put(Identifier.GET_CHANNEL_SOUND_MODIFIER_INFO, request -> getChannelSoundModifier((GetChannelSoundModifierV10) request));
-		getRequests().put(Identifier.SET_CHANNEL_SOUND_MODIFIER, request -> setChannelSoundModifier((SetChannelSoundModifierV10) request));
+		getRequests().put(Identifier.GET_SOUND_MODIFIERS_INFO, holder -> getSoundModifiersInfo((GetSoundModifiersInfoV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_CHANNEL_SOUND_MODIFIER_INFO, holder -> getChannelSoundModifier((GetChannelSoundModifierV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_CHANNEL_SOUND_MODIFIER, holder -> setChannelSoundModifier((SetChannelSoundModifierV10) holder.getRequest()));
 	}
 
 	@Override
@@ -533,21 +534,21 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Creates a message that contains the current server configuration.
 	 * 
-	 * @param request The request sent by the remote in order to get the server configuration.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	@SuppressWarnings("null")
-	private IMumbleMessage getServerConfiguration(GetServerConfigurationV10 request) {
+	private IMumbleMessage getServerConfiguration(RequestReceivedHolder holder) {
 		List<Object> informations = new ArrayList<Object>();
 
-		IPlayer mainPlayer = null;
-		boolean isOnline = false;
+		boolean isOnline = runIfInstanceof(holder, PlayerMumbleClient.class, connection -> connection.getPlayer() != null && connection.getPlayer().isOnline());
 
 		// Player's online status
 		informations.add(isOnline);
 
 		if (isOnline) {
+			IPlayer mainPlayer = ((PlayerMumbleClient) holder.getConnection()).getPlayer();
+
 			// Player's name
 			informations.add(mainPlayer.getName());
 
@@ -666,7 +667,7 @@ public class RequestManagerV10 extends RequestManager {
 				// Player name
 				informations.add(player.getName());
 		}
-		return answer(getVersion(), request, informations.toArray());
+		return answer(getVersion(), holder.getRequest(), informations.toArray());
 	}
 
 	/**

@@ -316,7 +316,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		}
 
 		if (checkPermission(request))
-			send(getServer().getRequestManager().answer(request));
+			send(getServer().getRequestManager().answer(new RequestReceivedHolder(request, this)));
 		else
 			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 	}

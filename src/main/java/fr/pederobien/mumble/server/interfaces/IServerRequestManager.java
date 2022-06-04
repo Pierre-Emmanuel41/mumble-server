@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.interfaces;
 
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
+import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 
 public interface IServerRequestManager {
 
@@ -21,12 +22,11 @@ public interface IServerRequestManager {
 	/**
 	 * Performs server configuration update according to the given request.
 	 * 
-	 * @param version The protocol version to use to create a mumble message.
-	 * @param request The request sent by the remote.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server response.
 	 */
-	IMumbleMessage answer(IMumbleMessage request);
+	IMumbleMessage answer(RequestReceivedHolder holder);
 
 	/**
 	 * Creates a message in order to get the latest version of the communication protocol supported by the remote.

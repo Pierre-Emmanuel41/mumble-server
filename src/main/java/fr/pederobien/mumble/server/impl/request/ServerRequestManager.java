@@ -7,6 +7,7 @@ import java.util.function.Function;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
+import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IParameter;
@@ -38,21 +39,14 @@ public class ServerRequestManager implements IServerRequestManager {
 		return managers.containsKey(version);
 	}
 
-	/**
-	 * run a specific treatment associated to the given request.
-	 * 
-	 * @param request The request sent by the remote.
-	 * 
-	 * @return The server response.
-	 */
 	@Override
-	public IMumbleMessage answer(IMumbleMessage request) {
-		IRequestManager manager = managers.get(request.getHeader().getVersion());
+	public IMumbleMessage answer(RequestReceivedHolder holder) {
+		IRequestManager manager = managers.get(holder.getRequest().getHeader().getVersion());
 
 		if (manager == null)
-			return MumbleServerMessageFactory.answer(request, ErrorCode.INCOMPATIBLE_VERSION);
+			return MumbleServerMessageFactory.answer(holder.getRequest(), ErrorCode.INCOMPATIBLE_VERSION);
 
-		return manager.answer(request);
+		return manager.answer(holder);
 	}
 
 	@Override

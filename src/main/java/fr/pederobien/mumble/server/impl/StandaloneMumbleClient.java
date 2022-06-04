@@ -218,7 +218,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));
 		} else {
 			if (request.getHeader().getIdentifier() != Identifier.UNKNOWN)
-				send(getServer().getRequestManager().answer(request));
+				send(getServer().getRequestManager().answer(new RequestReceivedHolder(request, this)));
 			else
 				send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
 		}
