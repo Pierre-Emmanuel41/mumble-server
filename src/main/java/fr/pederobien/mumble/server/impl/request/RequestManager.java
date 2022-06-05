@@ -105,11 +105,34 @@ public abstract class RequestManager implements IRequestManager {
 	 * 
 	 * @return False if the connection is not an instance of the class, the function's result otherwise.
 	 */
-	protected <T extends AbstractMumbleConnection> boolean runIfInstanceof(RequestReceivedHolder holder, Class<T> clazz, Function<T, Boolean> function) {
+	protected <T extends AbstractMumbleConnection> RunResult runIfInstanceof(RequestReceivedHolder holder, Class<T> clazz, Function<T, Boolean> function) {
 		try {
-			return function.apply(clazz.cast(holder.getConnection()));
+			return new RunResult(true, function.apply(clazz.cast(holder.getConnection())));
 		} catch (ClassCastException e) {
-			return false;
+			return new RunResult(false, false);
+		}
+	}
+
+	protected class RunResult {
+		private boolean hasRun, result;
+
+		private RunResult(boolean hasRun, boolean result) {
+			this.hasRun = hasRun;
+			this.result = result;
+		}
+
+		/**
+		 * @return True if the function has been ran.
+		 */
+		public boolean getHasRun() {
+			return hasRun;
+		}
+
+		/**
+		 * @return The result of the function.
+		 */
+		public boolean getResult() {
+			return result;
 		}
 	}
 }

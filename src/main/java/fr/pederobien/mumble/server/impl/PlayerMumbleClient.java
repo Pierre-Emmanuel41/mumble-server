@@ -351,14 +351,12 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 			return false;
 		case GET_PLAYER_ONLINE_STATUS:
 			return true;
-		case SET_PLAYER_ONLINE_STATUS:
-			return player != null && player.isAdmin();
 		case SET_PLAYER_NAME:
 			return false;
 		case GET_PLAYER_ADMINISTRATOR:
 			return true;
 		case SET_PLAYER_ADMINISTRATOR:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case GET_PLAYER_MUTE:
 		case SET_PLAYER_MUTE:
 			return true;
@@ -368,7 +366,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		case SET_PLAYER_DEAFEN:
 			return true;
 		case KICK_PLAYER_FROM_CHANNEL:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case GET_PLAYER_POSITION:
 		case SET_PLAYER_POSITION:
 			return true;
@@ -378,22 +376,22 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		case REGISTER_CHANNEL_ON_THE_SERVER:
 		case UNREGISTER_CHANNEL_FROM_SERVER:
 		case SET_CHANNEL_NAME:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case ADD_PLAYER_TO_CHANNEL:
 		case REMOVE_PLAYER_FROM_CHANNEL:
-			return true;
+			return player != null && player.isOnline();
 		case GET_PARAMETER_VALUE:
 			return true;
 		case SET_PARAMETER_VALUE:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case GET_PARAMETER_MIN_VALUE:
 			return true;
 		case SET_PARAMETER_MIN_VALUE:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case GET_PARAMETER_MAX_VALUE:
 			return true;
 		case SET_PARAMETER_MAX_VALUE:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		case GET_SOUND_MODIFIERS_INFO:
 		case GET_CHANNEL_SOUND_MODIFIER_INFO:
 			return true;
@@ -402,7 +400,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		case SET_GAME_PORT_USED:
 			return true;
 		default:
-			return player != null && player.isAdmin();
+			return player != null && player.isOnline() && player.isAdmin();
 		}
 	}
 

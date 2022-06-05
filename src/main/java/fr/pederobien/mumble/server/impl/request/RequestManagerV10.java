@@ -99,8 +99,8 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
 		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, holder -> unregisterChannelFromServer((UnregisterChannelFromServerV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_CHANNEL_NAME, holder -> renameChannel((SetChannelNameV10) holder.getRequest()));
-		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, holder -> addPlayerToChannel((AddPlayerToChannelV10) holder.getRequest()));
-		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, holder -> removePlayerFromChannel((RemovePlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, holder -> addPlayerToChannel(holder));
+		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, holder -> removePlayerFromChannel(holder));
 
 		// Parameter message
 		getRequests().put(Identifier.GET_PARAMETER_VALUE, holder -> getParameterValue((GetParameterValueV10) holder.getRequest()));
@@ -592,12 +592,12 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage getServerConfiguration(RequestReceivedHolder holder) {
 		List<Object> informations = new ArrayList<Object>();
 
-		boolean isOnline = runIfInstanceof(holder, PlayerMumbleClient.class, connection -> connection.getPlayer() != null && connection.getPlayer().isOnline());
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer() != null && client.getPlayer().isOnline());
 
 		// Player's online status
-		informations.add(isOnline);
+		informations.add(result.getResult());
 
-		if (isOnline) {
+		if (result.getResult()) {
 			IPlayer mainPlayer = ((PlayerMumbleClient) holder.getConnection()).getPlayer();
 
 			// Player's name
@@ -771,12 +771,12 @@ public class RequestManagerV10 extends RequestManager {
 	private IMumbleMessage getPlayerInfo(RequestReceivedHolder holder) {
 		List<Object> informations = new ArrayList<Object>();
 
-		boolean isOnline = runIfInstanceof(holder, PlayerMumbleClient.class, connection -> connection.getPlayer() != null && connection.getPlayer().isOnline());
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer() != null && client.getPlayer().isOnline());
 
 		// Player's online status
-		informations.add(isOnline);
+		informations.add(result.getResult());
 
-		if (isOnline) {
+		if (result.getResult()) {
 			IPlayer mainPlayer = ((PlayerMumbleClient) holder.getConnection()).getPlayer();
 
 			// Player's name
@@ -1319,44 +1319,72 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Adds a player to a channel.
 	 * 
-	 * @param request The request received from the remote in order to add a player to a channel.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage addPlayerToChannel(AddPlayerToChannelV10 request) {
+	private IMumbleMessage addPlayerToChannel(RequestReceivedHolder holder) {
+		AddPlayerToChannelV10 request = (AddPlayerToChannelV10) holder.getRequest();
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
-			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
+			return answer(getVersion(), holder.getRequest(), ErrorCode.CHANNEL_NOT_FOUND);
 
-		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerName()));
+		Optional<IPlayer> optPlayer;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optPlayer = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optPlayer = getServer().getPlayers().get(request.getPlayerName());
+			if (!optPlayer.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
 
 		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayer.get()))
-			return answer(getVersion(), request, ErrorCode.PLAYER_ALREADY_REGISTERED);
+			return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
 
 		optChannel.get().getPlayers().add(optPlayer.get());
 		if (!optChannel.get().getPlayers().toList().contains(optPlayer.get()))
-			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
+			return answer(getVersion(), holder.getRequest(), ErrorCode.REQUEST_CANCELLED);
 
-		return answer(getVersion(), request, request.getProperties());
+		return answer(getVersion(), holder.getRequest(), holder.getRequest().getProperties());
 	}
 
 	/**
 	 * Removes a player from a channel.
 	 * 
-	 * @param request The request received from the remote in order to remove a player from a channel.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage removePlayerFromChannel(RemovePlayerFromChannelV10 request) {
+	private IMumbleMessage removePlayerFromChannel(RequestReceivedHolder holder) {
+		RemovePlayerFromChannelV10 request = (RemovePlayerFromChannelV10) holder.getRequest();
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
 		if (!optChannel.isPresent())
 			return answer(getVersion(), request, ErrorCode.CHANNEL_NOT_FOUND);
 
-		final Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerName()));
+		Optional<IPlayer> optPlayer;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optPlayer = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optPlayer = getServer().getPlayers().get(request.getPlayerName());
+			if (!optPlayer.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
 
 		optChannel.get().getPlayers().remove(optPlayer.get());
 		if (optChannel.get().getPlayers().toList().contains(optPlayer.get()))
