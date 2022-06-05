@@ -77,7 +77,6 @@ public class GamePortAnalyzer {
 
 		// Execution finished, notifying the waiting thread.
 		countDownLatch.countDown();
-		EventManager.callEvent(new LogEvent("CountDownLatch current count : %s", countDownLatch.getCount()));
 	}
 
 	private class GamePort {
