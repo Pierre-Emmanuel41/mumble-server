@@ -18,6 +18,7 @@ import fr.pederobien.mumble.server.event.ParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
@@ -29,8 +30,6 @@ import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClientJoinPostEvent;
 import fr.pederobien.mumble.server.event.ServerClientLeavePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
@@ -179,22 +178,6 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
-		if (!event.getList().getServer().equals(getServer()))
-			return;
-
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onServerPlayerAdd(getVersion(), event.getPlayer())));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
-		if (!event.getList().getServer().equals(getServer()))
-			return;
-
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onServerPlayerRemove(getVersion(), event.getPlayer().getName())));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
 		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
@@ -204,15 +187,23 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) || !event.getPlayer().equals(player))
 			return;
 
 		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerOnlineChange(getVersion(), event.getPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerGameAddressChange(PlayerGameAddressChangePostEvent event) {
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) || !event.getPlayer().equals(player))
+			return;
+
+		send(getServer().getRequestManager().onPlayerGameAddressChange(getVersion(), event.getPlayer()));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) || !event.getPlayer().equals(player))
 			return;
 
 		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerAdminChange(getVersion(), event.getPlayer())));
@@ -236,7 +227,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()) && !event.getPlayer().equals(player))
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) || !event.getPlayer().equals(player))
 			return;
 
 		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerPositionChange(getVersion(), event.getPlayer())));
@@ -329,6 +320,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		if (player != null && player.getChannel() != null)
 			player.getChannel().getPlayers().remove(player);
 
+		isJoined.set(false);
 		getTcpConnection().dispose();
 		EventManager.callEvent(new ClientDisconnectPostEvent(this));
 	}
