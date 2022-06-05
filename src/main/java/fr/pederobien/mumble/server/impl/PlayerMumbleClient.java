@@ -78,6 +78,8 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		this.player = player;
 		if (player != null)
 			player.setUUID(getUUID());
+
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerInfoChanged(getVersion(), getPlayer())));
 	}
 
 	@Override

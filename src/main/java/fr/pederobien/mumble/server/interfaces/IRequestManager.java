@@ -80,6 +80,15 @@ public interface IRequestManager {
 	IMumbleMessage onServerPlayerRemove(String name);
 
 	/**
+	 * Creates a message in order to send to the remote the characteristics of the given player.
+	 * 
+	 * @param player The player whose the characteristics should be sent to the remote.
+	 * 
+	 * @return The server answer.
+	 */
+	IMumbleMessage onPlayerInfoChanged(IPlayer player);
+
+	/**
 	 * Creates a message in order to rename a player.
 	 * 
 	 * @param oldName The name of the player to rename.

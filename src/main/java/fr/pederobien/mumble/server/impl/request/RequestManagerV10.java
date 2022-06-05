@@ -74,7 +74,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.GET_SERVER_CONFIGURATION, holder -> getServerConfiguration(holder));
 
 		// Player messages
-		getRequests().put(Identifier.GET_PLAYER_INFO, holder -> null);
+		getRequests().put(Identifier.GET_PLAYER_INFO, holder -> getPlayerInfo(holder));
 		getRequests().put(Identifier.REGISTER_PLAYER_ON_SERVER, holder -> registerPlayerOnServer((RegisterPlayerOnServerV10) holder.getRequest()));
 		getRequests().put(Identifier.UNREGISTER_PLAYER_FROM_SERVER, holder -> unregisterPlayerOnServer((UnregisterPlayerFromServerV10) holder.getRequest()));
 		getRequests().put(Identifier.GET_PLAYER_ONLINE_STATUS, holder -> getPlayerOnlineStatus((GetPlayerOnlineStatusV10) holder.getRequest()));
@@ -226,6 +226,57 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IMumbleMessage onServerPlayerRemove(String name) {
 		return create(getVersion(), Identifier.UNREGISTER_PLAYER_FROM_SERVER, name);
+	}
+
+	@Override
+	public IMumbleMessage onPlayerInfoChanged(IPlayer player) {
+		List<Object> properties = new ArrayList<Object>();
+
+		boolean isOnline = player == null ? false : player.isOnline();
+
+		// Player's online status
+		properties.add(isOnline);
+
+		if (isOnline) {
+
+			// Player's name
+			properties.add(player.getName());
+
+			// Player's identifier
+			properties.add(player.getIdentifier());
+
+			// Player's game address
+			properties.add(player.getGameAddress().getAddress().getHostAddress());
+
+			// Player's game port
+			properties.add(player.getGameAddress().getPort());
+
+			// Player's administrator status
+			properties.add(player.isAdmin());
+
+			// Player's mute status
+			properties.add(player.isMute());
+
+			// Player's deafen status
+			properties.add(player.isDeafen());
+
+			// Player's X coordinate
+			properties.add(player.getPosition().getX());
+
+			// Player's Y coordinate
+			properties.add(player.getPosition().getY());
+
+			// Player's Z coordinate
+			properties.add(player.getPosition().getZ());
+
+			// Player's yaw angle
+			properties.add(player.getPosition().getYaw());
+
+			// Player's pitch angle
+			properties.add(player.getPosition().getPitch());
+		}
+
+		return create(getVersion(), Identifier.GET_PLAYER_INFO, properties.toArray());
 	}
 
 	@Override
@@ -708,6 +759,64 @@ public class RequestManagerV10 extends RequestManager {
 			return answer(getVersion(), request, ErrorCode.REQUEST_CANCELLED);
 
 		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * Get all characteristics of the player associated to the connection that received the request.
+	 * 
+	 * @param holder The holder that contains the connection that received the request and the request itself.
+	 * 
+	 * @return The server answer.
+	 */
+	private IMumbleMessage getPlayerInfo(RequestReceivedHolder holder) {
+		List<Object> informations = new ArrayList<Object>();
+
+		boolean isOnline = runIfInstanceof(holder, PlayerMumbleClient.class, connection -> connection.getPlayer() != null && connection.getPlayer().isOnline());
+
+		// Player's online status
+		informations.add(isOnline);
+
+		if (isOnline) {
+			IPlayer mainPlayer = ((PlayerMumbleClient) holder.getConnection()).getPlayer();
+
+			// Player's name
+			informations.add(mainPlayer.getName());
+
+			// Player's identifier
+			informations.add(mainPlayer.getIdentifier());
+
+			// Player's game address
+			informations.add(mainPlayer.getGameAddress().getAddress().getHostAddress());
+
+			// Player's game port
+			informations.add(mainPlayer.getGameAddress().getPort());
+
+			// Player's administrator status
+			informations.add(mainPlayer.isAdmin());
+
+			// Player's mute status
+			informations.add(mainPlayer.isMute());
+
+			// Player's deafen status
+			informations.add(mainPlayer.isDeafen());
+
+			// Player's X coordinate
+			informations.add(mainPlayer.getPosition().getX());
+
+			// Player's Y coordinate
+			informations.add(mainPlayer.getPosition().getY());
+
+			// Player's Z coordinate
+			informations.add(mainPlayer.getPosition().getZ());
+
+			// Player's yaw angle
+			informations.add(mainPlayer.getPosition().getYaw());
+
+			// Player's pitch angle
+			informations.add(mainPlayer.getPosition().getPitch());
+		}
+
+		return answer(getVersion(), holder.getRequest(), informations.toArray());
 	}
 
 	/**

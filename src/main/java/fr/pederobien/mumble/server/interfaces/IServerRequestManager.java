@@ -96,6 +96,16 @@ public interface IServerRequestManager {
 	IMumbleMessage onServerPlayerRemove(float version, String name);
 
 	/**
+	 * Creates a message in order to send to the remote the characteristics of the given player.
+	 * 
+	 * @param version The version of the communication protocol to use.
+	 * @param player  The player whose the characteristics should be sent to the remote.
+	 * 
+	 * @return The server answer.
+	 */
+	IMumbleMessage onPlayerInfoChanged(float version, IPlayer player);
+
+	/**
 	 * Creates a message in order to rename a player.
 	 * 
 	 * @param version The protocol version to use to create a mumble message.

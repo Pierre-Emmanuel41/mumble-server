@@ -85,6 +85,11 @@ public class ServerRequestManager implements IServerRequestManager {
 	}
 
 	@Override
+	public IMumbleMessage onPlayerInfoChanged(float version, IPlayer player) {
+		return findManagerAndApply(version, manager -> manager.onPlayerInfoChanged(player));
+	}
+
+	@Override
 	public IMumbleMessage onPlayerNameChange(float version, String oldName, String newName) {
 		return findManagerAndApply(version, manager -> manager.onPlayerNameChange(oldName, newName));
 	}
