@@ -40,6 +40,20 @@ public class ClientList implements IEventListener {
 		EventManager.registerListener(this);
 	}
 
+	/**
+	 * Get the client associated to the given name.
+	 * 
+	 * @param name The player name.
+	 * 
+	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
+	 */
+	public Optional<PlayerMumbleClient> get(String name) {
+		for (PlayerMumbleClient client : clients)
+			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
+				return Optional.of(client);
+		return Optional.empty();
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST)
 	private void onNewClient(NewTcpClientEvent event) {
 		if (!event.getServer().equals(server.getTcpServer()))
@@ -73,20 +87,6 @@ public class ClientList implements IEventListener {
 		Optional<PlayerMumbleClient> optClient = get(event.getPlayer().getName());
 		optClient.get().setPlayer(null);
 		garbage(optClient.get());
-	}
-
-	/**
-	 * Get the client associated to the given name.
-	 * 
-	 * @param name The player name.
-	 * 
-	 * @return An optional that contains the client associated to the specified name if registered, an empty optional otherwise.
-	 */
-	private Optional<PlayerMumbleClient> get(String name) {
-		for (PlayerMumbleClient client : clients)
-			if (client.getPlayer() != null && client.getPlayer().getName().equals(name))
-				return Optional.of(client);
-		return Optional.empty();
 	}
 
 	/**

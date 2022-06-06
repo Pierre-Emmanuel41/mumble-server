@@ -44,6 +44,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.UnregisterPlayerFromServerV
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
+import fr.pederobien.mumble.server.exceptions.PlayerMumbleClientNotJoinedException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
@@ -1349,7 +1350,12 @@ public class RequestManagerV10 extends RequestManager {
 		if (getServer().getPlayers().getPlayersInChannel().contains(optPlayer.get()))
 			return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_ALREADY_REGISTERED);
 
-		optChannel.get().getPlayers().add(optPlayer.get());
+		try {
+			optChannel.get().getPlayers().add(optPlayer.get());
+		} catch (PlayerMumbleClientNotJoinedException e) {
+			return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_CLIENT_NOT_JOINED);
+		}
+
 		if (!optChannel.get().getPlayers().toList().contains(optPlayer.get()))
 			return answer(getVersion(), holder.getRequest(), ErrorCode.REQUEST_CANCELLED);
 

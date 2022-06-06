@@ -101,6 +101,13 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	}
 
 	/**
+	 * @return The list of clients associated to this server.
+	 */
+	public ClientList getClients() {
+		return clients;
+	}
+
+	/**
 	 * @return The TCP server on which configuration request are sent.
 	 */
 	protected TcpServer getTcpServer() {

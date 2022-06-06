@@ -22,6 +22,7 @@ import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.ServerClosePostEvent;
 import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.exceptions.PlayerMumbleClientNotJoinedException;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelPlayerList;
@@ -66,7 +67,14 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@Override
 	public void add(IPlayer player) {
-		EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
+		AbstractMumbleServer server = (AbstractMumbleServer) channel.getServer();
+		Optional<PlayerMumbleClient> optClient = server.getClients().get(player.getName());
+		if (optClient.isPresent()) {
+			if (optClient.get().isJoined())
+				EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
+			else
+				throw new PlayerMumbleClientNotJoinedException(player);
+		}
 	}
 
 	@Override

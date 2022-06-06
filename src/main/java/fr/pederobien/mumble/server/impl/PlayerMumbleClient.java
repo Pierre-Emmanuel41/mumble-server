@@ -82,6 +82,13 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerInfoChanged(getVersion(), getPlayer())));
 	}
 
+	/**
+	 * @return Return true if the mumble client has joined the server.
+	 */
+	public boolean isJoined() {
+		return isJoined.get();
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -302,6 +309,9 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 		// Always allow this request whatever the client state.
 		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_LEAVE) {
+			if (player.getChannel() != null)
+				player.getChannel().getPlayers().remove(player);
+
 			isJoined.set(false);
 			EventManager.callEvent(new ServerClientLeavePostEvent(getServer(), this));
 			send(MumbleServerMessageFactory.answer(request));
