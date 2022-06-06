@@ -12,8 +12,6 @@ import java.util.function.Function;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.messages.v10.SetGamePortUsedV10;
-import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.LogEvent;
 
 public class GamePortAnalyzer {
 	private List<PlayerMumbleClient> clients;
@@ -100,7 +98,6 @@ public class GamePortAnalyzer {
 		 * @return True if the port is used on the client side, false otherwise.
 		 */
 		public boolean checkPortByGame(int port) {
-			EventManager.callEvent(new LogEvent("Checking port n°%s", port));
 			// Step 1: Sending the request to the client.
 			client.send(client.createCheckGamePortMessage(port), args -> {
 				if (args.isTimeout())
@@ -134,7 +131,6 @@ public class GamePortAnalyzer {
 		}
 
 		public boolean checkPortByMumble(ITcpConnection connection) {
-			EventManager.callEvent(new LogEvent("Checking port n°%s", client.getGameAddress().getPort()));
 			// Step 1: Sending the request to the client.
 			connection.send(new MumbleCallbackMessage(client.createCheckGamePortMessage(client.getGameAddress().getPort()), args -> {
 				if (args.isTimeout())
