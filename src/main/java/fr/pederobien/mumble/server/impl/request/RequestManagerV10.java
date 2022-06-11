@@ -86,7 +86,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.GET_PLAYER_ADMINISTRATOR, holder -> getPlayerAdmin((GetPlayerAdministratorStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.GET_PLAYER_MUTE, holder -> getPlayerMute((GetPlayerMuteStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute(holder));
 		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.GET_PLAYER_DEAFEN, holder -> getPlayerDeafen((GetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
@@ -970,14 +970,28 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Update the mute status of a player.
 	 * 
-	 * @param request The request received from the remote in order to update the mute status of a player.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setPlayerMute(SetPlayerMuteStatusV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+	private IMumbleMessage setPlayerMute(RequestReceivedHolder holder) {
+		SetPlayerMuteStatusV10 request = (SetPlayerMuteStatusV10) holder.getRequest();
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerName()));
+		Optional<IPlayer> optPlayer;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optPlayer = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optPlayer = getServer().getPlayers().get(request.getPlayerName());
+			if (!optPlayer.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
 
 		try {
 			optPlayer.get().setMute(request.isMute());
