@@ -40,7 +40,7 @@ import fr.pederobien.utils.event.IEventListener;
 public class PlayerMumbleClient extends AbstractMumbleConnection implements IEventListener {
 	private IPlayer player;
 	private UUID uuid;
-	private AtomicBoolean isJoined;
+	private AtomicBoolean isJoined, isRegistered;
 
 	/**
 	 * Creates a client associated to a specific player.
@@ -53,6 +53,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		this.uuid = uuid;
 
 		isJoined = new AtomicBoolean(false);
+		isRegistered = new AtomicBoolean(false);
 	}
 
 	/**
@@ -105,7 +106,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	protected void setTcpConnection(ITcpConnection connection) {
 		super.setTcpConnection(connection);
 
-		if (establishCommunicationProtocolVersion())
+		if (establishCommunicationProtocolVersion() && isRegistered.compareAndSet(false, true))
 			EventManager.registerListener(this);
 	}
 
