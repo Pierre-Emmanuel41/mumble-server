@@ -87,7 +87,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.GET_PLAYER_MUTE, holder -> getPlayerMute((GetPlayerMuteStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute(holder));
-		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy(holder));
 		getRequests().put(Identifier.GET_PLAYER_DEAFEN, holder -> getPlayerDeafen((GetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
@@ -1029,17 +1029,32 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Update the mute status of a player for another player.
 	 * 
-	 * @param request The request received from the remote in order to update the mute status of a player for another player.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setPlayerMuteBy(SetPlayerMuteByStatusV10 request) {
+	private IMumbleMessage setPlayerMuteBy(RequestReceivedHolder holder) {
+		SetPlayerMuteByStatusV10 request = (SetPlayerMuteByStatusV10) holder.getRequest();
+
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getSource()));
+		Optional<IPlayer> optSource;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optSource = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optSource = getServer().getPlayers().get(request.getSource());
+			if (!optSource.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
+
 		Optional<IPlayer> optTarget = getServer().getPlayers().get(request.getTarget());
 		if (!optTarget.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		Optional<IPlayer> optSource = getServer().getPlayers().get(request.getSource());
-		if (!optSource.isPresent())
 			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		optTarget.get().setMuteBy(optSource.get(), request.isMute());
