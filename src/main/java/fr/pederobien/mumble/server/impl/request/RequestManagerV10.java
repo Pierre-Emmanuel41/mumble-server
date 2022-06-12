@@ -89,7 +89,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute(holder));
 		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy(holder));
 		getRequests().put(Identifier.GET_PLAYER_DEAFEN, holder -> getPlayerDeafen((GetPlayerDeafenStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen(holder));
 		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
 		getRequests().put(Identifier.GET_PLAYER_POSITION, holder -> getPlayerPosition((GetPlayerPositionV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
@@ -1082,14 +1082,28 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Update the deafen status of a player.
 	 * 
-	 * @param request The request received from the remote in order to update the deafen status of a player.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage setPlayerDeafen(SetPlayerDeafenStatusV10 request) {
-		Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getPlayerName());
-		if (!optPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
+	private IMumbleMessage setPlayerDeafen(RequestReceivedHolder holder) {
+		SetPlayerDeafenStatusV10 request = (SetPlayerDeafenStatusV10) holder.getRequest();
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerName()));
+		Optional<IPlayer> optPlayer;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optPlayer = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optPlayer = getServer().getPlayers().get(request.getPlayerName());
+			if (!optPlayer.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
 
 		try {
 			optPlayer.get().setDeafen(request.isDeafen());
