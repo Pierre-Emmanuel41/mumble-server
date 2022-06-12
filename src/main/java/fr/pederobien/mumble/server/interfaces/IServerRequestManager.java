@@ -201,13 +201,14 @@ public interface IServerRequestManager {
 	/**
 	 * Creates a message in order to add a player to a channel.
 	 * 
-	 * @param version The protocol version to use to create a mumble message.
-	 * @param channel The channel to which a player has been added.
-	 * @param player  The added player.
+	 * @param version            The protocol version to use to create a mumble message.
+	 * @param channel            The channel to which a player has been added.
+	 * @param player             The added player.
+	 * @param isMuteByMainPlayer True if the given player is mute by the client main player.
 	 * 
 	 * @return The message to send to the remote in order to add a player in a channel.
 	 */
-	IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player);
+	IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player, boolean isMuteByMainPlayer);
 
 	/**
 	 * Creates a message in order to remove a player from a channel.

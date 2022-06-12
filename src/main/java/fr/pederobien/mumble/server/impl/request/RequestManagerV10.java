@@ -95,8 +95,8 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
 		// Channel messages
-		getRequests().put(Identifier.GET_CHANNELS_INFO, holder -> getChannelsInfo((GetChannelsInfoV10) holder.getRequest()));
-		getRequests().put(Identifier.GET_CHANNEL_INFO, holder -> getChannelInfo((GetChannelInfoV10) holder.getRequest()));
+		getRequests().put(Identifier.GET_CHANNELS_INFO, holder -> getChannelsInfo(holder));
+		getRequests().put(Identifier.GET_CHANNEL_INFO, holder -> getChannelInfo(holder));
 		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
 		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, holder -> unregisterChannelFromServer((UnregisterChannelFromServerV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_CHANNEL_NAME, holder -> renameChannel((SetChannelNameV10) holder.getRequest()));
@@ -328,8 +328,8 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
-		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName());
+	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player, boolean isMuteByMainPlayer) {
+		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName(), player.isMute(), player.isDeafen(), isMuteByMainPlayer);
 	}
 
 	@Override
@@ -576,9 +576,19 @@ public class RequestManagerV10 extends RequestManager {
 			// Number of players
 			informations.add(channel.getPlayers().toList().size());
 
-			for (IPlayer player : channel.getPlayers())
-				// Player name
+			for (IPlayer player : channel.getPlayers()) {
+				// Player's name
 				informations.add(player.getName());
+
+				// Player's mute status
+				informations.add(player.isMute());
+
+				// Player's deafen
+				informations.add(player.isDeafen());
+
+				// Player's muteBy status
+				informations.add(false);
+			}
 		}
 		return answer(getVersion(), request, informations.toArray());
 	}
@@ -715,9 +725,20 @@ public class RequestManagerV10 extends RequestManager {
 			// Number of players
 			informations.add(channel.getPlayers().toList().size());
 
-			for (IPlayer player : channel.getPlayers())
-				// Player name
+			for (IPlayer player : channel.getPlayers()) {
+				// Player's name
 				informations.add(player.getName());
+
+				// Player's mute status
+				informations.add(player.isMute());
+
+				// Player's deafen status
+				informations.add(player.isDeafen());
+
+				// Case when the connection corresponds to a player connection -> Needs to check if player is mute by the client player.
+				result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> player.isMuteBy(client.getPlayer()));
+				informations.add(result.getHasRun() ? result.getResult() : false);
+			}
 		}
 		return answer(getVersion(), holder.getRequest(), informations.toArray());
 	}
@@ -1139,11 +1160,12 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Gets the list of channels registered on the server.
 	 * 
-	 * @param request The request sent by the remote in order to get the channels list.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage getChannelsInfo(GetChannelsInfoV10 request) {
+	private IMumbleMessage getChannelsInfo(RequestReceivedHolder holder) {
+		GetChannelsInfoV10 request = (GetChannelsInfoV10) holder.getRequest();
 		List<Object> informations = new ArrayList<Object>();
 
 		// Number of channels
@@ -1195,6 +1217,10 @@ public class RequestManagerV10 extends RequestManager {
 
 				// Player's deafen
 				informations.add(player.isDeafen());
+
+				// Case when the connection corresponds to a player connection -> Needs to check if player is mute by the client player.
+				RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> player.isMuteBy(client.getPlayer()));
+				informations.add(result.getHasRun() ? result.getResult() : false);
 			}
 		}
 		return answer(getVersion(), request, informations.toArray());
@@ -1203,11 +1229,12 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Gets information about a channel
 	 * 
-	 * @param request The request sent by the remote in order to get information about a channel
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage getChannelInfo(GetChannelInfoV10 request) {
+	private IMumbleMessage getChannelInfo(RequestReceivedHolder holder) {
+		GetChannelInfoV10 request = (GetChannelInfoV10) holder.getRequest();
 		List<Object> informations = new ArrayList<Object>();
 
 		Optional<IChannel> optChannel = getServer().getChannels().get(request.getChannelName());
@@ -1259,6 +1286,10 @@ public class RequestManagerV10 extends RequestManager {
 
 			// Player's deafen
 			informations.add(player.isDeafen());
+
+			// Case when the connection corresponds to a player connection -> Needs to check if player is mute by the client player.
+			RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> player.isMuteBy(client.getPlayer()));
+			informations.add(result.getHasRun() ? result.getResult() : false);
 		}
 		return answer(getVersion(), request, informations.toArray());
 	}
@@ -1344,7 +1375,7 @@ public class RequestManagerV10 extends RequestManager {
 		if (!optChannel.isPresent())
 			return answer(getVersion(), holder.getRequest(), ErrorCode.CHANNEL_NOT_FOUND);
 
-		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerName()));
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getPlayerInfo().getName()));
 		Optional<IPlayer> optPlayer;
 
 		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
@@ -1356,7 +1387,7 @@ public class RequestManagerV10 extends RequestManager {
 		}
 		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
 		else {
-			optPlayer = getServer().getPlayers().get(request.getPlayerName());
+			optPlayer = getServer().getPlayers().get(request.getPlayerInfo().getName());
 			if (!optPlayer.isPresent())
 				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
 		}

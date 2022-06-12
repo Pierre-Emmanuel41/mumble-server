@@ -164,7 +164,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer()));
+		send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer(), false));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

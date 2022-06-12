@@ -135,8 +135,8 @@ public class ServerRequestManager implements IServerRequestManager {
 	}
 
 	@Override
-	public IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player) {
-		return findManagerAndApply(version, manager -> manager.onChannelPlayerAdd(channel, player));
+	public IMumbleMessage onChannelPlayerAdd(float version, IChannel channel, IPlayer player, boolean isMuteByMainPlayer) {
+		return findManagerAndApply(version, manager -> manager.onChannelPlayerAdd(channel, player, isMuteByMainPlayer));
 	}
 
 	@Override

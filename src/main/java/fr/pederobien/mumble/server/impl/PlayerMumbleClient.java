@@ -21,6 +21,7 @@ import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
@@ -228,6 +229,14 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
+		if (!getServer().getPlayers().toList().contains(event.getPlayer()) || !event.getSource().equals(player))
+			return;
+
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), event.getSource())));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
 		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
@@ -248,7 +257,8 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
 			return;
 
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer())));
+		boolean isMute = event.getPlayer().isMuteBy(player);
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer(), isMute)));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
