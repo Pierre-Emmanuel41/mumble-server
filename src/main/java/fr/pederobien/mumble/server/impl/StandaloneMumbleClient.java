@@ -89,7 +89,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerNameChange(getVersion(), event.getOldName(), event.getPlayer().getName()));
@@ -97,7 +97,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerOnlineChange(getVersion(), event.getPlayer()));
@@ -105,7 +105,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerGameAddressChange(PlayerGameAddressChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerGameAddressChange(getVersion(), event.getPlayer()));
@@ -113,7 +113,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerAdminChange(getVersion(), event.getPlayer()));
@@ -121,7 +121,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer()));
@@ -129,7 +129,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), event.getSource()));
@@ -137,7 +137,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer()));
@@ -145,7 +145,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerKick(PlayerKickPostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerKick(getVersion(), event.getPlayer(), event.getKickingPlayer()));
@@ -153,7 +153,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onPlayerPositionChange(getVersion(), event.getPlayer()));
@@ -161,7 +161,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer(), false));
@@ -169,7 +169,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
-		if (!getServer().getPlayers().toList().contains(event.getPlayer()))
+		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
 		send(getServer().getRequestManager().onChannelPlayerRemove(getVersion(), event.getList().getChannel(), event.getPlayer()));

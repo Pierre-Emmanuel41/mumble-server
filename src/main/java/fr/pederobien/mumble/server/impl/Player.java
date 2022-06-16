@@ -272,7 +272,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onServerPlayerRemoveAndRemoveFromChannel(ServerPlayerRemovePostEvent event) {
+	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
