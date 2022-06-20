@@ -29,7 +29,7 @@ import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
-import fr.pederobien.vocal.server.event.PlayerSpeakEvent;
+import fr.pederobien.vocal.server.event.VocalPlayerSpeakEvent;
 
 public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	private IChannel channel;
@@ -138,7 +138,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerSpeak(PlayerSpeakEvent event) {
+	private void onPlayerSpeak(VocalPlayerSpeakEvent event) {
 		Optional<IPlayer> optPlayer = get(event.getTransmitter().getName());
 		if (!optPlayer.isPresent())
 			return;
