@@ -140,7 +140,8 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 	@Override
 	@SuppressWarnings("unchecked")
 	public void setMin(Object min) {
-		if (this.min.equals(min))
+		T castMin = getType().cast(min);
+		if (this.min.equals(castMin))
 			return;
 
 		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
@@ -148,8 +149,8 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 
 		Runnable update = () -> {
 			if (comparableMin.compareTo((Number) comparableValue) > 0)
-				setValue(min);
-			this.min = getType().cast(min);
+				setValue0(castMin);
+			this.min = castMin;
 		};
 
 		if (!isAttached())
@@ -168,7 +169,8 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 	@Override
 	@SuppressWarnings("unchecked")
 	public void setMax(Object max) {
-		if (this.max.equals(max))
+		T castMax = getType().cast(max);
+		if (this.max.equals(castMax))
 			return;
 
 		Comparable<? super Number> comparableMax = (Comparable<? super Number>) max;
@@ -176,8 +178,8 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 
 		Runnable update = () -> {
 			if (comparableMax.compareTo((Number) comparableValue) < 0)
-				setValue(max);
-			this.max = getType().cast(max);
+				setValue0(castMax);
+			this.max = castMax;
 		};
 
 		if (!isAttached())

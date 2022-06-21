@@ -137,15 +137,14 @@ public class Parameter<T> implements IParameter<T> {
 
 	@Override
 	public void setValue(Object value) {
-		if (this.value.equals(value))
+		T castValue = getType().cast(value);
+		if (this.value.equals(castValue))
 			return;
 
 		if (!isAttached())
-			this.value = type.cast(value);
-		else {
-			T oldValue = this.value;
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, value), () -> this.value = type.cast(value), new ParameterValueChangePostEvent(this, oldValue));
-		}
+			this.value = castValue;
+		else
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, value), () -> setValue0(castValue));
 	}
 
 	@Override
@@ -193,5 +192,16 @@ public class Parameter<T> implements IParameter<T> {
 	 */
 	protected boolean isAttached() {
 		return soundModifier != null && soundModifier.getChannel() != null;
+	}
+
+	/**
+	 * Set the current value of this parameter.
+	 * 
+	 * @param value The current parameter value.
+	 */
+	protected void setValue0(T value) {
+		T oldValue = this.value;
+		this.value = value;
+		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
 	}
 }
