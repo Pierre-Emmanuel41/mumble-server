@@ -19,8 +19,8 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class StandaloneMumbleServer extends AbstractMumbleServer implements IEventListener {
-	private static final String GAME_CLIENT = "GameClient";
-	private AtomicInteger externalGameServerPort;
+	private static final String GAME = "Game";
+	private AtomicInteger gamePort;
 	private StandaloneMumbleServerPersistence persistence;
 	private TcpServer tcpServer;
 	private StandaloneMumbleClient client;
@@ -39,7 +39,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	public StandaloneMumbleServer(String name, String path) {
 		super(name);
 
-		externalGameServerPort = new AtomicInteger(-1);
+		gamePort = new AtomicInteger(-1);
 		isOpened = new AtomicBoolean(false);
 		canConnect = new AtomicBoolean(true);
 
@@ -82,42 +82,49 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("name=" + getName());
-		joiner.add(String.format("mumble port = %s", getMumblePort()));
-		joiner.add(String.format("game server port = %s", getExternalGameServerPort()));
+		joiner.add(String.format("configuration port = %s", getConfigurationPort()));
+		joiner.add(String.format("vocal port = %s", getVocalPort()));
+		joiner.add(String.format("game server port = %s", getGamePort()));
 		return joiner.toString();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
+		if (!super.equals(obj))
+			return false;
 
 		if (!(obj instanceof StandaloneMumbleServer))
 			return false;
 
 		StandaloneMumbleServer other = (StandaloneMumbleServer) obj;
-		return getName().equals(other.getName()) && getMumblePort() == other.getMumblePort() && getExternalGameServerPort() == other.getExternalGameServerPort();
+		return getGamePort() == other.getGamePort();
 	}
 
 	/**
 	 * Set the port number on which there is the communication with the external game server. For internal use only.
 	 * 
-	 * @param externalGameServerPort The port number on which there is the communication with the external game server.
+	 * @param gamePort The port number on which there is the communication with the external game server.
 	 */
-	public void setExternalGameServerPort(int externalGameServerPort) {
-		if (!this.externalGameServerPort.compareAndSet(-1, externalGameServerPort))
-			throw new IllegalStateException("The port number has already been set");
+	public void setGamePort(int gamePort) {
+		if (gamePort == getConfigurationPort())
+			throw new IllegalStateException("The game port number must not be equals to the configuration port number");
 
-		tcpServer = new TcpServer(String.format("%s%s", getName(), GAME_CLIENT), externalGameServerPort, () -> new MumbleMessageExtractor(), true);
+		if (gamePort == getVocalPort())
+			throw new IllegalStateException("The game port number must not be equals to the vocal port number");
+
+		if (!this.gamePort.compareAndSet(-1, gamePort))
+			throw new IllegalStateException("The game port number has already been set");
+
+		tcpServer = new TcpServer(String.format("%s_%s", getName(), GAME), gamePort, () -> new MumbleMessageExtractor(), true);
 	}
 
 	/**
 	 * @return The port number on which there is the communication with the external game server.
 	 */
-	public int getExternalGameServerPort() {
-		return externalGameServerPort.get();
+	public int getGamePort() {
+		return gamePort.get();
 	}
 
 	@EventHandler

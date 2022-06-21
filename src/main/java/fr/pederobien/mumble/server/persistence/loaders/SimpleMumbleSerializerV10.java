@@ -20,7 +20,8 @@ public class SimpleMumbleSerializerV10 extends AbstractXmlMumbleSerializer<Simpl
 		checkServerType(root, STANDALONE_MUMBLE_SERVER);
 
 		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
-		element.setMumblePort(getIntNodeValue(port.getChildNodes().item(0)));
+		element.setConfigurationPort(getIntAttribute((Element) port, EMumbleXmlTag.CONFIGURATION_PORT));
+		element.setVocalPort(getIntAttribute((Element) port, EMumbleXmlTag.VOCAL_PORT));
 
 		// Setting server's channels
 		setChannels(element, root);
@@ -36,7 +37,8 @@ public class SimpleMumbleSerializerV10 extends AbstractXmlMumbleSerializer<Simpl
 
 		// Mumble port number
 		Element port = createElement(EMumbleXmlTag.PORT);
-		port.appendChild(createTextNode("" + element.getMumblePort()));
+		setAttribute(port, EMumbleXmlTag.CONFIGURATION_PORT, element.getConfigurationPort());
+		setAttribute(port, EMumbleXmlTag.VOCAL_PORT, element.getVocalPort());
 		root.appendChild(port);
 
 		Element channels = createElement(EMumbleXmlTag.CHANNELS);

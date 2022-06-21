@@ -24,8 +24,9 @@ public class StandaloneMumbleServerSerializerV10 extends AbstractXmlMumbleSerial
 
 		// Set the mumble port number and the external game server port number.
 		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
-		element.setMumblePort(getIntAttribute((Element) port, EMumbleXmlTag.MUMBLE_PORT));
-		element.setExternalGameServerPort(getIntAttribute((Element) port, EMumbleXmlTag.EXTERNAL_GAME_PORT));
+		element.setConfigurationPort(getIntAttribute((Element) port, EMumbleXmlTag.CONFIGURATION_PORT));
+		element.setVocalPort(getIntAttribute((Element) port, EMumbleXmlTag.VOCAL_PORT));
+		element.setGamePort(getIntAttribute((Element) port, EMumbleXmlTag.GAME_PORT));
 
 		// Set the channels
 		setChannels(element, root);
@@ -41,8 +42,9 @@ public class StandaloneMumbleServerSerializerV10 extends AbstractXmlMumbleSerial
 
 		// Server's port numbers
 		Element port = createElement(EMumbleXmlTag.PORT);
-		setAttribute(port, EMumbleXmlTag.MUMBLE_PORT, element.getMumblePort());
-		setAttribute(port, EMumbleXmlTag.EXTERNAL_GAME_PORT, element.getExternalGameServerPort());
+		setAttribute(port, EMumbleXmlTag.CONFIGURATION_PORT, element.getConfigurationPort());
+		setAttribute(port, EMumbleXmlTag.GAME_PORT, element.getGamePort());
+		setAttribute(port, EMumbleXmlTag.VOCAL_PORT, element.getVocalPort());
 		root.appendChild(port);
 
 		Element channels = createElement(EMumbleXmlTag.CHANNELS);

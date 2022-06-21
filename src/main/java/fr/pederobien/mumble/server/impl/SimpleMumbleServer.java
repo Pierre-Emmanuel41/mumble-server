@@ -58,21 +58,10 @@ public class SimpleMumbleServer extends AbstractMumbleServer {
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("name=" + getName());
-		joiner.add(String.format("mumble port = %s", getMumblePort()));
+		joiner.add(String.format("configuration port = %s", getConfigurationPort()));
+		joiner.add(String.format("vocal port = %s", getVocalPort()));
 		return joiner.toString();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (!(obj instanceof SimpleMumbleServer))
-			return false;
-
-		SimpleMumbleServer other = (SimpleMumbleServer) obj;
-		return getName().equals(other.getName()) && getMumblePort() == other.getMumblePort();
 	}
 }

@@ -20,7 +20,8 @@ public class StandaloneMumbleServerPersistence extends AbstractMumblePersistence
 	@Override
 	protected void onFailToDeserialize(StandaloneMumbleServer element, boolean loadingSucceed) {
 		element.getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
-		element.setMumblePort(28000);
-		element.setExternalGameServerPort(29000);
+		element.setConfigurationPort(28000);
+		element.setVocalPort(28100);
+		element.setGamePort(28200);
 	}
 }

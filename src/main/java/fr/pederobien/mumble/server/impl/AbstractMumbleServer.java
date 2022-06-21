@@ -15,8 +15,11 @@ import fr.pederobien.vocal.server.impl.VocalServer;
 import fr.pederobien.vocal.server.interfaces.IVocalServer;
 
 public abstract class AbstractMumbleServer implements IMumbleServer {
+	private static final String CONFIGURATION = "Configuration";
+	private static final String VOCAL = "Vocal";
+
 	private String name;
-	private AtomicInteger mumblePort;
+	private AtomicInteger configurationPort, vocalPort;
 	private IVocalServer vocalServer;
 	private TcpServer tcpServer;
 	private IChannelList channels;
@@ -32,7 +35,8 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	protected AbstractMumbleServer(String name) {
 		this.name = name;
 
-		mumblePort = new AtomicInteger(-1);
+		configurationPort = new AtomicInteger(-1);
+		vocalPort = new AtomicInteger(-1);
 		channels = new ChannelList(this);
 		players = new ServerPlayerList(this);
 		serverRequestManager = new ServerRequestManager(this);
@@ -70,6 +74,18 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		return channels;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof AbstractMumbleServer))
+			return false;
+
+		AbstractMumbleServer other = (AbstractMumbleServer) obj;
+		return getName().equals(other.getName()) && getConfigurationPort() == other.getConfigurationPort() && getVocalPort() == other.getVocalPort();
+	}
+
 	/**
 	 * @return The manager responsible to update the server configuration according to the reception of configuration requests.
 	 */
@@ -78,26 +94,50 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	}
 
 	/**
-	 * Set the port number on which the server receives configuration requests and on which players talk together. For internal use
-	 * only.
+	 * Set the port number on which the server receives configuration requests. For internal use only.
 	 * 
-	 * @param mumblePort The port on which the server receives configuration requests and on which players talk together.
+	 * @param configurationPort The port on which the server receives configuration requests.
 	 */
-	public void setMumblePort(int mumblePort) {
-		if (!this.mumblePort.compareAndSet(-1, mumblePort))
-			throw new IllegalStateException("The port number has already been set");
+	public void setConfigurationPort(int configurationPort) {
+		if (!this.configurationPort.compareAndSet(-1, configurationPort))
+			throw new IllegalStateException("The configuration port number has already been set");
 
-		tcpServer = new TcpServer(name, mumblePort, () -> new MumbleMessageExtractor(), true);
-		vocalServer = new VocalServer(name, mumblePort);
+		tcpServer = new TcpServer(String.format("%s_%s", name, CONFIGURATION), configurationPort, () -> new MumbleMessageExtractor(), true);
+	}
+
+	/**
+	 * Set the port number on which the underlying vocal server receives configuration requests and on which players talk together.
+	 * For internal use only.
+	 * 
+	 * @param vocalPort The port on which the underlying vocal server receives configuration requests and on which players talk
+	 *                  together.
+	 */
+	public void setVocalPort(int vocalPort) {
+		if (vocalPort == getConfigurationPort())
+			throw new IllegalStateException("The vocal port number must not be equals to the configuration port number");
+
+		if (!this.vocalPort.compareAndSet(-1, vocalPort))
+			throw new IllegalStateException("The vocal port number has already been set");
+
+		vocalServer = new VocalServer(String.format("%s_%s", name, VOCAL), vocalPort);
 	}
 
 	/**
 	 * For internal use only.
 	 * 
-	 * @return The port on which the server receives configuration requests and on which players talk together.
+	 * @return The port on which the server receives configuration requests.
 	 */
-	public int getMumblePort() {
-		return mumblePort.get();
+	public int getConfigurationPort() {
+		return configurationPort.get();
+	}
+
+	/**
+	 * For internal use only.
+	 * 
+	 * @return The port on which the underlying vocal server receives configuration requests and on which players talk together.
+	 */
+	public int getVocalPort() {
+		return vocalPort.get();
 	}
 
 	/**
