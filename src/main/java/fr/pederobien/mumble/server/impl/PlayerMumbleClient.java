@@ -19,6 +19,7 @@ import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
@@ -242,6 +243,14 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 			return;
 
 		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer())));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerKick(PlayerKickPostEvent event) {
+		if (!event.getPlayer().getServer().equals(getServer()))
+			return;
+
+		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerKick(getVersion(), event.getPlayer(), event.getKickingPlayer())));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

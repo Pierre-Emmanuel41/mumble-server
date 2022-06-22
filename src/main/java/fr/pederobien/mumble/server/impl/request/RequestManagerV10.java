@@ -90,7 +90,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy(holder));
 		getRequests().put(Identifier.GET_PLAYER_DEAFEN, holder -> getPlayerDeafen((GetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen(holder));
-		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel(holder));
 		getRequests().put(Identifier.GET_PLAYER_POSITION, holder -> getPlayerPosition((GetPlayerPositionV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
@@ -1120,17 +1120,31 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Kicks a player from a channel.
 	 * 
-	 * @param request The request received from the remote in order to kick a player from a channel.
+	 * @param holder The holder that contains the connection that received the request and the request itself.
 	 * 
 	 * @return The server answer.
 	 */
-	private IMumbleMessage kickPlayerFromChannel(KickPlayerFromChannelV10 request) {
+	private IMumbleMessage kickPlayerFromChannel(RequestReceivedHolder holder) {
+		KickPlayerFromChannelV10 request = (KickPlayerFromChannelV10) holder.getRequest();
+		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer().getName().equals(request.getKicking()));
+		Optional<IPlayer> optKickingPlayer;
+
+		// Case when the connection corresponds to a player connection -> Needs to check player's name match.
+		if (result.getHasRun()) {
+			if (!result.getResult())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_DOES_NOT_MATCH);
+			else
+				optKickingPlayer = Optional.of(((PlayerMumbleClient) holder.getConnection()).getPlayer());
+		}
+		// Case when the connection corresponds to a stand-alone connection -> Needs to check if the player exist.
+		else {
+			optKickingPlayer = getServer().getPlayers().get(request.getKicking());
+			if (!optKickingPlayer.isPresent())
+				return answer(getVersion(), holder.getRequest(), ErrorCode.PLAYER_NOT_FOUND);
+		}
+
 		Optional<IPlayer> optKickedPlayer = getServer().getPlayers().get(request.getKicked());
 		if (!optKickedPlayer.isPresent())
-			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
-
-		Optional<IPlayer> optKickingPlayer = getServer().getPlayers().get(request.getKicking());
-		if (!optKickingPlayer.isPresent())
 			return answer(getVersion(), request, ErrorCode.PLAYER_NOT_FOUND);
 
 		try {
