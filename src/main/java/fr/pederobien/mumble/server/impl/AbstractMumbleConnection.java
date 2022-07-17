@@ -70,7 +70,7 @@ public abstract class AbstractMumbleConnection {
 			return null;
 
 		try {
-			return MumbleServerMessageFactory.parse(event.getAnswer());
+			return MumbleServerMessageFactory.parse(event.getBuffer());
 		} catch (Exception e) {
 			return null;
 		}
