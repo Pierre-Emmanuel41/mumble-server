@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 
-public class PlayerEvent extends MumbleEvent {
+public class PlayerEvent extends ProjectMumbleServerEvent {
 	private IPlayer player;
 
 	/**

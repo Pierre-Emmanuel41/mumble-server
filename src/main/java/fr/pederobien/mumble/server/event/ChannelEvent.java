@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.IChannel;
 
-public class ChannelEvent extends MumbleEvent {
+public class ChannelEvent extends ProjectMumbleServerEvent {
 	private IChannel channel;
 
 	/**

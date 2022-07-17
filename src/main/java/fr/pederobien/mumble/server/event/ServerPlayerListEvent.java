@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 
-public class ServerPlayerListEvent extends MumbleEvent {
+public class ServerPlayerListEvent extends ProjectMumbleServerEvent {
 	private IServerPlayerList list;
 
 	/**

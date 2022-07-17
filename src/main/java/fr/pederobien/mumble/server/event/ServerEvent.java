@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 
-public class ServerEvent extends MumbleEvent {
+public class ServerEvent extends ProjectMumbleServerEvent {
 	private IMumbleServer server;
 
 	/**

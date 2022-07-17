@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 
-public class SoundModifierEvent extends MumbleEvent {
+public class SoundModifierEvent extends ProjectMumbleServerEvent {
 	private ISoundModifier soundModifier;
 
 	/**

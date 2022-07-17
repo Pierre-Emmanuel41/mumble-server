@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.event;
 
 import fr.pederobien.mumble.server.interfaces.IParameter;
 
-public class ParameterEvent extends MumbleEvent {
+public class ParameterEvent extends ProjectMumbleServerEvent {
 	private IParameter<?> parameter;
 
 	/**
