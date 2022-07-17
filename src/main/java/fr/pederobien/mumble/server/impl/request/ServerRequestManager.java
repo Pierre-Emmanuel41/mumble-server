@@ -4,7 +4,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
 import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
@@ -44,7 +44,7 @@ public class ServerRequestManager implements IServerRequestManager {
 		IRequestManager manager = managers.get(holder.getRequest().getHeader().getVersion());
 
 		if (manager == null)
-			return MumbleServerMessageFactory.answer(holder.getRequest(), ErrorCode.INCOMPATIBLE_VERSION);
+			return MumbleServerMessageFactory.answer(holder.getRequest(), MumbleErrorCode.INCOMPATIBLE_VERSION);
 
 		return manager.answer(holder);
 	}

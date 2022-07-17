@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
@@ -17,13 +17,10 @@ import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerKickPostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerMuteByChangePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerPositionChangePostEvent;
@@ -222,30 +219,6 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteChange(MumblePlayerMuteChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
-			return;
-
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer())));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteByChange(MumblePlayerMuteByChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()) || !event.getSource().equals(player))
-			return;
-
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), event.getSource())));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerDeafenChange(MumblePlayerDeafenChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
-			return;
-
-		doIfPlayerJoined(() -> send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer())));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerKick(MumblePlayerKickPostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
@@ -319,7 +292,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		// There is no need to answer to a server join request.
 		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_JOIN) {
 			if (!isJoined.compareAndSet(false, true))
-				send(MumbleServerMessageFactory.answer(request, ErrorCode.SERVER_ALREADY_JOINED));
+				send(MumbleServerMessageFactory.answer(request, MumbleErrorCode.SERVER_ALREADY_JOINED));
 			else {
 				EventManager.callEvent(new MumbleServerClientJoinPostEvent(getServer(), this));
 				send(MumbleServerMessageFactory.answer(request));
@@ -341,7 +314,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		if (checkPermission(request))
 			send(getServer().getRequestManager().answer(new RequestReceivedHolder(request, this)));
 		else
-			send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+			send(MumbleServerMessageFactory.answer(request, MumbleErrorCode.PERMISSION_REFUSED));
 	}
 
 	@EventHandler

@@ -1,9 +1,11 @@
 package fr.pederobien.mumble.server.impl;
 
+import java.util.Optional;
+
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
@@ -12,13 +14,10 @@ import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerDeafenChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerKickPostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerMuteByChangePostEvent;
-import fr.pederobien.mumble.server.event.MumblePlayerMuteChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerPositionChangePostEvent;
@@ -26,11 +25,16 @@ import fr.pederobien.mumble.server.event.MumbleServerChannelAddPostEvent;
 import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePostEvent;
 import fr.pederobien.mumble.server.event.MumbleServerPlayerAddPostEvent;
 import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
+import fr.pederobien.vocal.server.event.VocalPlayerDeafenChangePostEvent;
+import fr.pederobien.vocal.server.event.VocalPlayerMuteByChangePostEvent;
+import fr.pederobien.vocal.server.event.VocalPlayerMuteChangePostEvent;
+import fr.pederobien.vocal.server.interfaces.IVocalPlayer;
 
 public class StandaloneMumbleClient extends AbstractMumbleConnection implements IEventListener {
 
@@ -120,27 +124,32 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteChange(MumblePlayerMuteChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
+	private void onPlayerMuteChange(VocalPlayerMuteChangePostEvent event) {
+		Optional<IPlayer> optPlayer = getMumblePlayer(event.getPlayer());
+		if (!optPlayer.isPresent())
 			return;
 
-		send(getServer().getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer()));
+		send(getServer().getRequestManager().onPlayerMuteChange(getVersion(), optPlayer.get()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteByChange(MumblePlayerMuteByChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
+	private void onPlayerMuteByChange(VocalPlayerMuteByChangePostEvent event) {
+		Optional<IPlayer> optSource = getMumblePlayer(event.getSource());
+		Optional<IPlayer> optTarget = getMumblePlayer(event.getSource());
+
+		if (!optSource.isPresent() || !optTarget.isPresent())
 			return;
 
-		send(getServer().getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), event.getSource()));
+		send(getServer().getRequestManager().onPlayerMuteByChange(getVersion(), optTarget.get(), optSource.get()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerDeafenChange(MumblePlayerDeafenChangePostEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
+	private void onPlayerDeafenChange(VocalPlayerDeafenChangePostEvent event) {
+		Optional<IPlayer> optPlayer = getMumblePlayer(event.getPlayer());
+		if (!optPlayer.isPresent())
 			return;
 
-		send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer()));
+		send(getServer().getRequestManager().onPlayerDeafenChange(getVersion(), optPlayer.get()));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -220,7 +229,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 			if (request.getHeader().getIdentifier() != Identifier.UNKNOWN)
 				send(getServer().getRequestManager().answer(new RequestReceivedHolder(request, this)));
 			else
-				send(MumbleServerMessageFactory.answer(request, ErrorCode.PERMISSION_REFUSED));
+				send(MumbleServerMessageFactory.answer(request, MumbleErrorCode.PERMISSION_REFUSED));
 		}
 	}
 
@@ -232,5 +241,23 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 		getTcpConnection().dispose();
 		getServer().getPlayers().clear();
 		EventManager.unregisterListener(this);
+	}
+
+	/**
+	 * Get the mumble player associated to the given vocal player.
+	 * 
+	 * @param vocalPlayer The vocal player used to get its associated mumble player.
+	 * 
+	 * @return An optional that contains the mumble player associated to the vocal player, or an empty optional.
+	 */
+	private Optional<IPlayer> getMumblePlayer(IVocalPlayer vocalPlayer) {
+		Optional<IPlayer> optPlayer = getServer().getPlayers().get(vocalPlayer.getName());
+		if (!optPlayer.isPresent())
+			return Optional.empty();
+
+		if (!(optPlayer.get() instanceof Player))
+			return Optional.empty();
+
+		return ((Player) optPlayer.get()).getVocalPlayer().equals(vocalPlayer) ? optPlayer : Optional.empty();
 	}
 }

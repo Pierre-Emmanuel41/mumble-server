@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.AbstractMumbleConnection;
@@ -39,7 +39,7 @@ public abstract class RequestManager implements IRequestManager {
 	public IMumbleMessage answer(RequestReceivedHolder holder) {
 		Function<RequestReceivedHolder, IMumbleMessage> answer = requests.get(holder.getRequest().getHeader().getIdentifier());
 		if (answer == null)
-			return MumbleServerMessageFactory.answer(holder.getRequest(), ErrorCode.IDENTIFIER_UNKNOWN);
+			return MumbleServerMessageFactory.answer(holder.getRequest(), MumbleErrorCode.IDENTIFIER_UNKNOWN);
 
 		return answer.apply(holder);
 	}
@@ -88,12 +88,12 @@ public abstract class RequestManager implements IRequestManager {
 	 * 
 	 * @param version   The protocol version to use for the returned message.
 	 * @param request   The request to answer.
-	 * @param errorCode The error code of the response.
+	 * @param mumbleErrorCode The error code of the response.
 	 * 
 	 * @return The message associated to the answer.
 	 */
-	protected IMumbleMessage answer(float version, IMumbleMessage message, ErrorCode errorCode) {
-		return MumbleServerMessageFactory.answer(version, message, errorCode);
+	protected IMumbleMessage answer(float version, IMumbleMessage message, MumbleErrorCode mumbleErrorCode) {
+		return MumbleServerMessageFactory.answer(version, message, mumbleErrorCode);
 	}
 
 	/**
