@@ -47,6 +47,7 @@ import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.exceptions.PlayerMumbleClientNotJoinedException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
+import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.server.impl.SoundManager;
@@ -602,6 +603,9 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private IMumbleMessage getServerConfiguration(RequestReceivedHolder holder) {
 		List<Object> informations = new ArrayList<Object>();
+
+		// Vocal server's port number
+		informations.add(((AbstractMumbleServer) getServer()).getVocalPort());
 
 		RunResult result = runIfInstanceof(holder, PlayerMumbleClient.class, client -> client.getPlayer() != null && client.getPlayer().isOnline());
 
