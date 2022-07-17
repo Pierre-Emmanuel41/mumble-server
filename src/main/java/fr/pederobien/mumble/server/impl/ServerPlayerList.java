@@ -13,12 +13,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPreEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerAddPreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePreEvent;
 import fr.pederobien.mumble.server.exceptions.ServerPlayerListPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
@@ -68,7 +68,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 			throw new ServerPlayerListPlayerAlreadyRegisteredException(server.getPlayers(), optPlayer.get());
 
 		IPlayer player = new Player(getServer(), name, gameAddress, isAdmin, x, y, z, yaw, pitch);
-		ServerPlayerAddPreEvent preEvent = new ServerPlayerAddPreEvent(this, player);
+		MumbleServerPlayerAddPreEvent preEvent = new MumbleServerPlayerAddPreEvent(this, player);
 		EventManager.callEvent(preEvent, () -> addPlayer(player));
 		return preEvent.isCancelled() ? null : player;
 	}
@@ -79,7 +79,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		if (!optPlayer.isPresent())
 			return null;
 
-		ServerPlayerRemovePreEvent preEvent = new ServerPlayerRemovePreEvent(this, optPlayer.get());
+		MumbleServerPlayerRemovePreEvent preEvent = new MumbleServerPlayerRemovePreEvent(this, optPlayer.get());
 		EventManager.callEvent(preEvent, () -> removePlayer(name));
 		return preEvent.isCancelled() ? null : optPlayer.get();
 	}
@@ -95,7 +95,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		try {
 			Set<String> names = new HashSet<String>(players.keySet());
 			for (String name : names) {
-				EventManager.callEvent(new ServerPlayerRemovePostEvent(this, players.remove(name)));
+				EventManager.callEvent(new MumbleServerPlayerRemovePostEvent(this, players.remove(name)));
 			}
 		} finally {
 			lock.unlock();
@@ -125,7 +125,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+	private void onPlayerNameChange(MumblePlayerNameChangePostEvent event) {
 		Optional<IPlayer> optOldPlayer = get(event.getOldName());
 		if (!optOldPlayer.isPresent())
 			return;
@@ -143,7 +143,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onServerClosing(ServerClosePostEvent event) {
+	private void onServerClosing(MumbleServerClosePostEvent event) {
 		EventManager.unregisterListener(this);
 	}
 
@@ -160,7 +160,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 			lock.unlock();
 		}
 
-		EventManager.callEvent(new ServerPlayerAddPostEvent(this, player));
+		EventManager.callEvent(new MumbleServerPlayerAddPostEvent(this, player));
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		}
 
 		if (player != null)
-			EventManager.callEvent(new ServerPlayerRemovePostEvent(this, player));
+			EventManager.callEvent(new MumbleServerPlayerRemovePostEvent(this, player));
 
 		return player;
 	}

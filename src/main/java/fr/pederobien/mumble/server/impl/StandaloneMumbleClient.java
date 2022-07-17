@@ -6,26 +6,26 @@ import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
-import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterMaxValueChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterMinValueChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerDeafenChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerKickPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteByChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerPositionChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePostEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -48,7 +48,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelAdded(ServerChannelAddPostEvent event) {
+	private void onChannelAdded(MumbleServerChannelAddPostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -56,7 +56,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelRemove(ServerChannelRemovePostEvent event) {
+	private void onChannelRemove(MumbleServerChannelRemovePostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -64,7 +64,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelNameChange(ChannelNameChangePostEvent event) {
+	private void onChannelNameChange(MumbleChannelNameChangePostEvent event) {
 		if (!event.getChannel().getServer().equals(getServer()))
 			return;
 
@@ -72,7 +72,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
+	private void onServerPlayerAdd(MumbleServerPlayerAddPostEvent event) {
 		if (!event.getList().getServer().equals(getServer()))
 			return;
 
@@ -80,7 +80,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+	private void onServerPlayerRemove(MumbleServerPlayerRemovePostEvent event) {
 		if (!event.getList().getServer().equals(getServer()))
 			return;
 
@@ -88,7 +88,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+	private void onPlayerNameChange(MumblePlayerNameChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -96,7 +96,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+	private void onPlayerOnlineChange(MumblePlayerOnlineChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -104,7 +104,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerGameAddressChange(PlayerGameAddressChangePostEvent event) {
+	private void onPlayerGameAddressChange(MumblePlayerGameAddressChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -112,7 +112,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerAdminChange(PlayerAdminChangePostEvent event) {
+	private void onPlayerAdminChange(MumblePlayerAdminChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -120,7 +120,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteChange(PlayerMuteChangePostEvent event) {
+	private void onPlayerMuteChange(MumblePlayerMuteChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -128,7 +128,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteByChange(PlayerMuteByChangePostEvent event) {
+	private void onPlayerMuteByChange(MumblePlayerMuteByChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -136,7 +136,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerDeafenChange(PlayerDeafenChangePostEvent event) {
+	private void onPlayerDeafenChange(MumblePlayerDeafenChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -144,7 +144,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerKick(PlayerKickPostEvent event) {
+	private void onPlayerKick(MumblePlayerKickPostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -152,7 +152,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerPositionChange(PlayerPositionChangePostEvent event) {
+	private void onPlayerPositionChange(MumblePlayerPositionChangePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -160,7 +160,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerAdd(PlayerListPlayerAddPostEvent event) {
+	private void onChannelPlayerAdd(MumblePlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -168,7 +168,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+	private void onChannelPlayerRemove(MumblePlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -176,7 +176,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterValueChange(ParameterValueChangePostEvent event) {
+	private void onParameterValueChange(MumbleParameterValueChangePostEvent event) {
 		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
@@ -184,7 +184,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterMinValueChange(ParameterMinValueChangePostEvent event) {
+	private void onParameterMinValueChange(MumbleParameterMinValueChangePostEvent event) {
 		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
@@ -192,7 +192,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterMaxValueChange(ParameterMaxValueChangePostEvent event) {
+	private void onParameterMaxValueChange(MumbleParameterMaxValueChangePostEvent event) {
 		if (!getServer().getChannels().toList().contains(event.getParameter().getSoundModifier().getChannel()))
 			return;
 
@@ -200,7 +200,7 @@ public class StandaloneMumbleClient extends AbstractMumbleConnection implements 
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelSoundModifierChanged(ChannelSoundModifierChangePostEvent event) {
+	private void onChannelSoundModifierChanged(MumbleChannelSoundModifierChangePostEvent event) {
 		if (!getServer().getChannels().toList().contains(event.getChannel()))
 			return;
 

@@ -3,8 +3,8 @@ package fr.pederobien.mumble.server.impl;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
-import fr.pederobien.mumble.server.event.PlayerPositionChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerPositionChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerPositionChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerPositionChangePreEvent;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
@@ -89,7 +89,7 @@ public class Position implements IPosition {
 		if (this.x == x && this.y == y && this.z == z && this.yaw == yaw && this.pitch == pitch)
 			return;
 
-		EventManager.callEvent(new PlayerPositionChangePreEvent(player, x, y, z, yaw, pitch), () -> update0(x, y, z, yaw, pitch));
+		EventManager.callEvent(new MumblePlayerPositionChangePreEvent(player, x, y, z, yaw, pitch), () -> update0(x, y, z, yaw, pitch));
 	}
 
 	private String format(double number) {
@@ -111,6 +111,6 @@ public class Position implements IPosition {
 
 		double oldPitch = this.pitch;
 		this.pitch = pitch;
-		EventManager.callEvent(new PlayerPositionChangePostEvent(player, oldX, oldY, oldZ, oldYaw, oldPitch));
+		EventManager.callEvent(new MumblePlayerPositionChangePostEvent(player, oldX, oldY, oldZ, oldYaw, oldPitch));
 	}
 }

@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
-import fr.pederobien.mumble.server.event.ParameterValueChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterValueChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterValueChangePreEvent;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -144,7 +144,7 @@ public class Parameter<T> implements IParameter<T> {
 		if (!isAttached())
 			this.value = castValue;
 		else
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, value), () -> setValue0(castValue));
+			EventManager.callEvent(new MumbleParameterValueChangePreEvent(this, value), () -> setValue0(castValue));
 	}
 
 	@Override
@@ -202,6 +202,6 @@ public class Parameter<T> implements IParameter<T> {
 	protected void setValue0(T value) {
 		T oldValue = this.value;
 		this.value = value;
-		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+		EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
 	}
 }

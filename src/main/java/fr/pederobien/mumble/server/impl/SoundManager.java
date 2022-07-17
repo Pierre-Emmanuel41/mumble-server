@@ -4,10 +4,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import fr.pederobien.mumble.server.event.SoundModifierRegisterPostEvent;
-import fr.pederobien.mumble.server.event.SoundModifierRegisterPreEvent;
-import fr.pederobien.mumble.server.event.SoundModifierUnregisterPostEvent;
-import fr.pederobien.mumble.server.event.SoundModifierUnregisterPreEvent;
+import fr.pederobien.mumble.server.event.MumbleSoundModifierRegisterPostEvent;
+import fr.pederobien.mumble.server.event.MumbleSoundModifierRegisterPreEvent;
+import fr.pederobien.mumble.server.event.MumbleSoundModifierUnregisterPostEvent;
+import fr.pederobien.mumble.server.event.MumbleSoundModifierUnregisterPreEvent;
 import fr.pederobien.mumble.server.impl.modifiers.SoundModifier;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -34,7 +34,7 @@ public class SoundManager {
 			return;
 
 		Runnable add = () -> sounds.put(soundModifier.getName(), soundModifier);
-		EventManager.callEvent(new SoundModifierRegisterPreEvent(soundModifier), add, new SoundModifierRegisterPostEvent(soundModifier));
+		EventManager.callEvent(new MumbleSoundModifierRegisterPreEvent(soundModifier), add, new MumbleSoundModifierRegisterPostEvent(soundModifier));
 	}
 
 	/**
@@ -48,14 +48,14 @@ public class SoundManager {
 		if (soundModifier.getName().equals(DEFAULT_SOUND_MODIFIER_NAME))
 			return false;
 
-		SoundModifierUnregisterPreEvent preEvent = new SoundModifierUnregisterPreEvent(soundModifier);
+		MumbleSoundModifierUnregisterPreEvent preEvent = new MumbleSoundModifierUnregisterPreEvent(soundModifier);
 		EventManager.callEvent(preEvent);
 		if (preEvent.isCancelled())
 			return false;
 
 		boolean registered = sounds.remove(soundModifier.getName()) != null;
 		if (registered)
-			EventManager.callEvent(new SoundModifierUnregisterPostEvent(soundModifier));
+			EventManager.callEvent(new MumbleSoundModifierUnregisterPostEvent(soundModifier));
 		return registered;
 	}
 

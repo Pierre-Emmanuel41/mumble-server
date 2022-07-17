@@ -13,11 +13,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelAddPreEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePreEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelAddPreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePreEvent;
 import fr.pederobien.mumble.server.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.server.exceptions.SoundModifierDoesNotExistException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -53,9 +53,9 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@Override
 	public IChannel add(String channelName, String soundModifierName) {
-		ServerChannelAddPreEvent preEvent = new ServerChannelAddPreEvent(server, channelName, soundModifierName);
+		MumbleServerChannelAddPreEvent preEvent = new MumbleServerChannelAddPreEvent(server, channelName, soundModifierName);
 		Supplier<IChannel> update = () -> addChannel(channelName, soundModifierName);
-		return EventManager.callEvent(preEvent, update, channel -> new ServerChannelAddPostEvent(server, channel));
+		return EventManager.callEvent(preEvent, update, channel -> new MumbleServerChannelAddPostEvent(server, channel));
 	}
 
 	@Override
@@ -65,8 +65,8 @@ public class ChannelList implements IChannelList, IEventListener {
 			return null;
 
 		Supplier<IChannel> update = () -> removeChannel(name);
-		ServerChannelRemovePreEvent preEvent = new ServerChannelRemovePreEvent(server, optChannel.get());
-		return EventManager.callEvent(preEvent, update, channel -> new ServerChannelRemovePostEvent(server, channel));
+		MumbleServerChannelRemovePreEvent preEvent = new MumbleServerChannelRemovePreEvent(server, optChannel.get());
+		return EventManager.callEvent(preEvent, update, channel -> new MumbleServerChannelRemovePostEvent(server, channel));
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class ChannelList implements IChannelList, IEventListener {
 			for (String name : names) {
 				IChannel channel = channels.remove(name);
 				channel.getPlayers().clear();
-				EventManager.callEvent(new ServerChannelRemovePostEvent(server, channel));
+				EventManager.callEvent(new MumbleServerChannelRemovePostEvent(server, channel));
 			}
 		} finally {
 			lock.unlock();
@@ -105,7 +105,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	@EventHandler
-	private void onChannelNameChangePost(ChannelNameChangePostEvent event) {
+	private void onChannelNameChangePost(MumbleChannelNameChangePostEvent event) {
 		Optional<IChannel> optOldChannel = get(event.getOldName());
 		if (!optOldChannel.isPresent())
 			return;

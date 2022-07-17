@@ -3,10 +3,10 @@ package fr.pederobien.mumble.server.impl;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePreEvent;
-import fr.pederobien.mumble.server.event.ServerOpenPostEvent;
-import fr.pederobien.mumble.server.event.ServerOpenPreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerOpenPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerOpenPreEvent;
 import fr.pederobien.mumble.server.persistence.SimpleMumbleServerPersistence;
 import fr.pederobien.utils.event.EventManager;
 
@@ -36,7 +36,7 @@ public class SimpleMumbleServer extends AbstractMumbleServer {
 		if (!isOpened.compareAndSet(false, true))
 			return;
 
-		EventManager.callEvent(new ServerOpenPreEvent(this), () -> super.open(), new ServerOpenPostEvent(this));
+		EventManager.callEvent(new MumbleServerOpenPreEvent(this), () -> super.open(), new MumbleServerOpenPostEvent(this));
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class SimpleMumbleServer extends AbstractMumbleServer {
 			super.close();
 			persistence.serialize(this);
 		};
-		EventManager.callEvent(new ServerClosePreEvent(this), update, new ServerClosePostEvent(this));
+		EventManager.callEvent(new MumbleServerClosePreEvent(this), update, new MumbleServerClosePostEvent(this));
 	}
 
 	@Override

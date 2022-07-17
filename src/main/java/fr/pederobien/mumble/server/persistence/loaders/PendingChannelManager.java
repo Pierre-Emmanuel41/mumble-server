@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import fr.pederobien.mumble.server.event.SoundModifierRegisterPostEvent;
+import fr.pederobien.mumble.server.event.MumbleSoundModifierRegisterPostEvent;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IParameterList;
@@ -47,7 +47,7 @@ public class PendingChannelManager implements IEventListener {
 	}
 
 	@EventHandler
-	private void onSoundModifierRegister(SoundModifierRegisterPostEvent event) {
+	private void onSoundModifierRegister(MumbleSoundModifierRegisterPostEvent event) {
 		List<SetupChannel> channels = pendingChannels.remove(event.getSoundModifier().getName());
 		if (channels == null)
 			return;

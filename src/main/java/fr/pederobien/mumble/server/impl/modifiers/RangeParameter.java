@@ -3,10 +3,10 @@ package fr.pederobien.mumble.server.impl.modifiers;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
-import fr.pederobien.mumble.server.event.ParameterMaxValueChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterMaxValueChangePreEvent;
-import fr.pederobien.mumble.server.event.ParameterMinValueChangePostEvent;
-import fr.pederobien.mumble.server.event.ParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -157,7 +157,7 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 			update.run();
 		else {
 			T oldMin = this.min;
-			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, min), update, new ParameterMinValueChangePostEvent(this, oldMin));
+			EventManager.callEvent(new MumbleParameterMinValueChangePreEvent(this, min), update, new MumbleParameterMinValueChangePostEvent(this, oldMin));
 		}
 	}
 
@@ -186,7 +186,7 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 			update.run();
 		else {
 			T oldMax = this.max;
-			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, max), update, new ParameterMaxValueChangePostEvent(this, oldMax));
+			EventManager.callEvent(new MumbleParameterMaxValueChangePreEvent(this, max), update, new MumbleParameterMaxValueChangePostEvent(this, oldMax));
 		}
 	}
 

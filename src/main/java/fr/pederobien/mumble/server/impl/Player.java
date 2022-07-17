@@ -8,25 +8,25 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.server.event.PlayerAdminChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerAdminChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerDeafenChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerDeafenChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerGameAddressChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerGameAddressChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.server.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteByChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteByChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerMuteChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerNameChangePreEvent;
-import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerOnlineChangePreEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerDeafenChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerDeafenChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerKickPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerKickPreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteByChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteByChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerMuteChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerNameChangePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.server.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -92,7 +92,7 @@ public class Player implements IPlayer, IEventListener {
 			return;
 
 		String oldName = this.name;
-		EventManager.callEvent(new PlayerNameChangePreEvent(this, name), () -> this.name = name, new PlayerNameChangePostEvent(this, oldName));
+		EventManager.callEvent(new MumblePlayerNameChangePreEvent(this, name), () -> this.name = name, new MumblePlayerNameChangePostEvent(this, oldName));
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class Player implements IPlayer, IEventListener {
 
 		InetSocketAddress oldGameAddress = this.gameAddress;
 		Runnable update = () -> this.gameAddress = gameAddress;
-		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, gameAddress), update, new PlayerGameAddressChangePostEvent(this, oldGameAddress));
+		EventManager.callEvent(new MumblePlayerGameAddressChangePreEvent(this, gameAddress), update, new MumblePlayerGameAddressChangePostEvent(this, oldGameAddress));
 	}
 
 	@Override
@@ -127,7 +127,7 @@ public class Player implements IPlayer, IEventListener {
 
 		boolean oldAdmin = this.isAdmin;
 		Runnable update = () -> this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminChangePreEvent(this, isAdmin), update, new PlayerAdminChangePostEvent(this, oldAdmin));
+		EventManager.callEvent(new MumblePlayerAdminChangePreEvent(this, isAdmin), update, new MumblePlayerAdminChangePostEvent(this, oldAdmin));
 	}
 
 	@Override
@@ -142,7 +142,7 @@ public class Player implements IPlayer, IEventListener {
 
 		boolean oldOnline = this.isOnline;
 		Runnable update = () -> this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineChangePreEvent(this, isOnline), update, new PlayerOnlineChangePostEvent(this, oldOnline));
+		EventManager.callEvent(new MumblePlayerOnlineChangePreEvent(this, isOnline), update, new MumblePlayerOnlineChangePostEvent(this, oldOnline));
 	}
 
 	@Override
@@ -168,7 +168,7 @@ public class Player implements IPlayer, IEventListener {
 		checkChannel();
 		boolean oldMute = this.isMute;
 		Runnable update = () -> this.isMute = isMute;
-		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), update, new PlayerMuteChangePostEvent(this, oldMute));
+		EventManager.callEvent(new MumblePlayerMuteChangePreEvent(this, isMute), update, new MumblePlayerMuteChangePostEvent(this, oldMute));
 	}
 
 	@Override
@@ -182,7 +182,7 @@ public class Player implements IPlayer, IEventListener {
 		if (!getServer().getPlayers().toList().contains(player))
 			throw new IllegalArgumentException("The player must be registered on the server");
 
-		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute), () -> setMuteBy0(player, isMute));
+		EventManager.callEvent(new MumblePlayerMuteByChangePreEvent(this, player, isMute), () -> setMuteBy0(player, isMute));
 	}
 
 	@Override
@@ -203,7 +203,7 @@ public class Player implements IPlayer, IEventListener {
 		checkChannel();
 		boolean oldDeafen = this.isDeafen;
 		Runnable update = () -> this.isDeafen = isDeafen;
-		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), update, new PlayerDeafenChangePostEvent(this, oldDeafen));
+		EventManager.callEvent(new MumblePlayerDeafenChangePreEvent(this, isDeafen), update, new MumblePlayerDeafenChangePostEvent(this, oldDeafen));
 	}
 
 	@Override
@@ -216,9 +216,9 @@ public class Player implements IPlayer, IEventListener {
 
 		Runnable update = () -> {
 			IChannel oldChannel = channel;
-			EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, kickingPlayer));
+			EventManager.callEvent(new MumblePlayerKickPostEvent(this, oldChannel, kickingPlayer));
 		};
-		EventManager.callEvent(new PlayerKickPreEvent(this, channel, kickingPlayer), update);
+		EventManager.callEvent(new MumblePlayerKickPreEvent(this, channel, kickingPlayer), update);
 	}
 
 	@Override
@@ -248,7 +248,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onChannelsPlayerAdd(PlayerListPlayerAddPostEvent event) {
+	private void onChannelsPlayerAdd(MumblePlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -256,7 +256,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+	private void onChannelsPlayerRemove(MumblePlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -264,7 +264,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onPlayerKick(PlayerKickPostEvent event) {
+	private void onPlayerKick(MumblePlayerKickPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -272,13 +272,13 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+	private void onServerPlayerRemove(MumbleServerPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
 		if (isOnline) {
 			this.isOnline = false;
-			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, true));
+			EventManager.callEvent(new MumblePlayerOnlineChangePostEvent(this, true));
 		}
 
 		EventManager.unregisterListener(this);
@@ -308,6 +308,6 @@ public class Player implements IPlayer, IEventListener {
 			lock.unlock();
 		}
 
-		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, source, oldMute));
+		EventManager.callEvent(new MumblePlayerMuteByChangePostEvent(this, source, oldMute));
 	}
 }

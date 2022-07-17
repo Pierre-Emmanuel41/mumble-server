@@ -1,11 +1,11 @@
 package fr.pederobien.mumble.server.impl;
 
-import fr.pederobien.mumble.server.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.server.event.ChannelNameChangePreEvent;
-import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePostEvent;
-import fr.pederobien.mumble.server.event.ChannelSoundModifierChangePreEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelNameChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleChannelSoundModifierChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.server.impl.modifiers.SoundModifier;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IChannelPlayerList;
@@ -55,7 +55,7 @@ public class Channel implements IChannel, IEventListener {
 			return;
 
 		String oldName = this.name;
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> this.name = name, new ChannelNameChangePostEvent(this, oldName));
+		EventManager.callEvent(new MumbleChannelNameChangePreEvent(this, name), () -> this.name = name, new MumbleChannelNameChangePostEvent(this, oldName));
 	}
 
 	@Override
@@ -80,8 +80,8 @@ public class Channel implements IChannel, IEventListener {
 			this.soundModifier = futur;
 			((SoundModifier) this.soundModifier).setChannel(this);
 		};
-		ChannelSoundModifierChangePreEvent preEvent = new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), futur);
-		ChannelSoundModifierChangePostEvent postEvent = new ChannelSoundModifierChangePostEvent(this, oldSoundModifier);
+		MumbleChannelSoundModifierChangePreEvent preEvent = new MumbleChannelSoundModifierChangePreEvent(this, getSoundModifier(), futur);
+		MumbleChannelSoundModifierChangePostEvent postEvent = new MumbleChannelSoundModifierChangePostEvent(this, oldSoundModifier);
 		EventManager.callEvent(preEvent, set, postEvent);
 	}
 
@@ -91,7 +91,7 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	@EventHandler
-	private void onServerClosing(ServerClosePostEvent event) {
+	private void onServerClosing(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(server))
 			return;
 
@@ -100,7 +100,7 @@ public class Channel implements IChannel, IEventListener {
 	}
 
 	@EventHandler
-	private void onChannelRemove(ServerChannelRemovePostEvent event) {
+	private void onChannelRemove(MumbleServerChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(this))
 			return;
 

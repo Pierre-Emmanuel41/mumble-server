@@ -9,10 +9,10 @@ import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePreEvent;
-import fr.pederobien.mumble.server.event.ServerOpenPostEvent;
-import fr.pederobien.mumble.server.event.ServerOpenPreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePreEvent;
+import fr.pederobien.mumble.server.event.MumbleServerOpenPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerOpenPreEvent;
 import fr.pederobien.mumble.server.persistence.StandaloneMumbleServerPersistence;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -58,7 +58,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 			super.open();
 			tcpServer.connect();
 		};
-		EventManager.callEvent(new ServerOpenPreEvent(this), update, new ServerOpenPostEvent(this));
+		EventManager.callEvent(new MumbleServerOpenPreEvent(this), update, new MumbleServerOpenPostEvent(this));
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 			persistence.serialize(this);
 			client = null;
 		};
-		EventManager.callEvent(new ServerClosePreEvent(this), update, new ServerClosePostEvent(this));
+		EventManager.callEvent(new MumbleServerClosePreEvent(this), update, new MumbleServerClosePostEvent(this));
 	}
 
 	@Override

@@ -12,15 +12,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.server.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerAddPreEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.server.event.PlayerListPlayerRemovePreEvent;
-import fr.pederobien.mumble.server.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.server.event.PlayerOnlineChangePostEvent;
-import fr.pederobien.mumble.server.event.ServerChannelRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerClosePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerKickPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerAddPreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerNameChangePostEvent;
+import fr.pederobien.mumble.server.event.MumblePlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerChannelRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.server.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.server.exceptions.PlayerMumbleClientNotJoinedException;
 import fr.pederobien.mumble.server.interfaces.IChannel;
@@ -70,7 +70,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		Optional<PlayerMumbleClient> optClient = server.getClients().get(player.getName());
 		if (optClient.isPresent()) {
 			if (optClient.get().isJoined())
-				EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
+				EventManager.callEvent(new MumblePlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
 			else
 				throw new PlayerMumbleClientNotJoinedException(player);
 		}
@@ -82,7 +82,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		if (!optPlayer.isPresent())
 			return null;
 
-		EventManager.callEvent(new PlayerListPlayerRemovePreEvent(this, optPlayer.get()), () -> removePlayer(optPlayer.get()));
+		EventManager.callEvent(new MumblePlayerListPlayerRemovePreEvent(this, optPlayer.get()), () -> removePlayer(optPlayer.get()));
 		return optPlayer.get();
 	}
 
@@ -97,7 +97,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		try {
 			Set<String> names = new HashSet<String>(players.keySet());
 			for (String name : names)
-				EventManager.callEvent(new PlayerListPlayerRemovePostEvent(this, players.remove(name)));
+				EventManager.callEvent(new MumblePlayerListPlayerRemovePostEvent(this, players.remove(name)));
 		} finally {
 			lock.unlock();
 		}
@@ -119,7 +119,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+	private void onPlayerNameChange(MumblePlayerNameChangePostEvent event) {
 		Optional<IPlayer> optOldPlayer = get(event.getOldName());
 		if (!optOldPlayer.isPresent())
 			return;
@@ -164,7 +164,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerKick(PlayerKickPostEvent event) {
+	private void onPlayerKick(MumblePlayerKickPostEvent event) {
 		if (!event.getChannel().equals(getChannel()))
 			return;
 
@@ -177,7 +177,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+	private void onPlayerOnlineChange(MumblePlayerOnlineChangePostEvent event) {
 		Optional<IPlayer> optPlayer = get(event.getPlayer().getName());
 		if (!optPlayer.isPresent())
 			return;
@@ -186,7 +186,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onChannelRemove(ServerChannelRemovePostEvent event) {
+	private void onChannelRemove(MumbleServerChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(getChannel()))
 			return;
 
@@ -194,7 +194,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 	}
 
 	@EventHandler
-	private void onServerClosing(ServerClosePostEvent event) {
+	private void onServerClosing(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(getChannel().getServer()))
 			return;
 
@@ -218,7 +218,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		} finally {
 			lock.unlock();
 		}
-		EventManager.callEvent(new PlayerListPlayerAddPostEvent(this, player));
+		EventManager.callEvent(new MumblePlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**
@@ -238,7 +238,7 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 		}
 
 		if (removed)
-			EventManager.callEvent(new PlayerListPlayerRemovePostEvent(this, player));
+			EventManager.callEvent(new MumblePlayerListPlayerRemovePostEvent(this, player));
 
 		return removed;
 	}

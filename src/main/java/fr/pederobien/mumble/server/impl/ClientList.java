@@ -10,12 +10,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.communication.event.NewTcpClientEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.server.event.ClientDisconnectPostEvent;
-import fr.pederobien.mumble.server.event.ServerClientAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerClientAddPostEvent.Origin;
-import fr.pederobien.mumble.server.event.ServerClientRemovePostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerAddPostEvent;
-import fr.pederobien.mumble.server.event.ServerPlayerRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleClientDisconnectPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClientAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerClientAddPostEvent.Origin;
+import fr.pederobien.mumble.server.event.MumbleServerClientRemovePostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerAddPostEvent;
+import fr.pederobien.mumble.server.event.MumbleServerPlayerRemovePostEvent;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -63,7 +63,7 @@ public class ClientList implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onClientDisconnected(ClientDisconnectPostEvent event) {
+	private void onClientDisconnected(MumbleClientDisconnectPostEvent event) {
 		if (!clients.contains(event.getClient()))
 			return;
 
@@ -71,7 +71,7 @@ public class ClientList implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onServerPlayerAdd(ServerPlayerAddPostEvent event) {
+	private void onServerPlayerAdd(MumbleServerPlayerAddPostEvent event) {
 		if (!event.getPlayer().getServer().equals(server))
 			return;
 
@@ -80,7 +80,7 @@ public class ClientList implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onServerPlayerRemove(ServerPlayerRemovePostEvent event) {
+	private void onServerPlayerRemove(MumbleServerPlayerRemovePostEvent event) {
 		if (!event.getPlayer().getServer().equals(server))
 			return;
 
@@ -192,7 +192,7 @@ public class ClientList implements IEventListener {
 	private PlayerMumbleClient createClient(Origin origin, InetSocketAddress address) {
 		PlayerMumbleClient client = new PlayerMumbleClient(server, createUUID());
 		clients.add(client);
-		EventManager.callEvent(new ServerClientAddPostEvent(server, client, origin, address));
+		EventManager.callEvent(new MumbleServerClientAddPostEvent(server, client, origin, address));
 		return client;
 	}
 
@@ -243,7 +243,7 @@ public class ClientList implements IEventListener {
 		}
 
 		if (removed)
-			EventManager.callEvent(new ServerClientRemovePostEvent(server, client));
+			EventManager.callEvent(new MumbleServerClientRemovePostEvent(server, client));
 	}
 
 	/**
