@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.server.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 
 public class MumbleClientDisconnectPostEvent extends MumblePlayerClientEvent {
@@ -11,5 +13,13 @@ public class MumbleClientDisconnectPostEvent extends MumblePlayerClientEvent {
 	 */
 	public MumbleClientDisconnectPostEvent(PlayerMumbleClient client) {
 		super(client);
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
+		joiner.add("server=" + getClient().getServer().getName());
+		joiner.add("client=#%s" + getClient().hashCode());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }
