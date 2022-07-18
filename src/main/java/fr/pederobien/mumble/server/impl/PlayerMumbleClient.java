@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleChannelSoundModifierChangePostEvent;
@@ -302,7 +302,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 		// Always allow this request whatever the client state.
 		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_LEAVE) {
-			if (player.getChannel() != null)
+			if (player != null && player.getChannel() != null)
 				player.getChannel().getPlayers().remove(player);
 
 			isJoined.set(false);
