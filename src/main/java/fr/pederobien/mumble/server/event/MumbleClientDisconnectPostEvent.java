@@ -19,7 +19,7 @@ public class MumbleClientDisconnectPostEvent extends MumblePlayerClientEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("server=" + getClient().getServer().getName());
-		joiner.add("client=#%s" + getClient().hashCode());
+		joiner.add("client=#" + getClient().hashCode());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }
