@@ -151,7 +151,7 @@ public class Player implements IPlayer, IEventListener {
 
 	@Override
 	public boolean isMute() {
-		return vocalPlayer == null ? true : vocalPlayer.isMute();
+		return vocalPlayer == null ? false : vocalPlayer.isMute();
 	}
 
 	@Override
@@ -167,7 +167,7 @@ public class Player implements IPlayer, IEventListener {
 		if (!(player instanceof Player))
 			return true;
 
-		return vocalPlayer == null ? true : vocalPlayer.isMuteBy(((Player) player).getVocalPlayer());
+		return vocalPlayer == null ? false : vocalPlayer.isMuteBy(((Player) player).getVocalPlayer());
 	}
 
 	@Override
@@ -183,7 +183,7 @@ public class Player implements IPlayer, IEventListener {
 
 	@Override
 	public boolean isDeafen() {
-		return vocalPlayer == null ? true : vocalPlayer.isDeafen();
+		return vocalPlayer == null ? false : vocalPlayer.isDeafen();
 	}
 
 	@Override
