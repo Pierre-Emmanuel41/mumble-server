@@ -13,6 +13,14 @@ public class SoundModifier implements ISoundModifier {
 	private IChannel channel;
 	private IParameter<Boolean> feedbackParameter;
 
+	/**
+	 * Creates a sound modifier associated to a name. Classes that inherits this class should also override the protected constructor
+	 * in order to clone. The method {@link #calculate(IPlayer, IPlayer)} is the default implementation that try to evaluate the sound
+	 * volume between two players. The method can be override, but it is preferable to override the method
+	 * {@link #dispatch(IPlayer, IPlayer)}.
+	 * 
+	 * @param name The sound volume name.
+	 */
 	public SoundModifier(String name) {
 		this.name = name;
 		parameters = new ParameterList();
