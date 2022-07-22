@@ -85,7 +85,7 @@ public class SoundModifier implements ISoundModifier {
 			return false;
 
 		ISoundModifier other = (ISoundModifier) obj;
-		return getName().equals(other.getName());
+		return getName().equals(other.getName()) && getChannel().equals(other.getChannel());
 	}
 
 	@Override
