@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.messages.v10.AddPlayerToChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetChannelInfoV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetChannelSoundModifierV10;
@@ -1526,7 +1526,12 @@ public class RequestManagerV10 extends RequestManager {
 		if (!optParameter.isPresent())
 			return answer(getVersion(), request, MumbleErrorCode.PARAMETER_NOT_FOUND);
 
-		optParameter.get().setValue(request.getNewValue());
+		try {
+			optParameter.get().setValue(request.getNewValue());
+		} catch (IllegalArgumentException e) {
+			return answer(getVersion(), request, MumbleErrorCode.PARAMETER_VALUE_OUT_OF_RANGE);
+		}
+
 		if (optParameter.get().getValue() != request.getNewValue())
 			return answer(getVersion(), request, MumbleErrorCode.REQUEST_CANCELLED);
 
