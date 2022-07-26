@@ -17,7 +17,7 @@ public class SimpleMumbleSerializerV10 extends AbstractXmlMumbleSerializer<Simpl
 
 	@Override
 	public boolean deserialize(SimpleMumbleServer element, Element root) {
-		checkServerType(root, STANDALONE_MUMBLE_SERVER);
+		checkServerType(root, SIMPLE_MUMBLE_SERVER);
 
 		Node port = getElementsByTagName(root, EMumbleXmlTag.PORT).item(0);
 		element.setConfigurationPort(getIntAttribute((Element) port, EMumbleXmlTag.CONFIGURATION_PORT));
