@@ -21,6 +21,6 @@ public class SimpleMumbleServerPersistence extends AbstractMumblePersistence<Sim
 	protected void onFailToDeserialize(SimpleMumbleServer element, boolean loadingSucceed) {
 		element.getChannels().add("Welcome", SoundManager.DEFAULT_SOUND_MODIFIER_NAME);
 		element.setConfigurationPort(28000);
-		element.setVocalPort(281000);
+		element.setVocalPort(28100);
 	}
 }
