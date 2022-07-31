@@ -2,7 +2,7 @@ package fr.pederobien.mumble.server.impl.modifiers;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
+import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;

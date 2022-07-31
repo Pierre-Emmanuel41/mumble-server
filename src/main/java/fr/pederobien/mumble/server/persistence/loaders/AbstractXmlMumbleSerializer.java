@@ -3,7 +3,7 @@ package fr.pederobien.mumble.server.persistence.loaders;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
+import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;

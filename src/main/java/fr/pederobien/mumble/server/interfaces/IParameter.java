@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.server.interfaces;
 
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
+import fr.pederobien.mumble.common.impl.ParameterType;
 
 public interface IParameter<T> extends Cloneable {
 
