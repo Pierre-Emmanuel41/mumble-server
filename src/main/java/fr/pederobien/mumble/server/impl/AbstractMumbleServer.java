@@ -11,6 +11,7 @@ import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.server.interfaces.IServerRequestManager;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.vocal.server.impl.SpeakBehavior;
 import fr.pederobien.vocal.server.impl.VocalServer;
 import fr.pederobien.vocal.server.interfaces.IVocalServer;
 
@@ -119,7 +120,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		if (!this.vocalPort.compareAndSet(-1, vocalPort))
 			throw new IllegalStateException("The vocal port number has already been set");
 
-		vocalServer = new VocalServer(String.format("%s_%s", name, VOCAL), vocalPort);
+		vocalServer = new VocalServer(String.format("%s_%s", name, VOCAL), vocalPort, SpeakBehavior.TO_NO_ONE);
 	}
 
 	/**
