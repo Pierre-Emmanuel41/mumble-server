@@ -100,8 +100,8 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	 * @param configurationPort The port on which the server receives configuration requests.
 	 */
 	public void setConfigurationPort(int configurationPort) {
-		if (!this.configurationPort.compareAndSet(-1, configurationPort))
-			throw new IllegalStateException("The configuration port number has already been set");
+		if (tcpServer != null && tcpServer.isConnected())
+			tcpServer.disconnect();
 
 		tcpServer = new TcpServer(String.format("%s_%s", name, CONFIGURATION), configurationPort, () -> new MumbleMessageExtractor(), true);
 	}
@@ -112,13 +112,15 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	 * 
 	 * @param vocalPort The port on which the underlying vocal server receives configuration requests and on which players talk
 	 *                  together.
+	 * 
+	 * @throws IllegalStateException if the vocal port equals to the configuration port.
 	 */
 	public void setVocalPort(int vocalPort) {
 		if (vocalPort == getConfigurationPort())
 			throw new IllegalStateException("The vocal port number must not be equals to the configuration port number");
 
-		if (!this.vocalPort.compareAndSet(-1, vocalPort))
-			throw new IllegalStateException("The vocal port number has already been set");
+		if (vocalServer != null && vocalServer.isOpened())
+			vocalServer.close();
 
 		vocalServer = new VocalServer(String.format("%s_%s", name, VOCAL), vocalPort, SpeakBehavior.TO_NO_ONE);
 	}

@@ -106,6 +106,8 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	 * Set the port number on which there is the communication with the external game server. For internal use only.
 	 * 
 	 * @param gamePort The port number on which there is the communication with the external game server.
+	 * 
+	 * @throws IllegalStateException If the game port equals the configuration port or the vocal port.
 	 */
 	public void setGamePort(int gamePort) {
 		if (gamePort == getConfigurationPort())
@@ -114,8 +116,8 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 		if (gamePort == getVocalPort())
 			throw new IllegalStateException("The game port number must not be equals to the vocal port number");
 
-		if (!this.gamePort.compareAndSet(-1, gamePort))
-			throw new IllegalStateException("The game port number has already been set");
+		if (tcpServer != null && tcpServer.isConnected())
+			tcpServer.disconnect();
 
 		tcpServer = new TcpServer(String.format("%s_%s", getName(), GAME), gamePort, () -> new MumbleMessageExtractor(), true);
 	}
