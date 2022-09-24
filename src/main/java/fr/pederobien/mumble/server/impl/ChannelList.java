@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
@@ -53,20 +52,44 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@Override
 	public IChannel add(String channelName, String soundModifierName) {
-		MumbleServerChannelAddPreEvent preEvent = new MumbleServerChannelAddPreEvent(server, channelName, soundModifierName);
-		Supplier<IChannel> update = () -> addChannel(channelName, soundModifierName);
-		return EventManager.callEvent(preEvent, update, channel -> new MumbleServerChannelAddPostEvent(server, channel));
+		lock.lock();
+		try {
+			Optional<IChannel> optChannel = get(channelName);
+			if (optChannel.isPresent())
+				throw new ChannelAlreadyRegisteredException(server, optChannel.get());
+
+			Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
+			if (!optSoundModifier.isPresent())
+				throw new SoundModifierDoesNotExistException(soundModifierName);
+
+			IChannel channel = new Channel(server, channelName, optSoundModifier.get());
+			MumbleServerChannelAddPreEvent preEvent = new MumbleServerChannelAddPreEvent(server, channelName, soundModifierName);
+			Runnable update = () -> channels.put(channel.getName(), channel);
+			EventManager.callEvent(preEvent, update, new MumbleServerChannelAddPostEvent(server, channel));
+			return channel;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
 	public IChannel remove(String name) {
-		Optional<IChannel> optChannel = get(name);
-		if (!optChannel.isPresent())
-			return null;
+		lock.lock();
+		try {
+			Optional<IChannel> optChannel = get(name);
+			if (!optChannel.isPresent())
+				return null;
 
-		Supplier<IChannel> update = () -> removeChannel(name);
-		MumbleServerChannelRemovePreEvent preEvent = new MumbleServerChannelRemovePreEvent(server, optChannel.get());
-		return EventManager.callEvent(preEvent, update, channel -> new MumbleServerChannelRemovePostEvent(server, channel));
+			IChannel channel = optChannel.get();
+			Runnable update = () -> {
+				channels.remove(name);
+				channel.getPlayers().clear();
+			};
+			EventManager.callEvent(new MumbleServerChannelRemovePreEvent(server, channel), update, new MumbleServerChannelRemovePostEvent(server, channel));
+			return channel;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
@@ -121,55 +144,5 @@ public class ChannelList implements IChannelList, IEventListener {
 		} finally {
 			lock.unlock();
 		}
-	}
-
-	/**
-	 * Thread safe operation that adds a channel to the channels list.
-	 * 
-	 * @param channelName       The channel name to add.
-	 * @param soundModifierName The sound modifier name associated to the new channel.
-	 * 
-	 * @throws ChannelAlreadyRegisteredException  if a channel is already registered for the channel name.
-	 * @throws SoundModifierDoesNotExistException If the sound modifier name does not refer to registered sound modifier.
-	 */
-	private IChannel addChannel(String channelName, String soundModifierName) {
-		lock.lock();
-		try {
-			IChannel registered = channels.get(channelName);
-			if (registered != null)
-				throw new ChannelAlreadyRegisteredException(server, registered);
-
-			Optional<ISoundModifier> optSoundModifier = SoundManager.getByName(soundModifierName);
-			if (!optSoundModifier.isPresent())
-				throw new SoundModifierDoesNotExistException(soundModifierName);
-
-			IChannel channel = new Channel(server, channelName, optSoundModifier.get());
-			channels.put(channel.getName(), channel);
-			return channel;
-		} finally {
-			lock.unlock();
-		}
-	}
-
-	/**
-	 * Thread safe operation that removes a channels from the channels list.
-	 * 
-	 * @param channel The channel to remove.
-	 * 
-	 * @return The channel associated to the given name if registered, null otherwise.
-	 */
-	private IChannel removeChannel(String name) {
-		lock.lock();
-		IChannel channel;
-		try {
-			channel = channels.remove(name);
-		} finally {
-			lock.unlock();
-		}
-
-		if (channel != null)
-			channel.getPlayers().clear();
-
-		return channel;
 	}
 }
