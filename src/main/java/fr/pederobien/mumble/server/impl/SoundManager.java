@@ -1,8 +1,11 @@
 package fr.pederobien.mumble.server.impl;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.MumbleSoundModifierRegisterPostEvent;
 import fr.pederobien.mumble.server.event.MumbleSoundModifierRegisterPreEvent;
@@ -79,10 +82,17 @@ public class SoundManager {
 	}
 
 	/**
-	 * @return A map that contains all registered sound modifiers.
+	 * @return A copy of the underlying list.
 	 */
-	public static Map<String, ISoundModifier> getSoundModifiers() {
-		return sounds;
+	public static List<ISoundModifier> toList() {
+		return new ArrayList<ISoundModifier>(sounds.values());
+	}
+
+	/**
+	 * @return a sequential {@code Stream} over the elements in this collection.
+	 */
+	public static Stream<ISoundModifier> toStream() {
+		return toList().stream();
 	}
 
 	private static class DefaultSoundModifier extends SoundModifier {

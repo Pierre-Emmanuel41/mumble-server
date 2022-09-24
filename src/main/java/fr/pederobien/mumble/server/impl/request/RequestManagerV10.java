@@ -2,7 +2,6 @@ package fr.pederobien.mumble.server.impl.request;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import fr.pederobien.mumble.common.impl.Identifier;
@@ -501,19 +500,19 @@ public class RequestManagerV10 extends RequestManager {
 		}
 
 		// Number of sound modifier
-		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+		List<ISoundModifier> modifiers = SoundManager.toList();
 		informations.add(modifiers.size());
 
 		// Modifier informations
-		for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
+		for (ISoundModifier modifier : modifiers) {
 			// Modifier's name
-			informations.add(modifierEntry.getValue().getName());
+			informations.add(modifier.getName());
 
 			// Number of parameter
-			informations.add(modifierEntry.getValue().getParameters().size());
+			informations.add(modifier.getParameters().size());
 
 			// Modifier's parameter
-			for (IParameter<?> parameter : modifierEntry.getValue().getParameters()) {
+			for (IParameter<?> parameter : modifier.getParameters()) {
 				// Parameter's name
 				informations.add(parameter.getName());
 
@@ -653,19 +652,19 @@ public class RequestManagerV10 extends RequestManager {
 		}
 
 		// Number of sound modifier
-		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+		List<ISoundModifier> modifiers = SoundManager.toList();
 		informations.add(modifiers.size());
 
 		// Modifier informations
-		for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
+		for (ISoundModifier modifier : modifiers) {
 			// Modifier's name
-			informations.add(modifierEntry.getValue().getName());
+			informations.add(modifier.getName());
 
 			// Number of parameter
-			informations.add(modifierEntry.getValue().getParameters().size());
+			informations.add(modifier.getParameters().size());
 
 			// Modifier's parameter
-			for (IParameter<?> parameter : modifierEntry.getValue().getParameters()) {
+			for (IParameter<?> parameter : modifier.getParameters()) {
 				// Parameter's name
 				informations.add(parameter.getName());
 
@@ -1650,19 +1649,19 @@ public class RequestManagerV10 extends RequestManager {
 		List<Object> informations = new ArrayList<Object>();
 
 		// Number of sound modifier
-		Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
+		List<ISoundModifier> modifiers = SoundManager.toList();
 		informations.add(modifiers.size());
 
 		// Modifier informations
-		for (Map.Entry<String, ISoundModifier> modifierEntry : modifiers.entrySet()) {
+		for (ISoundModifier modifier : modifiers) {
 			// Modifier's name
-			informations.add(modifierEntry.getValue().getName());
+			informations.add(modifier.getName());
 
 			// Number of parameter
-			informations.add(modifierEntry.getValue().getParameters().size());
+			informations.add(modifier.getParameters().size());
 
 			// Modifier's parameter
-			for (IParameter<?> parameter : modifierEntry.getValue().getParameters()) {
+			for (IParameter<?> parameter : modifier.getParameters()) {
 				// Parameter's name
 				informations.add(parameter.getName());
 
