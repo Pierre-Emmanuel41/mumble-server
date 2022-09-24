@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.server.exceptions.MumbleServerTypeDismatchException;
 import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.server.impl.SoundManager;
 import fr.pederobien.mumble.server.impl.modifiers.Parameter;
@@ -77,9 +78,7 @@ public abstract class AbstractXmlMumbleSerializer<T extends AbstractMumbleServer
 	protected void checkServerType(Element root, String type) {
 		Element typeElement = (Element) getElementsByTagName(root, EMumbleXmlTag.TYPE).item(0);
 		String serverType = typeElement.getChildNodes().item(0).getNodeValue();
-		if (!serverType.equalsIgnoreCase(type)) {
-			String format = "The server type found in the configuration (%s) file does not correspond to the running server type (%s)";
-			throw new IllegalStateException(String.format(format, serverType, type));
-		}
+		if (!serverType.equalsIgnoreCase(type))
+			throw new MumbleServerTypeDismatchException(serverType, type);
 	}
 }

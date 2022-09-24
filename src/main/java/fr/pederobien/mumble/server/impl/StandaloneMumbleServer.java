@@ -2,7 +2,6 @@ package fr.pederobien.mumble.server.impl;
 
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.NewTcpClientEvent;
@@ -20,7 +19,7 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class StandaloneMumbleServer extends AbstractMumbleServer implements IEventListener {
 	private static final String GAME = "Game";
-	private AtomicInteger gamePort;
+	private int gamePort;
 	private StandaloneMumbleServerPersistence persistence;
 	private TcpServer tcpServer;
 	private StandaloneMumbleClient client;
@@ -28,7 +27,35 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	private AtomicBoolean isOpened, canConnect;
 
 	/**
-	 * Creates an standalone mumble server. This kind of server is used when it should be running outside from the game server. The
+	 * Creates an stand-alone mumble server. This kind of server is used when it should be running outside from the game server. The
+	 * default port number for the server configuration requests and for the audio communication between players is 28000. The default
+	 * port number for the communication with the external game server is 29000. In order to change the port, please turn off the
+	 * server and change manually the port values in the created configuration file.
+	 * 
+	 * @param name              The server name.
+	 * @param configurationPort The port number on which the configuration requests are sent.
+	 * @param vocalPort         The port number on which there is the audio communication.
+	 * @param gamePort          The port number on which there is the communication with the external game server.
+	 * @param path              The folder that contains the server configuration file.
+	 */
+	public StandaloneMumbleServer(String name, int configurationPort, int vocalPort, int gamePort, String path) {
+		super(name);
+
+		isOpened = new AtomicBoolean(false);
+		canConnect = new AtomicBoolean(true);
+
+		persistence = new StandaloneMumbleServerPersistence(path);
+		persistence.deserialize(this);
+
+		setConfigurationPort(configurationPort);
+		setVocalPort(vocalPort);
+		setGamePort(gamePort);
+
+		EventManager.registerListener(this);
+	}
+
+	/**
+	 * Creates an stand-alone mumble server. This kind of server is used when it should be running outside from the game server. The
 	 * default port number for the server configuration requests and for the audio communication between players is 28000. The default
 	 * port number for the communication with the external game server is 29000. In order to change the port, please turn off the
 	 * server and change manually the port values in the created configuration file.
@@ -39,7 +66,6 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	public StandaloneMumbleServer(String name, String path) {
 		super(name);
 
-		gamePort = new AtomicInteger(-1);
 		isOpened = new AtomicBoolean(false);
 		canConnect = new AtomicBoolean(true);
 
@@ -119,6 +145,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 		if (tcpServer != null && tcpServer.isConnected())
 			tcpServer.disconnect();
 
+		this.gamePort = gamePort;
 		tcpServer = new TcpServer(String.format("%s_%s", getName(), GAME), gamePort, () -> new MumbleMessageExtractor(), true);
 	}
 
@@ -126,7 +153,7 @@ public class StandaloneMumbleServer extends AbstractMumbleServer implements IEve
 	 * @return The port number on which there is the communication with the external game server.
 	 */
 	public int getGamePort() {
-		return gamePort.get();
+		return gamePort;
 	}
 
 	@EventHandler

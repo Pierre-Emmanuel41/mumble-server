@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.server.impl;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import fr.pederobien.communication.impl.TcpServer;
 import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
 import fr.pederobien.mumble.server.impl.modifiers.LinearCircularSoundModifier;
@@ -20,7 +18,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	private static final String VOCAL = "Vocal";
 
 	private String name;
-	private AtomicInteger configurationPort, vocalPort;
+	private int configurationPort, vocalPort;
 	private IVocalServer vocalServer;
 	private TcpServer tcpServer;
 	private IChannelList channels;
@@ -36,8 +34,6 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	protected AbstractMumbleServer(String name) {
 		this.name = name;
 
-		configurationPort = new AtomicInteger(-1);
-		vocalPort = new AtomicInteger(-1);
 		channels = new ChannelList(this);
 		players = new ServerPlayerList(this);
 		serverRequestManager = new ServerRequestManager(this);
@@ -103,6 +99,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		if (tcpServer != null && tcpServer.isConnected())
 			tcpServer.disconnect();
 
+		this.configurationPort = configurationPort;
 		tcpServer = new TcpServer(String.format("%s_%s", name, CONFIGURATION), configurationPort, () -> new MumbleMessageExtractor(), true);
 	}
 
@@ -122,6 +119,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 		if (vocalServer != null && vocalServer.isOpened())
 			vocalServer.close();
 
+		this.vocalPort = vocalPort;
 		vocalServer = new VocalServer(String.format("%s_%s", name, VOCAL), vocalPort, SpeakBehavior.TO_NO_ONE);
 	}
 
@@ -131,7 +129,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	 * @return The port on which the server receives configuration requests.
 	 */
 	public int getConfigurationPort() {
-		return configurationPort.get();
+		return configurationPort;
 	}
 
 	/**
@@ -140,7 +138,7 @@ public abstract class AbstractMumbleServer implements IMumbleServer {
 	 * @return The port on which the underlying vocal server receives configuration requests and on which players talk together.
 	 */
 	public int getVocalPort() {
-		return vocalPort.get();
+		return vocalPort;
 	}
 
 	/**

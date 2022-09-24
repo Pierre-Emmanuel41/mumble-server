@@ -16,6 +16,27 @@ public class SimpleMumbleServer extends AbstractMumbleServer {
 
 	/**
 	 * Create a mumble server that should be integrated in the game server in order to allow server configuration modification
+	 * directly from the game.
+	 * 
+	 * @param name              The server name.
+	 * @param configurationPort The port number on which the configuration requests are sent.
+	 * @param vocalPort         The port number on which there is the audio communication.
+	 * @param path              The folder that contains the server configuration file.
+	 */
+	public SimpleMumbleServer(String name, int configurationPort, int vocalPort, String path) {
+		super(name);
+
+		isOpened = new AtomicBoolean(false);
+
+		persistence = new SimpleMumbleServerPersistence(path);
+		persistence.deserialize(this);
+
+		setConfigurationPort(configurationPort);
+		setVocalPort(vocalPort);
+	}
+
+	/**
+	 * Create a mumble server that should be integrated in the game server in order to allow server configuration modification
 	 * directly from the game. The default communication port is 28000. In order to change the port, please turn off the server and
 	 * change manually the port value in the created configuration file.
 	 * 

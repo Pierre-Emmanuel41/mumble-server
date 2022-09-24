@@ -3,6 +3,7 @@ package fr.pederobien.mumble.server.persistence;
 import java.io.FileNotFoundException;
 import java.nio.file.FileSystems;
 
+import fr.pederobien.mumble.server.exceptions.MumbleServerTypeDismatchException;
 import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.persistence.exceptions.ExtensionException;
 import fr.pederobien.persistence.impl.Persistences;
@@ -29,14 +30,17 @@ public abstract class AbstractMumblePersistence<T extends AbstractMumbleServer> 
 	 * 
 	 * @param element The element that contains data registered in the configuration file.
 	 * 
-	 * @throws ExtensionException If the extension associated to the file to deserialize does not match with the extension of this
-	 *                            persistence.
+	 * @throws ExtensionException                If the extension associated to the file to deserialize does not match with the
+	 *                                           extension of this persistence.
+	 * @throws MumbleServerTypeDismatchException If the type found in the configuration file does not match with the server type.
 	 */
 	public void deserialize(T element) {
 		try {
 			String filePath = path.concat(String.format("%s%s%s", FileSystems.getDefault().getSeparator(), element.getName(), persistence.getExtension()));
 			persistence.deserialize(element, filePath);
 			loadingSucceed = true;
+		} catch (MumbleServerTypeDismatchException e) {
+			throw e;
 		} catch (Exception e) {
 			loadingSucceed = e instanceof FileNotFoundException;
 			if (!loadingSucceed)
