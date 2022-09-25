@@ -66,6 +66,9 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@Override
 	public void add(IPlayer player) {
+		if (player.getChannel() != null)
+			throw new PlayerAlreadyRegisteredException(player.getChannel().getPlayers(), player);
+
 		lock.lock();
 		try {
 			if (get(player.getName()).isPresent())
