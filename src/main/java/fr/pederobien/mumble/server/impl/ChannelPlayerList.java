@@ -66,13 +66,19 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 
 	@Override
 	public void add(IPlayer player) {
-		AbstractMumbleServer server = (AbstractMumbleServer) channel.getServer();
-		Optional<PlayerMumbleClient> optClient = server.getClients().get(player.getName());
-		if (optClient.isPresent()) {
-			if (optClient.get().isJoined())
-				EventManager.callEvent(new MumblePlayerListPlayerAddPreEvent(this, player), () -> addPlayer(player));
-			else
+		lock.lock();
+		try {
+			if (get(player.getName()).isPresent())
+				throw new PlayerAlreadyRegisteredException(this, player);
+
+			Optional<PlayerMumbleClient> optClient = ((AbstractMumbleServer) channel.getServer()).getClients().get(player.getName());
+			if (optClient.isPresent() && !optClient.get().isJoined())
 				throw new PlayerMumbleClientNotJoinedException(player);
+
+			Runnable update = () -> players.put(player.getName(), player);
+			EventManager.callEvent(new MumblePlayerListPlayerAddPreEvent(this, player), update, new MumblePlayerListPlayerAddPostEvent(this, player));
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -199,26 +205,6 @@ public class ChannelPlayerList implements IChannelPlayerList, IEventListener {
 			return;
 
 		EventManager.unregisterListener(this);
-	}
-
-	/**
-	 * Thread safe operation that adds a player to the players list.
-	 * 
-	 * @param player The player to add.
-	 * 
-	 * @throws PlayerAlreadyRegisteredException if a player is already registered for the player name.
-	 */
-	private void addPlayer(IPlayer player) {
-		lock.lock();
-		try {
-			if (players.get(player.getName()) != null)
-				throw new PlayerAlreadyRegisteredException(this, player);
-
-			players.put(player.getName(), player);
-		} finally {
-			lock.unlock();
-		}
-		EventManager.callEvent(new MumblePlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**
