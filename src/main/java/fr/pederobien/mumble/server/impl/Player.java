@@ -2,6 +2,8 @@ package fr.pederobien.mumble.server.impl;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePostEvent;
 import fr.pederobien.mumble.server.event.MumblePlayerAdminChangePreEvent;
@@ -179,6 +181,15 @@ public class Player implements IPlayer, IEventListener {
 			return;
 
 		vocalPlayer.setMuteBy(((Player) player).getVocalPlayer(), isMute);
+	}
+
+	@Override
+	public Stream<IPlayer> getMuteByPlayers() {
+		if (vocalPlayer == null)
+			return Stream.empty();
+
+		Predicate<IVocalPlayer> filterVocalPlayer = player -> getServer().getPlayers().get(player.getName()).isPresent();
+		return vocalPlayer.getMuteByPlayers().filter(filterVocalPlayer).map(player -> getServer().getPlayers().get(player.getName()).get());
 	}
 
 	@Override
