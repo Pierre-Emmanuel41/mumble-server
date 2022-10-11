@@ -57,10 +57,13 @@ public class MathHelper {
 		int index = (int) Math.toDegrees(Math.abs(inRange(yaw, -Math.PI / 2, Math.PI / 2))) * PRECISION;
 
 		double leftVolume = 1.0, rightVolume = 1.0;
-		if (0 <= yaw && yaw < Math.PI)
+		if (0 <= yaw && yaw < Math.PI) {
 			leftVolume = Math.abs(COS_VALUES[index]);
-		else
+			rightVolume += 1 - leftVolume;
+		} else {
 			rightVolume = Math.abs(COS_VALUES[index]);
+			leftVolume += 1 - rightVolume;
+		}
 		return new double[] { leftVolume, rightVolume };
 	}
 
