@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.server.interfaces.IParameter;
 import fr.pederobien.mumble.server.interfaces.IParameterList;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
@@ -85,21 +84,6 @@ public class ParameterList implements IParameterList {
 	 * @param parameter The parameter to register.
 	 */
 	public void add(IParameter<?> parameter) {
-		parameters.put(parameter.getName(), parameter);
-	}
-
-	/**
-	 * Registers the given parameter in the list of parameters.
-	 * 
-	 * @param parameter The parameter to register.
-	 */
-	public void add(FullParameterInfo info) {
-		IParameter<?> parameter;
-		if (!info.isRange()) {
-			parameter = Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue());
-		} else
-			parameter = RangeParameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());
-
 		parameters.put(parameter.getName(), parameter);
 	}
 

@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.server.impl.request;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,11 +51,13 @@ import fr.pederobien.mumble.server.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.server.impl.PlayerMumbleClient;
 import fr.pederobien.mumble.server.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.server.impl.SoundManager;
+import fr.pederobien.mumble.server.impl.modifiers.Parameter;
 import fr.pederobien.mumble.server.impl.modifiers.ParameterList;
 import fr.pederobien.mumble.server.impl.modifiers.RangeParameter;
 import fr.pederobien.mumble.server.interfaces.IChannel;
 import fr.pederobien.mumble.server.interfaces.IMumbleServer;
 import fr.pederobien.mumble.server.interfaces.IParameter;
+import fr.pederobien.mumble.server.interfaces.IParameterList;
 import fr.pederobien.mumble.server.interfaces.IPlayer;
 import fr.pederobien.mumble.server.interfaces.IPosition;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
@@ -1355,15 +1358,11 @@ public class RequestManagerV10 extends RequestManager {
 		if (!optModifier.isPresent())
 			return answer(getVersion(), request, MumbleErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
-		ParameterList parameterList = new ParameterList();
-		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
-			parameterList.add(parameterInfo);
-
 		IChannel channel = getServer().getChannels().add(request.getChannelInfo().getName(), request.getChannelInfo().getSoundModifierInfo().getName());
 		if (channel == null)
 			return answer(getVersion(), request, MumbleErrorCode.REQUEST_CANCELLED);
 
-		channel.getSoundModifier().getParameters().update(parameterList);
+		channel.getSoundModifier().getParameters().update(createParameterList(request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values()));
 		return answer(getVersion(), request, request.getProperties());
 	}
 
@@ -1762,16 +1761,33 @@ public class RequestManagerV10 extends RequestManager {
 		if (!optModifier.isPresent())
 			return answer(getVersion(), request, MumbleErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
 
-		ParameterList parameterList = new ParameterList();
-		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
-			parameterList.add(parameterInfo);
-
-		optModifier.get().getParameters().update(parameterList);
+		optModifier.get().getParameters().update(createParameterList(request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values()));
 		optChannel.get().setSoundModifier(optModifier.get());
 
 		if (!optChannel.get().getSoundModifier().equals(optModifier.get()))
 			return answer(getVersion(), request, MumbleErrorCode.REQUEST_CANCELLED);
 
 		return answer(getVersion(), request, request.getProperties());
+	}
+
+	/**
+	 * For each parameter description registered in the given collection, a parameter is created and registered in a a parameter list.
+	 * 
+	 * @param parameterInfos A collection of description of parameters to create.
+	 * 
+	 * @return A parameter list that contains parameters.
+	 */
+	private IParameterList createParameterList(Collection<FullParameterInfo> parameterInfos) {
+		ParameterList parameterList = new ParameterList();
+		for (FullParameterInfo info : parameterInfos) {
+			IParameter<?> parameter;
+			if (!info.isRange())
+				parameter = Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue());
+			else
+				parameter = RangeParameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());
+			parameterList.add(parameter);
+		}
+
+		return parameterList;
 	}
 }
