@@ -142,9 +142,12 @@ public class Parameter<T> implements IParameter<T> {
 			return;
 
 		if (!isAttached())
-			this.value = castValue;
-		else
-			EventManager.callEvent(new MumbleParameterValueChangePreEvent(this, value), () -> setValue0(castValue));
+			setValue0(castValue);
+		else {
+			Object oldValue = this.value;
+			Runnable update = () -> setValue0(castValue);
+			EventManager.callEvent(new MumbleParameterValueChangePreEvent(this, value), update, new MumbleParameterValueChangePostEvent(this, oldValue));
+		}
 	}
 
 	@Override
@@ -200,8 +203,6 @@ public class Parameter<T> implements IParameter<T> {
 	 * @param value The current parameter value.
 	 */
 	protected void setValue0(T value) {
-		T oldValue = this.value;
 		this.value = value;
-		EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
 	}
 }

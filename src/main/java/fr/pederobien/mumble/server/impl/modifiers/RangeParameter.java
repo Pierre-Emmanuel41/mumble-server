@@ -7,6 +7,7 @@ import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.server.event.MumbleParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.server.event.MumbleParameterValueChangePostEvent;
 import fr.pederobien.mumble.server.interfaces.IRangeParameter;
 import fr.pederobien.mumble.server.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -95,7 +96,6 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 
 		this.min = min;
 		this.max = max;
-		checkRange(defaultValue);
 		checkRange(value);
 	}
 
@@ -145,18 +145,21 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 			return;
 
 		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
-		Comparable<? super Number> comparableValue = (Comparable<? super Number>) getValue();
 
-		Runnable update = () -> {
-			if (comparableMin.compareTo((Number) comparableValue) > 0)
+		if (!isAttached()) {
+			if (comparableMin.compareTo((Number) getValue()) > 0)
 				setValue0(castMin);
 			this.min = castMin;
-		};
-
-		if (!isAttached())
-			update.run();
-		else {
+		} else {
 			T oldMin = this.min;
+			Runnable update = () -> {
+				if (comparableMin.compareTo((Number) getValue()) > 0) {
+					T oldValue = getValue();
+					setValue0(castMin);
+					EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
+				}
+				this.min = castMin;
+			};
 			EventManager.callEvent(new MumbleParameterMinValueChangePreEvent(this, min), update, new MumbleParameterMinValueChangePostEvent(this, oldMin));
 		}
 	}
@@ -174,18 +177,21 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 			return;
 
 		Comparable<? super Number> comparableMax = (Comparable<? super Number>) max;
-		Comparable<? super Number> comparableValue = (Comparable<? super Number>) getValue();
 
-		Runnable update = () -> {
-			if (comparableMax.compareTo((Number) comparableValue) < 0)
+		if (!isAttached()) {
+			if (comparableMax.compareTo((Number) getValue()) < 0)
 				setValue0(castMax);
 			this.max = castMax;
-		};
-
-		if (!isAttached())
-			update.run();
-		else {
+		} else {
 			T oldMax = this.max;
+			Runnable update = () -> {
+				if (comparableMax.compareTo((Number) getValue()) < 0) {
+					T oldValue = getValue();
+					setValue0(castMax);
+					EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
+				}
+				this.max = castMax;
+			};
 			EventManager.callEvent(new MumbleParameterMaxValueChangePreEvent(this, max), update, new MumbleParameterMaxValueChangePostEvent(this, oldMax));
 		}
 	}
