@@ -1,7 +1,7 @@
 package fr.pederobien.mumble.server.impl;
 
 import fr.pederobien.mumble.common.impl.MumbleErrorCode;
-import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleIdentifier;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
@@ -20,7 +20,7 @@ public class MumbleServerMessageFactory {
 	 * 
 	 * @return The created message.
 	 */
-	public static IMumbleMessage create(Identifier identifier, Object... properties) {
+	public static IMumbleMessage create(MumbleIdentifier identifier, Object... properties) {
 		return FACTORY.create(identifier, MumbleErrorCode.NONE, properties);
 	}
 
@@ -33,7 +33,7 @@ public class MumbleServerMessageFactory {
 	 * 
 	 * @return The created message.
 	 */
-	public static IMumbleMessage create(float version, Identifier identifier, Object... properties) {
+	public static IMumbleMessage create(float version, MumbleIdentifier identifier, Object... properties) {
 		return FACTORY.create(version, identifier, MumbleErrorCode.NONE, properties);
 	}
 
@@ -80,12 +80,12 @@ public class MumbleServerMessageFactory {
 	 * version of the communication protocol is used to create the answer.
 	 * 
 	 * @param request   The request to answer.
-	 * @param mumbleErrorCode The error code of the response.
+	 * @param errorCode The error code of the response.
 	 * 
 	 * @return The message associated to the answer.
 	 */
-	public static IMumbleMessage answer(IMumbleMessage message, MumbleErrorCode mumbleErrorCode) {
-		return FACTORY.answer(message, message.getHeader().getIdentifier(), mumbleErrorCode);
+	public static IMumbleMessage answer(IMumbleMessage message, MumbleErrorCode errorCode) {
+		return FACTORY.answer(message, message.getHeader().getIdentifier(), errorCode);
 	}
 
 	/**
@@ -94,11 +94,11 @@ public class MumbleServerMessageFactory {
 	 * 
 	 * @param version   The protocol version to use for the returned message.
 	 * @param request   The request to answer.
-	 * @param mumbleErrorCode The error code of the response.
+	 * @param errorCode The error code of the response.
 	 * 
 	 * @return The message associated to the answer.
 	 */
-	public static IMumbleMessage answer(float version, IMumbleMessage message, MumbleErrorCode mumbleErrorCode) {
-		return FACTORY.answer(version, message, message.getHeader().getIdentifier(), mumbleErrorCode);
+	public static IMumbleMessage answer(float version, IMumbleMessage message, MumbleErrorCode errorCode) {
+		return FACTORY.answer(version, message, message.getHeader().getIdentifier(), errorCode);
 	}
 }

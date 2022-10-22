@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleIdentifier;
 import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.event.MumbleChannelNameChangePostEvent;
@@ -290,7 +290,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 			return;
 
 		// There is no need to answer to a server join request.
-		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_JOIN) {
+		if (request.getHeader().getIdentifier() == MumbleIdentifier.SET_SERVER_JOIN) {
 			if (!isJoined.compareAndSet(false, true))
 				send(MumbleServerMessageFactory.answer(request, MumbleErrorCode.SERVER_ALREADY_JOINED));
 			else {
@@ -301,7 +301,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 		}
 
 		// Always allow this request whatever the client state.
-		if (request.getHeader().getIdentifier() == Identifier.SET_SERVER_LEAVE) {
+		if (request.getHeader().getIdentifier() == MumbleIdentifier.SET_SERVER_LEAVE) {
 			if (player != null && player.getChannel() != null)
 				player.getChannel().getPlayers().remove(player);
 
@@ -338,7 +338,7 @@ public class PlayerMumbleClient extends AbstractMumbleConnection implements IEve
 
 	private boolean checkPermission(IMumbleMessage request) {
 		// No need to check the permission for this identifier.
-		if (request.getHeader().getIdentifier() == Identifier.SET_GAME_PORT_USED)
+		if (request.getHeader().getIdentifier() == MumbleIdentifier.SET_GAME_PORT_USED)
 			return true;
 
 		if (!isJoined.get())

@@ -96,6 +96,9 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 
 		this.min = min;
 		this.max = max;
+
+		// The minimum should always be less than the maximum value
+		check(min, max, "The minimum value should be less than the maximum value.");
 		checkRange(value);
 	}
 
@@ -144,8 +147,9 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 		if (this.min.equals(castMin))
 			return;
 
-		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
+		check(castMin, getMax(), "The minimum value cannot be greater than the maximum value");
 
+		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
 		if (!isAttached()) {
 			if (comparableMin.compareTo((Number) getValue()) > 0)
 				setValue0(castMin);
@@ -176,8 +180,9 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 		if (this.max.equals(castMax))
 			return;
 
-		Comparable<? super Number> comparableMax = (Comparable<? super Number>) max;
+		check(getMin(), castMax, "The minimum value cannot be greater than the maximum value");
 
+		Comparable<? super Number> comparableMax = (Comparable<? super Number>) max;
 		if (!isAttached()) {
 			if (comparableMax.compareTo((Number) getValue()) < 0)
 				setValue0(castMax);
@@ -197,10 +202,19 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 	}
 
 	@SuppressWarnings("unchecked")
+	private void check(Object value1, Object value2, String message) {
+		Comparable<? super Number> value1Comparable = (Comparable<? super Number>) value1;
+		if (value1Comparable.compareTo((Number) value2) > 0)
+			throw new IllegalArgumentException(message);
+	}
+
+	/**
+	 * Check if the given value is in the range associated to the range of this parameter.
+	 * 
+	 * @param value The value to check.
+	 */
 	private void checkRange(T value) {
-		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
-		Comparable<? super Number> comparableValue = (Comparable<? super Number>) value;
-		if (!(comparableMin.compareTo((Number) comparableValue) <= 0 && comparableValue.compareTo((Number) max) <= 0))
-			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
+		check(getMin(), value, String.format("The value %s should be in range [%s;%s]", value, getMin(), getMax()));
+		check(value, getMax(), String.format("The value %s should be in range [%s;%s]", value, getMin(), getMax()));
 	}
 }

@@ -55,8 +55,15 @@ public class ParameterList implements IParameterList {
 			if (param instanceof IRangeParameter<?> && parameter instanceof IRangeParameter<?>) {
 				IRangeParameter<?> rangeParam = (IRangeParameter<?>) param;
 				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
-				rangeParam.setMin(rangeParameter.getMin());
-				rangeParam.setMax(rangeParameter.getMax());
+				try {
+					// When the new minimum is less than the old maximum
+					rangeParam.setMin(rangeParameter.getMin());
+					rangeParam.setMax(rangeParameter.getMax());
+				} catch (IllegalArgumentException e) {
+					// When the new minimum is greater than the old maximum
+					rangeParam.setMax(rangeParameter.getMax());
+					rangeParam.setMin(rangeParameter.getMin());
+				}
 			}
 
 			param.setValue(parameter.getValue());

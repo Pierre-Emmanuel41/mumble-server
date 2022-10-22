@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import fr.pederobien.mumble.common.impl.MumbleErrorCode;
-import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleIdentifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.mumble.server.impl.AbstractMumbleConnection;
 import fr.pederobien.mumble.server.impl.MumbleServerMessageFactory;
@@ -16,7 +16,7 @@ import fr.pederobien.mumble.server.interfaces.IRequestManager;
 public abstract class RequestManager implements IRequestManager {
 	private float version;
 	private IMumbleServer server;
-	private Map<Identifier, Function<RequestReceivedHolder, IMumbleMessage>> requests;
+	private Map<MumbleIdentifier, Function<RequestReceivedHolder, IMumbleMessage>> requests;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
@@ -27,7 +27,7 @@ public abstract class RequestManager implements IRequestManager {
 	public RequestManager(IMumbleServer server, float version) {
 		this.server = server;
 		this.version = version;
-		requests = new HashMap<Identifier, Function<RequestReceivedHolder, IMumbleMessage>>();
+		requests = new HashMap<MumbleIdentifier, Function<RequestReceivedHolder, IMumbleMessage>>();
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * @return The map that contains the code to run according to the identifier of the request sent by the remote.
 	 */
-	public Map<Identifier, Function<RequestReceivedHolder, IMumbleMessage>> getRequests() {
+	public Map<MumbleIdentifier, Function<RequestReceivedHolder, IMumbleMessage>> getRequests() {
 		return requests;
 	}
 
@@ -61,11 +61,11 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * Send a message based on the given parameter to the remote.
 	 * 
-	 * @param identifier The identifier of the request to create.
+	 * @param mumbleIdentifier The identifier of the request to create.
 	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage create(float version, Identifier identifier, Object... properties) {
-		return MumbleServerMessageFactory.create(version, identifier, properties);
+	protected IMumbleMessage create(float version, MumbleIdentifier mumbleIdentifier, Object... properties) {
+		return MumbleServerMessageFactory.create(version, mumbleIdentifier, properties);
 	}
 
 	/**
