@@ -130,7 +130,17 @@ public class GamePortAnalyzer {
 			return isUsed;
 		}
 
+		/**
+		 * Send a request through the given connection in order to check the game port.
+		 * 
+		 * @param connection The connection used to send request to the client.
+		 * 
+		 * @return True if the game port is used, false otherwise.
+		 */
 		public boolean checkPortByMumble(ITcpConnection connection) {
+			if (connection == null)
+				return false;
+
 			// Step 1: Sending the request to the client.
 			connection.send(new MumbleCallbackMessage(client.createCheckGamePortMessage(client.getGameAddress().getPort()), args -> {
 				if (args.isTimeout())
